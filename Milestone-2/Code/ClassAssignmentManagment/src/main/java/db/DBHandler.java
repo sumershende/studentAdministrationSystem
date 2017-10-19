@@ -13,12 +13,13 @@ class IdentifierNotSetException extends Exception{
 	}
 }
 
-abstract class DBHandler{
+class DBHandler{
 
 	protected static final String jdbcUrl = "";
 	private Connection conn;
 	protected String userName, password;
 
+	
 
 	public boolean createConnection() throws SQLException, IdentifierNotSetException{
 		if (jdbcUrl == null){
