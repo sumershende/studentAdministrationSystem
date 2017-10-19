@@ -1,4 +1,4 @@
-package db;
+//package db;
 import java.sql.*;
 public class DbTestConnection {
 	public static void main(String args[]){  
@@ -8,8 +8,8 @@ public class DbTestConnection {
 		  
 		//step2 create  the connection object  
 		Connection con=DriverManager.getConnection(  
-		"jdbc:oracle:thin:@localhost:1521:xe","system","oracle");  
-		  
+		"jdbc:oracle:thin:@orca.csc.ncsu.edu:1521:orcl01","gverma","200158973");  
+		
 		//step3 create the statement object  
 		Statement stmt=con.createStatement();  
 		  
