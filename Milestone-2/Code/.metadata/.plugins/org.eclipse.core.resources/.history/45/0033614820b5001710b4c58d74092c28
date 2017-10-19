@@ -1,0 +1,7 @@
+package db;
+
+class ConsoleCreator {
+	public void createLoginConsole(){
+		
+	}
+}

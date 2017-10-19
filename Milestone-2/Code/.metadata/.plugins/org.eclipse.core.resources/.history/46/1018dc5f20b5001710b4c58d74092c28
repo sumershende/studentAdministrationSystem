@@ -1,0 +1,25 @@
+package db;
+
+import java.sql.SQLException;
+
+public class MainFile {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		DBHandler dbHandler = DBHandler.getDBHandler();
+		
+		// Create a valid connection:
+		try{
+			dbHandler.createConnection();
+			
+			int choice = 3;
+			
+		}catch(SQLException sqlExcpt){
+			sqlExcpt.printStackTrace();
+		}catch (IdentifierNotSetException e) {
+			e.printStackTrace();
+		}		
+	}
+}
+
+

@@ -1,0 +1,34 @@
+package db;
+
+import java.sql.SQLException;
+import java.util.Scanner;
+
+public class MainFile {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		DBHandler dbHandler = DBHandler.getDBHandler();
+		
+		// Create a valid connection:
+		try{
+			dbHandler.createConnection();
+			
+			ConsoleCreator consoleCreator = new ConsoleCreator();
+			
+			Scanner sc = new Scanner(System.in);
+			
+			int choice = 3;
+			while(1){
+				consoleCreator.createLoginConsole();
+				choice = sc.nextInt();
+			}
+			
+		}catch(SQLException sqlExcpt){
+			sqlExcpt.printStackTrace();
+		}catch (IdentifierNotSetException e) {
+			e.printStackTrace();
+		}		
+	}
+}
+
+

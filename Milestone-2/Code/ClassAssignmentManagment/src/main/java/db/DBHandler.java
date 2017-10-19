@@ -19,7 +19,18 @@ class DBHandler{
 	private Connection conn;
 	protected String userName, password;
 
+	private static DBHandler dbHandler;
 	
+	private DBHandler(){
+		
+	}
+	
+	public static DBHandler getDBHandler(){
+		if(dbHandler == null){
+			dbHandler = new DBHandler();
+		}
+		return dbHandler;
+	}
 
 	public boolean createConnection() throws SQLException, IdentifierNotSetException{
 		if (jdbcUrl == null){
@@ -38,6 +49,11 @@ class DBHandler{
 				throw sqlExcpt;
 			}
 		}
+		return true;
+	}
+	
+	public boolean login(){
+		
 		return true;
 	}
 

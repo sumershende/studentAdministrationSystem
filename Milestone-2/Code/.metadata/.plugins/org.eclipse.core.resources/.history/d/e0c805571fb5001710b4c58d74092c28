@@ -1,0 +1,12 @@
+package db;
+
+public class MainFile {
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		DBHandler dbHandler = DBHandler.getDBHandler();
+		
+		
+	}
+
+}
