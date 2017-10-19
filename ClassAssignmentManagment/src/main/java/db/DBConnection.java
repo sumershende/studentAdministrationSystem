@@ -1,75 +1,78 @@
-public class IdentifierNotSetException extends Exception{
-  public IdentifierNotSetException(String message){
-    super(message);
-  }
+package db;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class DBConnection extends Exception{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public DBConnection(String message){
+		super(message);
+	}
 }
 
 abstract class DBHandler{
-  
-  protected static final String jdbcUrl = "";
-  protected Connection conn;
-  protected String userName, password;
+
+	protected static final String jdbcUrl = "";
+	private Connection conn;
+	protected String userName, password;
 
 
-  protected boolean createConnection() throws IdentifierNotSetException, SQLException{
-    if (jdbcUrl == null){
-      throw new SQLException("JDBC URL can not be null!", "08001");
-    }
-    if (userName == null){
-      throw new IdentifierNotSetException("User Name not set!");
-    }
-    if (password == null){
-      throw new IdentifierNotSetException("Password not set!");
-    }
-    if (conn == null){
-      try{
-        conn = DriverManager.getConnection(jdbcUrl, userName, password);
-      }catch(SQLException sqlExcpt){
-        throw sqlExcpt;
-      }
-    }
-    return conn;
-  }
+	public boolean createConnection() throws DBConnection, SQLException{
+		if (jdbcUrl == null){
+			throw new SQLException("JDBC URL can not be null!", "08001");
+		}
+		if (userName == null){
+			throw new DBConnection("User Name not set!");
+		}
+		if (password == null){
+			throw new DBConnection("Password not set!");
+		}
+		if (conn == null){
+			try{
+				conn = (Connection) DriverManager.getConnection(jdbcUrl, userName, password);
+			}catch(SQLException sqlExcpt){
+				throw sqlExcpt;
+			}
+		}
+		return true;
+	}
 
-  protected void closeConnection(){
-    if(conn != null) {
-      try { 
-        conn.close(); 
-      } catch(Throwable whatever) {}
-    }
-  }
+	protected void closeConnection(){
+		if(conn != null) {
+			try { 
+				conn.close();
+			} catch(Throwable whatever) {}
+		}
+	}
 
-  protected void closeStatement(Statement st){
-    if(st != null) {
-      try { 
-        st.close(); 
-      } catch(Throwable whatever) {}
-    }
-  }
+	protected void closeStatement(Statement st){
+		if(st != null) {
+			try { 
+				st.close(); 
+			} catch(Throwable whatever) {}
+		}
+	}
 
-  protected void closeResultSet(ResultSet rs){
-    if(rs != null) {
-      try { 
-        rs.close(); 
-      } catch(Throwable whatever) {}
-    }
-  }
+	protected void closeResultSet(ResultSet rs){
+		if(rs != null) {
+			try { 
+				rs.close(); 
+			} catch(Throwable whatever) {}
+		}
+	}
 
-  protected void setUserName(String userName){
-    this.userName = userName;
-  }
+	protected void setUserName(String userName){
+		this.userName = userName;
+	}
 
-  protected void setPassword(String password){
-    this.password = password;
-  }
+	protected void setPassword(String password){
+		this.password = password;
+	}
 
-  protected void setJDBCURL(String jdbcUrl){
-    this.jdbcUrl = jdbcUrl;
-  }
-}
-
-public class Code{
-  public static void main(String[] args) {
-
-  }
 }
