@@ -1,0 +1,13 @@
+package db;
+
+enum UserType{
+	Professor, TA, Student
+}
+
+class UserHandler {
+	UserType userType;
+	
+	public UserHandler(UserType userType){
+		this.userType = userType;
+	}
+}

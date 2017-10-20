@@ -1,0 +1,56 @@
+class TAHandler {
+	protected static ConsoleManager consoleManager;
+	
+	protected static String fName, lName, eId;
+	
+	protected static DBHandler dbHandler;
+	
+	public static void execute(){
+		consoleManager = ConsoleManager.getConsoleCreator();
+		dbHandler = DBHandler.getDBHandler();
+		
+		int choice;
+		
+		fName = dbHandler.getLoggedInUserFirstName();
+		lName = dbHandler.getLoggedInUserLastName();
+		eId   = dbHandler.getLoggedInUserId();
+		
+		while(true){
+			consoleManager.createProfessorHomeScreen();
+			choice = consoleManager.askForInput("Please enter your choice: ");
+			
+			if (choice == 1){
+				// View Profile
+				viewProfile();
+			}else if(choice == 2){
+				// View Courses of which the person is TA.
+				displayTACourses();
+			}else if(choice == 3){
+				// Search/Add questions to Question Bank
+				
+			}else if(choice == 4){
+				// Logout
+				break;
+			}else{
+				consoleManager.displayInvalidChoiceError();
+			}
+		}
+	}
+	
+	protected static void viewProfile(){
+		int choice;
+		consoleManager.showProfOrTAProfile(fName, lName, eId);
+		while(true){
+			choice = consoleManager.askForInput(null);
+			if (choice != 0){
+				consoleManager.displayInvalidChoiceError();
+			}else{
+				break;
+			}
+		}
+	}
+	
+	private static void displayTACourses(){
+		
+	}
+}

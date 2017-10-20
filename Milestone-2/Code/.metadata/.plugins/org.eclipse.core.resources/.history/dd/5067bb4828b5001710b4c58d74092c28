@@ -1,0 +1,16 @@
+package db;
+
+public class ProfessorHandler {
+	private static ConsoleManager consoleManager;
+	
+	public static void execute(){
+		consoleManager = ConsoleManager.getConsoleCreator();
+		
+		int choice;
+		
+		while(true){
+			consoleCreator.createProfessorHomeScreen();
+			choice = ;
+		}
+	}
+}

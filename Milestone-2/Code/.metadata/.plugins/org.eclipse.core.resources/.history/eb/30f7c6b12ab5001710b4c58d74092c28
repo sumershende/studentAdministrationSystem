@@ -1,0 +1,47 @@
+package db;
+
+public class ProfessorHandler {
+	private static ConsoleManager consoleManager;
+	
+	public static void execute(){
+		consoleManager = ConsoleManager.getConsoleCreator();
+		
+		int choice;
+		
+		while(true){
+			consoleManager.createProfessorHomeScreen();
+			choice = consoleManager.askForInput("Please enter your choice: ");
+			
+			if (choice == 1){
+				// View Profile
+				
+			}else if(choice == 2){
+				// View/Add Courses
+				
+			}else if(choice == 3){
+				// Enroll/Drop A Student
+				
+			}else if(choice == 4){
+				// Search/Add questions to Question Bank
+				
+			}else if(choice == 5){
+				// Logout
+				
+			}else{
+				consoleManager.displayInvalidChoiceError();
+			}
+		}
+	}
+	
+	private void viewProfile(){
+		int choice;
+		consoleManager.clearScreen();
+		choice = consoleManager.askForInput(null);
+		if (choice == 0){
+			// Go back
+			
+		}else{
+			consoleManager.displayInvalidChoiceError();
+		}
+	}
+}

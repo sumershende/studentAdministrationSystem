@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename method &apos;ConsoleManager.askForInput(...)&apos; to &apos;askForIntInput&apos;&#x0D;&#x0A;- Original project: &apos;DBMS_P_1&apos;&#x0D;&#x0A;- Original element: &apos;ConsoleManager.askForInput(...)&apos;&#x0D;&#x0A;- Renamed element: &apos;ConsoleManager.askForIntInput(...)&apos;&#x0D;&#x0A;- Update references to refactored element" delegate="false" deprecate="false" description="Rename method &apos;askForInput&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.method" input="/src&lt;{ConsoleManager.java[ConsoleManager~askForInput~QString;" name="askForIntInput" references="true" stamp="1508472621989" version="1.0"/>
+</session>

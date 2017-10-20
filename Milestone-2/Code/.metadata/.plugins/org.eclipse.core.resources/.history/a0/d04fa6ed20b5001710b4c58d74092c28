@@ -1,8 +1,0 @@
-package db;
-
-class ConsoleCreator {
-	public void createLoginConsole(){
-		System.out.println("1. Login");
-		System.out.println("2. Exit");
-	}
-}

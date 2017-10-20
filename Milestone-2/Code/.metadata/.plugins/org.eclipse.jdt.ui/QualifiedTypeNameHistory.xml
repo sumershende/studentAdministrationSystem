@@ -1,2 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<qualifiedTypeNameHistroy/>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="db.DBHandlerAbstract"/>
+<fullyQualifiedTypeName name="java.sql.SQLException"/>
+<fullyQualifiedTypeName name="db.IdentifierNotSetException"/>
+<fullyQualifiedTypeName name="db.UserHandler"/>
+<fullyQualifiedTypeName name="db.UserType"/>
+<fullyQualifiedTypeName name="java.lang.reflect.GenericArrayType"/>
+<fullyQualifiedTypeName name="db.ConsoleCreator"/>
+<fullyQualifiedTypeName name="db.MainFile"/>
+<fullyQualifiedTypeName name="java.lang.Override"/>
+<fullyQualifiedTypeName name="db.ConsoleManager"/>
+<fullyQualifiedTypeName name="db.ProfessorHandler"/>
+<fullyQualifiedTypeName name="db.DBHandler"/>
+<fullyQualifiedTypeName name="java.io.Console"/>
+<fullyQualifiedTypeName name="java.util.Scanner"/>
+<fullyQualifiedTypeName name="TAHandler"/>
+<fullyQualifiedTypeName name="LoginDetails"/>
+<fullyQualifiedTypeName name="DBHandler"/>
+<fullyQualifiedTypeName name="Course"/>
+<fullyQualifiedTypeName name="java.lang.System"/>
+</qualifiedTypeNameHistroy>
