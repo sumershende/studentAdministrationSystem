@@ -89,4 +89,33 @@ class DBHandler{
 		this.password = password;
 	}
 
+	public void profViewProfile(int profId){
+        Statement stmt = null;
+		PreparedStatement pstmt = null;
+        ResultSet rs = null;
+		String profName;
+		String[] courses = new String[10];
+		int n = 0;
+
+		try{
+			// Create a statement object that will send SQL statement to DB
+			String sqlProfDetails = "select P.prof_name, C.c_name from PROFESSOR P, COURSES C where P.prof_id = ? and \
+			P.prof_id = C.prof_id ?"
+			pstmt = conn.prepareStatement(sqlProfDetails);
+			pstmt.clearParameters();
+			pstmt.setInt(1, profID);
+			rs = pstmt.executeQuery(sqlProfDetails);
+			while (rs.next()) {
+		    	profName = rs.getString("P.prof_name");
+				courses[n] = rs.getString("C.c_name");
+
+			}
+			//return array of profName, profId, courses
+
+
+		}catch(Throwable oops) {
+            oops.printStackTrace();
+        }
+	
+
 }
