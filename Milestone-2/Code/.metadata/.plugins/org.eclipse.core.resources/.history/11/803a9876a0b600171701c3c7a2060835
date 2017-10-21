@@ -1,0 +1,73 @@
+import java.util.List;
+
+enum QuestionType{
+	Fixed, Parameterized;
+}
+
+class Question {
+	
+	private final String text, hint, topicName, detailedSolution;
+	private final int difficultyLevel, topicId, id;
+	
+	private final QuestionType questionType;
+	
+	private final List<List<String>> parameterValues;
+	
+	public Question(String text, String topicName, int difficultyLevel, int topicId, int id, QuestionType questionType, String detailedSolution, List<List<String>> parameterValues) {
+		// TODO Auto-generated constructor stub
+		this(text, null, topicName, difficultyLevel, topicId, id, questionType, detailedSolution, parameterValues);
+	}
+	
+	public Question(String text, String hint, String topicName, int difficultyLevel, int topicId, int id, QuestionType questionType, String detailedSolution, List<List<String>> parameterValues) {
+		// TODO Auto-generated constructor stub
+		this.text = text;
+		this.difficultyLevel = difficultyLevel;
+		this.topicId = topicId;
+		this.id = id;
+		this.hint = hint;
+		this.topicName = topicName;
+		this.questionType = questionType;
+		this.detailedSolution = detailedSolution;
+		this.parameterValues = parameterValues;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public String getHint() {
+		return hint;
+	}
+
+	public String getTopicName() {
+		return topicName;
+	}
+
+	public int getDifficultyLevel() {
+		return difficultyLevel;
+	}
+
+	public int getTopicId() {
+		return topicId;
+	}
+
+	public int getId() {
+		return id;
+	}
+	
+	public QuestionType getQuestionType() {
+		return questionType;
+	}
+
+	public String getDetailedSolution() {
+		return detailedSolution;
+	}
+
+	public List<List<String>> getParameterValues() {
+		return parameterValues;
+	}
+
+	public boolean hasHint(){
+		return hint != null;
+	}
+}

@@ -1,0 +1,56 @@
+
+enum QuestionType{
+	Fixed, Parameterized;
+}
+
+class Question {
+	
+	private final String text, hint, topicName;
+	private final int difficultyLevel, topicId, id;
+	
+	private final QuestionType questionType;
+	
+	public Question(String text, String topicName, int difficultyLevel, int topicId, int id) {
+		// TODO Auto-generated constructor stub
+		this(text, null, topicName, difficultyLevel, topicId, id);
+	}
+	
+	public Question(String text, String hint, String topicName, int difficultyLevel, int topicId, int id) {
+		// TODO Auto-generated constructor stub
+		this.text = text;
+		this.difficultyLevel = difficultyLevel;
+		this.topicId = topicId;
+		this.id = id;
+		this.hint = hint;
+		this.topicName = topicName;
+		this.questionType = questionType;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public String getHint() {
+		return hint;
+	}
+
+	public String getTopicName() {
+		return topicName;
+	}
+
+	public int getDifficultyLevel() {
+		return difficultyLevel;
+	}
+
+	public int getTopicId() {
+		return topicId;
+	}
+
+	public int getId() {
+		return id;
+	}
+	
+	public boolean hasHint(){
+		return hint != null;
+	}
+}

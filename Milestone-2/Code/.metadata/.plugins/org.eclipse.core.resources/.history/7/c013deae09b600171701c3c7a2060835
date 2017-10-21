@@ -1,0 +1,10 @@
+
+class Question {
+	private final String text, hint;
+	private final int difficultyLevel, topicId, id;
+	
+	public Question() {
+		// TODO Auto-generated constructor stub
+		
+	}
+}

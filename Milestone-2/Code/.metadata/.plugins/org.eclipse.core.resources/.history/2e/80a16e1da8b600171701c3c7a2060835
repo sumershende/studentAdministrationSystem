@@ -1,0 +1,6 @@
+
+class StudentHandler {
+	private StudentHandler(){
+		
+	}
+}

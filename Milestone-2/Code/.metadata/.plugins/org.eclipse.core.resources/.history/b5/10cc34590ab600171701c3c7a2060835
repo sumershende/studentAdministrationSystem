@@ -1,0 +1,19 @@
+
+class Question {
+	private final String text, hint;
+	private final int difficultyLevel, topicId, id;
+	
+	public Question(String text, int difficultyLevel, int topicId, int id) {
+		// TODO Auto-generated constructor stub
+		
+	}
+	
+	public Question(String text, String hint, int difficultyLevel, int topicId, int id) {
+		// TODO Auto-generated constructor stub
+		this.text = text;
+		this.difficultyLevel = difficultyLevel;
+		this.topicId = topicId;
+		this.id = id;
+		this.hint = hint;
+	}
+}

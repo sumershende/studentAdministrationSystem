@@ -11,13 +11,13 @@ public class MainFile {
 		try{
 			dbHandler.createConnection();
 			
-			ConsoleManager consoleManager = ConsoleManager.getConsoleCreator();
+			ConsoleManager consoleManager = ConsoleManager.getConsoleManager();
 			
 			Scanner sc = new Scanner(System.in);
 			
 			int choice = 3;
 			while(true){
-				consoleManager.createStartConsole();
+				consoleManager.showStartConsole();
 				choice = consoleManager.askForIntInput("Please enter your choice: ");
 				consoleManager.clearScreen();
 				
@@ -43,12 +43,14 @@ public class MainFile {
 						ProfessorHandler.execute();
 					}else if(userType == 2){
 						// TA
+						TAHandler.execute();
 					}else if(userType == 3){
 						// Student
+						StudentHandler.execute();
 					}
 				}
 				else{
-					consoleManager.displayInvalidChoiceError();
+					consoleManager.showInvalidChoiceError();
 				}
 			}
 			sc.close();

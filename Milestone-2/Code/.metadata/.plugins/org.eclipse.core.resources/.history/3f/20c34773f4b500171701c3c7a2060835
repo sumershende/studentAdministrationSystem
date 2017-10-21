@@ -1,0 +1,6 @@
+
+class StudentReport {
+	private final String firstName, lastName;
+	private final String[][] scoresPerHW;
+	
+}

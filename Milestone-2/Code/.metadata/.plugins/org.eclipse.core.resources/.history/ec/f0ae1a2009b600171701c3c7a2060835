@@ -1,0 +1,5 @@
+
+class Question {
+	private final String questionText;
+	private final int difficultyLevel;
+}

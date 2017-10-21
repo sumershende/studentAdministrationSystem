@@ -1,0 +1,8 @@
+
+class StudentHandler {
+	DBHandler dbHandler;
+	ConsoleManager consoleManager;
+	private StudentHandler(){
+		// Make it singleton
+	}
+}
