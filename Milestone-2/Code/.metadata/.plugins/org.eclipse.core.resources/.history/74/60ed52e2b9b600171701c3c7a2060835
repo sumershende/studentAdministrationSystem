@@ -312,7 +312,7 @@ class ConsoleManager {
 		// Get the correct answer(s)
 		for(int ansNum = 0 ; ansNum < totalCorrectAnswers ; ++ansNum){
 			if(questionType == QuestionType.Fixed){
-				correctAnswers[0][ansNum] = askForStringInput("Please enter the correct answer: ");
+				correctAnswers[0] = askForStringInput("Please enter the correct answer: ");
 			}else{
 				int totalAnswerPlaceHolders = getTotalParametersFromQuestionText(text, "###");
 				for(int ans = 0 ; ans < totalValuesForOneParameter ; ++ans){
@@ -322,7 +322,7 @@ class ConsoleManager {
 						if(placeHolder != totalAnswerPlaceHolders - 1)
 							answer.append("; ");
 					}
-					correctAnswers[ans][ansNum] = answer.toString();
+					correctAnswers[ans] = answer.toString();
 				}
 			}
 		}

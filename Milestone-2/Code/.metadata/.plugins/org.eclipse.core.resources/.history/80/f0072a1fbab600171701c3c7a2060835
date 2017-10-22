@@ -68,7 +68,7 @@ class Question {
 		return incorrectAnswers;
 	}
 
-	public String[][] getAnswers() {
+	public String[] getAnswers() {
 		return correctAnswers;
 	}
 

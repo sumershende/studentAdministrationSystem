@@ -307,23 +307,21 @@ class ConsoleManager {
 		
 		int difficultyLevel = askForIntInput("Please enter difficulty level: ");
 		
-		int totalCorrectAnswers = askForIntInput("How many correct answers will you enter?");
-		String[][] correctAnswers = new String[totalValuesForOneParameter][totalCorrectAnswers];
+		int totalCorrectAnswers = askForIntInput("How many correct answer options will you enter?");
+		String[] correctAnswers = new String[totalValuesForOneParameter];
 		// Get the correct answer(s)
-		for(int ansNum = 0 ; ansNum < totalCorrectAnswers ; ++ansNum){
-			if(questionType == QuestionType.Fixed){
-				correctAnswers[0][ansNum] = askForStringInput("Please enter the correct answer: ");
-			}else{
-				int totalAnswerPlaceHolders = getTotalParametersFromQuestionText(text, "###");
-				for(int ans = 0 ; ans < totalValuesForOneParameter ; ++ans){
-					StringBuilder answer = new StringBuilder();
-					for(int placeHolder = 0 ; placeHolder < totalAnswerPlaceHolders ; ++placeHolder){
-						answer.append(askForStringInput("Enter the value of " + (placeHolder + 1) + " place holder in the correct answer for combination " + (ans + 1) + ": "));
-						if(placeHolder != totalAnswerPlaceHolders - 1)
-							answer.append("; ");
-					}
-					correctAnswers[ans][ansNum] = answer.toString();
+		if(questionType == QuestionType.Fixed){
+			correctAnswers[0] = askForStringInput("Please enter the correct answer: ");
+		}else{
+			int totalAnswerPlaceHolders = getTotalParametersFromQuestionText(text, "###");
+			for(int ans = 0 ; ans < totalValuesForOneParameter ; ++ans){
+				StringBuilder answer = new StringBuilder();
+				for(int placeHolder = 0 ; placeHolder < totalAnswerPlaceHolders ; ++placeHolder){
+					answer.append(askForStringInput("Enter the value of " + (placeHolder + 1) + " place holder in the correct answer for combination " + (ans + 1) + ": "));
+					if(placeHolder != totalAnswerPlaceHolders - 1)
+						answer.append("; ");
 				}
+				correctAnswers[ans] = answer.toString();
 			}
 		}
 		

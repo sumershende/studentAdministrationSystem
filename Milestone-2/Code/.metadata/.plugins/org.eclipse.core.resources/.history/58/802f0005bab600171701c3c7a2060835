@@ -9,11 +9,11 @@ class Question {
 	
 	private final QuestionType questionType;
 	
-	private final String[][] parameterValues, correctAnswers;
+	private final String[][] parameterValues;
 	
 	private final String[] incorrectAnswers;
 	
-	public Question(String text, String hint, String topicName, int difficultyLevel, int topicId, int id, QuestionType questionType, String detailedSolution, String[][] parameterValues, String[][] correctAnswers, String[] incorrectAnswers) {
+	public Question(String text, String hint, String topicName, int difficultyLevel, int topicId, int id, QuestionType questionType, String detailedSolution, String[][] parameterValues, String[] answers, String[] incorrectAnswers) {
 		// TODO Auto-generated constructor stub
 		this.text = text;
 		this.difficultyLevel = difficultyLevel;
@@ -24,7 +24,7 @@ class Question {
 		this.questionType = questionType;
 		this.detailedSolution = detailedSolution;
 		this.parameterValues = parameterValues;
-		this.correctAnswers = correctAnswers;
+		this.correctAnswers = answers;
 		this.incorrectAnswers = incorrectAnswers;
 	}
 
@@ -68,7 +68,7 @@ class Question {
 		return incorrectAnswers;
 	}
 
-	public String[][] getAnswers() {
+	public String[] getAnswers() {
 		return correctAnswers;
 	}
 

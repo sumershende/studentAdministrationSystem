@@ -140,7 +140,6 @@ class DBHandler{
 
 	public Course getCourseInfo(String courseId){
 		Course course = new Course("CSC-505", "ALGO", "08/15/2017", "07/12/2017", new String[]{"Udit Deshmukh", "Akanksha Shukla"});
-		
 		return course;
 	}
 	

@@ -322,7 +322,7 @@ class ConsoleManager {
 						if(placeHolder != totalAnswerPlaceHolders - 1)
 							answer.append("; ");
 					}
-					correctAnswers[ans][ansNum] = answer.toString();
+					correctAnswers[ans] = answer.toString();
 				}
 			}
 		}
