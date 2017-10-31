@@ -1,10 +1,24 @@
+import java.util.List;
+
 enum QuestionType{
 	Fixed, Parameterized;
 }
 
 class Question {
 	
-	private final String text, hint, topicName, detailedSolution;
+	// Fields shown to student for the attempt before deadline:
+	private final String text, hint;
+	// Fields shown to student for the attempt after deadline:
+	private final String detailedSolution;
+	
+	
+	// Fields only present while attempting a question:
+	private final List<String> options;
+	private final int correctChoice;
+	
+	
+	// Fields not shown to student:
+	private final String topicName;
 	private final int difficultyLevel, topicId, id;
 	
 	private final QuestionType questionType;
@@ -13,7 +27,34 @@ class Question {
 	
 	private final String[] incorrectAnswers;
 	
-	public Question(String text, String hint, String topicName, int difficultyLevel, int topicId, int id, QuestionType questionType, String detailedSolution, String[][] parameterValues, String[][] correctAnswers, String[] incorrectAnswers) {
+	public Question(String text, String hint){
+		this(text, hint, null, -1, -1, -1, null, null, null, null, null, null, 
+				-1);
+	}
+	
+	public Question(String text, String hint, String detailedSolution){
+		this(text, hint, null, -1, -1, -1, null, detailedSolution, null, null, 
+				null, null, -1);
+	}
+	
+	public Question(String text, String hint, List<String> options, short correctChoice){
+		this(text, hint, null, -1, -1, -1, null, null, null, null, null, options, 
+				correctChoice);
+	}
+	
+	public Question(String text, String hint, String topicName, int difficultyLevel, 
+			int topicId, int id, QuestionType questionType, String detailedSolution, 
+			String[][] parameterValues, String[][] correctAnswers, 
+			String[] incorrectAnswers){
+		this(text, hint, topicName, difficultyLevel, topicId, 
+				id, questionType, detailedSolution, parameterValues, 
+				correctAnswers, incorrectAnswers, null, -1);
+	}
+	
+	public Question(String text, String hint, String topicName, int difficultyLevel, 
+			int topicId, int id, QuestionType questionType, String detailedSolution, 
+			String[][] parameterValues, String[][] correctAnswers, 
+			String[] incorrectAnswers, List<String> options, int correctChoice) {
 		// TODO Auto-generated constructor stub
 		this.text = text;
 		this.difficultyLevel = difficultyLevel;
@@ -26,6 +67,8 @@ class Question {
 		this.parameterValues = parameterValues;
 		this.correctAnswers = correctAnswers;
 		this.incorrectAnswers = incorrectAnswers;
+		this.options = options;
+		this.correctChoice = correctChoice;
 	}
 
 	public String getText() {
@@ -66,6 +109,18 @@ class Question {
 
 	public String[] getIncorrectAnswers() {
 		return incorrectAnswers;
+	}
+
+	public List<String> getOptions() {
+		return options;
+	}
+
+	public int getCorrectChoice() {
+		return correctChoice;
+	}
+
+	public String[][] getCorrectAnswers() {
+		return correctAnswers;
 	}
 
 	public String[][] getAnswers() {

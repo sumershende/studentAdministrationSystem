@@ -1,0 +1,6 @@
+enum ExerciseType{
+	
+}
+class Exercise {
+
+}

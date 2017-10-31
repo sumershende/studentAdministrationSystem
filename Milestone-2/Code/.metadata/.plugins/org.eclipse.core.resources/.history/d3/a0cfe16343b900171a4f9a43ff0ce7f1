@@ -1,0 +1,95 @@
+enum QuestionType{
+	Fixed, Parameterized;
+}
+
+class Question {
+	
+	// Fields shown to student for the attempt before deadline:
+	private final String text, hint;
+	// Fields shown to student for the attempt after deadline:
+	private final String detailedSolution;
+	
+	// Fields only present while attempting a question:
+	private final 
+	
+	// Fields not shown to student:
+	private final String topicName;
+	private final int difficultyLevel, topicId, id;
+	
+	private final QuestionType questionType;
+	
+	private final String[][] parameterValues, correctAnswers;
+	
+	private final String[] incorrectAnswers;
+	
+	public Question(String text, String hint){
+		this(text, hint, null, -1, -1, -1, null, null, null, null, null);
+	}
+	
+	public Question(String text, String hint, String detailedSolution){
+		this(text, hint, null, -1, -1, -1, null, detailedSolution, null, null, null);
+	}
+	
+	public Question(String text, String hint, String topicName, int difficultyLevel, int topicId, int id, QuestionType questionType, String detailedSolution, String[][] parameterValues, String[][] correctAnswers, String[] incorrectAnswers) {
+		// TODO Auto-generated constructor stub
+		this.text = text;
+		this.difficultyLevel = difficultyLevel;
+		this.topicId = topicId;
+		this.id = id;
+		this.hint = hint;
+		this.topicName = topicName;
+		this.questionType = questionType;
+		this.detailedSolution = detailedSolution;
+		this.parameterValues = parameterValues;
+		this.correctAnswers = correctAnswers;
+		this.incorrectAnswers = incorrectAnswers;
+	}
+
+	public String getText() {
+		return text;
+	}
+
+	public String getHint() {
+		return hint;
+	}
+
+	public String getTopicName() {
+		return topicName;
+	}
+
+	public int getDifficultyLevel() {
+		return difficultyLevel;
+	}
+
+	public int getTopicId() {
+		return topicId;
+	}
+
+	public int getId() {
+		return id;
+	}
+	
+	public QuestionType getQuestionType() {
+		return questionType;
+	}
+
+	public String getDetailedSolution() {
+		return detailedSolution;
+	}
+
+	public String[][] getParameterValues() {
+		return parameterValues;
+	}
+
+	public String[] getIncorrectAnswers() {
+		return incorrectAnswers;
+	}
+
+	public String[][] getAnswers() {
+		return correctAnswers;
+	}
+
+	public boolean hasHint(){
+		return hint != null;
+	}
+}
