@@ -180,7 +180,7 @@ class ConsoleManager {
 		System.out.print("> Current TA(s): ");
 		if(course.hasTAs()){
 			for(Person TA : course.getTAs()){
-				System.out.print("\n\t> " + TA.getFirstName() + " " + TA.getLastName());
+				System.out.print("\n\t> " + TA.getName());
 			}
 		}else{
 			System.out.print("None");

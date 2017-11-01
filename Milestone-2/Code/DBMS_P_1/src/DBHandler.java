@@ -58,20 +58,30 @@ class DBHandler{
 		// to continue as student or TA and informs.
 		
 		Connection conn= createConnection();
-		PreparedStatement stmt = conn.prepareStatement("SELECT userid, password, roleid FROM login WHERE userid=? AND password=?");
+		PreparedStatement stmt = conn.prepareStatement("SELECT firstname, lastname, roleid FROM login WHERE userid=? AND password=?");
 		stmt.setString(1, userName);
 		stmt.setString(2, password);
 		ResultSet rs = stmt.executeQuery();
-		while(rs.next())  {
-			
-		System.out.println(rs.getInt(1)+"  "+rs.getString(2)+"  "+rs.getString(3)); 
+		boolean validResult=false;
+		while(validResult==false && rs.next())  {
+			loggedInUserFirstName = rs.getString(1);
+			loggedInUserLastName  = rs.getString(2);
+			loggedInUserId = "200158973";
+			int roleid = rs.getInt(3);
+			if(roleid==1){
+				loggedInUserType = LoggedInUserType.Professor;
+			}else if(roleid==2){
+				loggedInUserType = LoggedInUserType.TA;
+			}else if(roleid==3){
+				loggedInUserType = LoggedInUserType.Student;
+			}
+			validResult=true;
+			isUserLoggedIn = true;
 		}
-		loggedInUserFirstName = "Gautam";
-		loggedInUserLastName  = "Verma";
-		loggedInUserId = "200158973";
-		loggedInUserType = LoggedInUserType.Professor;
-		
-		isUserLoggedIn = true;
+		if(validResult==false){
+			loggedInUserType = LoggedInUserType.InvalidUser;
+			isUserLoggedIn = false;
+		}
 		
 		return loggedInUserType;
 	}
