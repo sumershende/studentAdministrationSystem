@@ -215,11 +215,11 @@ class DBHandler{
 		// All.
 		// *******TODO Aggregate records for every student*****
 		List<StudentReport> stReport = new ArrayList<StudentReport>();
-		String sqlGetExId = 'select st_id, st_name, with_score, e_id from Has_Solved H, Grad_Students G
-		where H.st_id = G.st_id and H.e_id in (select e_id from Exercises E, Topics T 
+		String sql = 'select st_id, st_name, with_score, ex_id from Has_Solved H, Grad_Students G
+		where H.st_id = G.st_id and H.ex_id in (select ex_id from Exercises E, Topics T 
 		where T.c_id = ? and E.tp_id = T.tp_id )';
-		PreparedStatement ps = conn.prepareStatement(sqlGetExId);
-		ps.setInt(1,courseId);
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, Integer.parseInt(courseId));
 		ResultSet rs = ps.executeQuery();
 		while(rs.next()){
 			String st_id = Integetr.toString(rs.getInt(1));
@@ -246,6 +246,13 @@ class DBHandler{
 		// 6. Number of questions
 		// 7. Number of retries
 		// 8. Scoring Policy
+		String sql = 'select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions,
+		num_retires, policy, pt_correct, pt_incorrect from Exercises E, Topics T where E.tp_id = T.tp_id
+		and T.c_id = ?';
+		PreparedStatement ps = conn.prepareStatement(sql);
+		ps.setInt(1, Integer.parseInt(courseId));
+
+
 		
 		return null;
 	}
