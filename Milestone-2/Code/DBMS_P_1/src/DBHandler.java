@@ -152,7 +152,7 @@ class DBHandler{
 	public List<String[]> getTACourses(){
 		// Return the courses for which the logged in user is TA.
 		// Syntax = <[courseName, courseId], [], []>
-		List<String[]> TACourses = new ArrayList<>();
+		List<String[]> TACourses = new ArrayList<String[]>();
 		TACourses.add(new String[]{"ALGO", "CSC-505"});
 		TACourses.add(new String[]{"SE", "CSC-510"});
 		
@@ -160,7 +160,7 @@ class DBHandler{
 	}
 	
 	public List<String[]> getStudentEnrolledCourses(){
-		List<String[]> studentCourses = new ArrayList<>();
+		List<String[]> studentCourses = new ArrayList<String[]>();
 		studentCourses.add(new String[]{"ALGO", "CSC-505"});
 		studentCourses.add(new String[]{"SE", "CSC-510"});
 		
@@ -223,8 +223,26 @@ class DBHandler{
 		// Returns the report of all students in the course.
 		// Fields required in StudentReport:
 		// All.
+		// *******TODO Aggregate records for every student*****
+		List<StudentReport> stReport = new ArrayList<StudentReport>();
+		String sqlGetExId = 'select st_id, st_name, with_score, e_id from Has_Solved H, Grad_Students G
+		where H.st_id = G.st_id and H.e_id in (select e_id from Exercises E, Topics T 
+		where T.c_id = ? and E.tp_id = T.tp_id )';
+		PreparedStatement ps = conn.prepareStatement(sqlGetExId);
+		ps.setInt(1,courseId);
+		ResultSet rs = ps.executeQuery();
+		while(rs.next()){
+			String st_id = Integetr.toString(rs.getInt(1));
+			String st_name = rs.getString(2);
+			String lName = '';
+			String with_score = Integer.toString(rs.getInt(3));
+			String e_id = Integer.toString(rs.getInt(4));
+			String[][] scores = {{e_id, with_score}};
+			stReport.add(new StudentReport(st_name, lName, scores));
+		}
+
 		
-		return null;
+		return stReport;
 	}
 	
 	public List<Exercise> getExercisesForCourse(String courseId){
