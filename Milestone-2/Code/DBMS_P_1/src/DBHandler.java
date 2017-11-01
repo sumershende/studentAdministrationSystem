@@ -1,5 +1,6 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -14,7 +15,7 @@ enum LoggedInUserType{
 class DBHandler{
 
 	protected static final String jdbcUrl = "jdbc:oracle:thin:@orca.csc.ncsu.edu:1521:orcl01";
-	private Connection conn;
+	private static Connection conn;
 	private final String dbUserName, dbPassword;
 	
 	private String loggedInUserFirstName, loggedInUserLastName, loggedInUserId;
@@ -38,7 +39,7 @@ class DBHandler{
 		return dbHandler;
 	}
 
-	public boolean createConnection() throws SQLException{
+	public Connection createConnection() throws SQLException{
 		if (jdbcUrl == null){
 			throw new SQLException("JDBC URL can not be null!", "08001");
 		}
@@ -49,12 +50,22 @@ class DBHandler{
 				throw sqlExcpt;
 			}
 		}
-		return true;
+		return conn;
 	}
 	
-	public LoggedInUserType login(String userName, String password){	
+	public LoggedInUserType login(String userName, String password) throws SQLException{	
 		// By default, login any TA as TA. He can chooses if he wants
 		// to continue as student or TA and informs.
+		
+		Connection conn= createConnection();
+		PreparedStatement stmt = conn.prepareStatement("SELECT userid, password, roleid FROM login WHERE userid=? AND password=?");
+		stmt.setString(1, userName);
+		stmt.setString(2, password);
+		ResultSet rs = stmt.executeQuery();
+		while(rs.next())  {
+			
+		System.out.println(rs.getInt(1)+"  "+rs.getString(2)+"  "+rs.getString(3)); 
+		}
 		loggedInUserFirstName = "Gautam";
 		loggedInUserLastName  = "Verma";
 		loggedInUserId = "200158973";
