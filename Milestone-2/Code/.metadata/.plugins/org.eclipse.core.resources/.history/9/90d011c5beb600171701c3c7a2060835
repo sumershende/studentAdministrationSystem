@@ -1,0 +1,6 @@
+enum ExerciseType{
+	Adaptive, Random;
+}
+class Exercise {
+
+}

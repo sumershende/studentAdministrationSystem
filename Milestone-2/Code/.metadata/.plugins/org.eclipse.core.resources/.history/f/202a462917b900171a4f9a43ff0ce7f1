@@ -1,0 +1,12 @@
+
+class StudentHWAttempt {
+	private final double score;
+	private final String submissionDateTime;
+	
+	public StudentHWAttempt(double score, String submissionDateTime){
+		this.score = score;
+		this.submissionDateTime = submissionDateTime;
+		
+		
+	}
+}

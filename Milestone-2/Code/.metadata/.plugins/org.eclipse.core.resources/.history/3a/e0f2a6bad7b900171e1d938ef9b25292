@@ -1,0 +1,11 @@
+
+class Person {
+	private final String firstName, lastName;
+	private Person(String firstName, String lastName, int id) {
+		super();
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.id = id;
+	}
+	private final int id;
+}

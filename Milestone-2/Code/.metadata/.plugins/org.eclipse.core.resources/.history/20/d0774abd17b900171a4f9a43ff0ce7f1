@@ -1,0 +1,23 @@
+
+class StudentHWAttempt {
+	// Fields required for overview: 
+	private final double score;
+	private final String submissionDateTime;
+	
+	// Fields required for details:
+	
+	
+	
+	public StudentHWAttempt(double score, String submissionDateTime){
+		this.score = score;
+		this.submissionDateTime = submissionDateTime;
+	}
+
+	public double getScore() {
+		return score;
+	}
+
+	public String getSubmissionDateTime() {
+		return submissionDateTime;
+	}
+}

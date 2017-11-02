@@ -1,0 +1,17 @@
+enum ExerciseType{
+	Adaptive, Random;
+}
+class Exercise {
+	
+	private ExerciseType exerciseType;
+	
+	private Exercise(ExerciseType exerciseType){
+		this.exerciseType = exerciseType;
+	}
+
+	public ExerciseType getExerciseType() {
+		return exerciseType;
+	}
+	
+	
+}

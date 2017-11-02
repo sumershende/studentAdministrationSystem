@@ -1,0 +1,69 @@
+enum ExerciseMode{
+	Adaptive, Random;
+}
+
+enum ScroingPolicy{
+	Latest, Maximum, Average;
+}
+
+class Exercise {
+	
+	private ExerciseMode exerciseMode;
+	
+	private final String startDate, endDate, name;
+	private int numQuestions, numRetries, id;
+
+	private final ScroingPolicy scroingPolicy;
+	
+	private final List<String> qIds;
+	
+	public Exercise(ExerciseMode exerciseMode, ScroingPolicy scroingPolicy, String name, String startDate, String endDate, int numQuestions, int numRetries, int id, List<String> qIds){
+		this.exerciseMode = exerciseMode;
+		this.scroingPolicy = scroingPolicy;
+		this.name = name;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.numQuestions = numQuestions;
+		this.numRetries = numRetries;
+		this.id = id;
+		this.qIds = qIds;
+	}
+
+	public ExerciseMode getExerciseType() {
+		return exerciseMode;
+	}
+
+	public ExerciseMode getExerciseMode() {
+		return exerciseMode;
+	}
+
+	public String getStartDate() {
+		return startDate;
+	}
+
+	public String getEndDate() {
+		return endDate;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public int getNumQuestions() {
+		return numQuestions;
+	}
+
+	public int getNumRetries() {
+		return numRetries;
+	}
+
+	public ScroingPolicy getScroingPolicy() {
+		return scroingPolicy;
+	}
+
+	public int getId() {
+		return id;
+	}
+	
+	
+}

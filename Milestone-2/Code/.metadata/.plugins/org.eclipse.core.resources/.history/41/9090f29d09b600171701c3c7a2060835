@@ -1,7 +1,0 @@
-
-class Question {
-	private final String text, hint;
-	private final int difficultyLevel, topicId, id;
-	
-	
-}

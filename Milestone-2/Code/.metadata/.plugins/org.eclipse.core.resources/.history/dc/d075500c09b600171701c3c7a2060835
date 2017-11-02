@@ -1,4 +1,0 @@
-
-class Question {
-	private final String question_text;
-}
