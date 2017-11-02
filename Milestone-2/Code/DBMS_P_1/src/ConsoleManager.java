@@ -66,8 +66,7 @@ class ConsoleManager {
 	}
 	
 	private void showCommonProfileData(LoggedInUserType userType){
-		System.out.println("1. First Name: " + dbHandler.getLoggedInUserFirstName());
-		System.out.println("2. Last Name: " + dbHandler.getLoggedInUserLastName());
+		System.out.println("1. First Name: " + dbHandler.getLoggedInUserName());
 		if(userType == LoggedInUserType.Student){
 			System.out.println("3. Student Id: " + dbHandler.getLoggedInUserId());
 		}else{

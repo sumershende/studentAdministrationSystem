@@ -71,6 +71,8 @@ public class MainFile {
 			
 		}catch(SQLException sqlExcpt){
 			sqlExcpt.printStackTrace();
+		}finally{
+			dbHandler.closeConnection();
 		}
 	}
 }

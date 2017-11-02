@@ -18,7 +18,7 @@ class DBHandler{
 	private static Connection conn;
 	private final String dbUserName, dbPassword;
 	
-	private String loggedInUserFirstName, loggedInUserLastName, loggedInUserId;
+	private String loggedInUserName, loggedInUserId;
 	private LoggedInUserType loggedInUserType;
 
 	private boolean isUserLoggedIn;
@@ -123,12 +123,8 @@ class DBHandler{
 		}
 	}
 	
-	public String getLoggedInUserFirstName(){
-		return loggedInUserFirstName;
-	}
-	
-	public String getLoggedInUserLastName(){
-		return loggedInUserLastName;
+	public String getLoggedInUserName(){
+		return loggedInUserName;
 	}
 	
 	public String getLoggedInUserId(){
