@@ -27,14 +27,12 @@ public class MainFile {
 				}
 				else if (choice == 1){
 					// Login
-					System.out.print("Username: ");
-					String userName = sc.nextLine();
-					System.out.print("Password: ");
-					String password = sc.nextLine();
+					String userId = consoleManager.askForStringInput("Enter Username: ");
+					String password = consoleManager.askForStringInput("Enter password: ");
 					
 					consoleManager.clearScreen();
 					
-					LoggedInUserType userType = dbHandler.login(userName, password);
+					LoggedInUserType userType = dbHandler.login(userId, password);
 					
 					if(userType == LoggedInUserType.InvalidUser){
 						System.out.println("Invalid username/login.");
