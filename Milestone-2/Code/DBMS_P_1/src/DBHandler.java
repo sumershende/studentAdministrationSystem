@@ -58,15 +58,14 @@ class DBHandler{
 		// to continue as student or TA and informs.
 		
 		Connection conn= createConnection();
-		PreparedStatement stmt = conn.prepareStatement("SELECT firstname, lastname, roleid FROM login WHERE userid=? AND password=?");
+		PreparedStatement stmt = conn.prepareStatement("SELECT name, userid, roleid FROM login WHERE userid=? AND password=?");
 		stmt.setString(1, userName);
 		stmt.setString(2, password);
 		ResultSet rs = stmt.executeQuery();
 		boolean validResult=false;
 		while(validResult==false && rs.next())  {
-			loggedInUserFirstName = rs.getString(1);
-			loggedInUserLastName  = rs.getString(2);
-			loggedInUserId = "200158973";
+			loggedInUserName = rs.getString(1);
+			loggedInUserId = rs.getString(2);
 			int roleid = rs.getInt(3);
 			if(roleid==1){
 				loggedInUserType = LoggedInUserType.Professor;
