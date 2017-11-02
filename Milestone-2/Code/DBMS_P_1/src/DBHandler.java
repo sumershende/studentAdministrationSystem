@@ -4,6 +4,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -142,8 +145,9 @@ class DBHandler{
 	public List<String[]> getTaughtCoursesByProfessor(){
 		// Return the taught courses by the logged in professor.
 		// Syntax = <[courseName, courseId], [], []>
+		List<String[]> taughtCourses = new ArrayList<>();
 		if(isProfessor()){
-			List<String[]> taughtCourses = new ArrayList<>();
+			
 			Statement stmt = null;
 			PreparedStatement pstmt = null;
     		ResultSet rs = null;
@@ -154,10 +158,10 @@ class DBHandler{
 		try{
 			// Create a statement object that will send SQL statement to DB
 			String sqlCourseDetails = "select c_id, c_name from COURSES as C where prof_id = ?;";
-			pstmt = conn.prepareStatement(sqlProfDetails);
+			pstmt = conn.prepareStatement(sqlCourseDetails);
 			pstmt.clearParameters();
 			pstmt.setInt(1, profID);
-			rs = pstmt.executeQuery(sqlProfDetails);
+			rs = pstmt.executeQuery(sqlCourseDetails);
 			while (rs.next()) {
 		    	courseName = rs.getString("c_name");
 				courseId = Integer.toString(rs.getInt("c_id"));
@@ -183,8 +187,7 @@ class DBHandler{
 		String courseId, courseName;
 		int studentId = Integer.parseInt(loggedInUserId);
 		try{
-			String sqlCourseDetails = "select C.c_id, C.c_name from Courses as C, Grad_Students as G where G.st_id = ?\
-			and G.TA_for = C.c_id;";
+			String sqlCourseDetails = "select C.c_id, C.c_name from Courses as C, Grad_Students as G where G.st_id = ? and G.TA_for = C.c_id;";
 			pstmt = conn.prepareStatement(sqlCourseDetails);
 			pstmt.clearParameters();
 			pstmt.setInt(1, studentId);
@@ -229,6 +232,7 @@ class DBHandler{
 		String courseName, courseStartDate, courseEndDate;
 		int course_id = Integer.parseInt(courseId);
 		int numberOfTA = 0;
+		String[] TA = new String[100];
 		try{
 			String sqlTAdetails = "select st_name from Grad_Students where TA_for = ?;";
 			String sqlCount = "select count(*) from Grad_Students where TA_for = ?;";
@@ -243,7 +247,7 @@ class DBHandler{
 			pstmt.setInt(1, course_id);
 			rs = pstmt.executeQuery(sqlTAdetails);
 			int i = 0;
-			String TA = new String[numberOfTA];
+			
 			while(rs.next()){
 				TA[i] = rs.getString("st_name");
 				i++;
@@ -305,19 +309,19 @@ class DBHandler{
 		// Returns the report of all students in the course.
 		// Fields required in StudentReport:
 		// All.
-		
+
 		// *******TODO Aggregate records for every student*****
 		List<StudentReport> stReport = new ArrayList<StudentReport>();
-		String sql = 'select st_id, st_name, with_score, ex_id from Has_Solved H, Grad_Students G
-		where H.st_id = G.st_id and H.ex_id in (select ex_id from Exercises E, Topics T 
-		where T.c_id = ? and E.tp_id = T.tp_id )';
+		String sql = "select st_id, st_name, with_score, ex_id from Has_Solved H, Grad_Students G "
+				+ "where H.st_id = G.st_id and H.ex_id in (select ex_id from Exercises E, Topics T"
+				+ "where T.c_id = ? and E.tp_id = T.tp_id );";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setInt(1, Integer.parseInt(courseId));
 		ResultSet rs = ps.executeQuery();
 		while(rs.next()){
-			String st_id = Integetr.toString(rs.getInt(1));
+			String st_id = Integer.toString(rs.getInt(1));
 			String st_name = rs.getString(2);
-			String lName = '';
+			String lName = "";
 			String with_score = Integer.toString(rs.getInt(3));
 			String e_id = Integer.toString(rs.getInt(4));
 			String[][] scores = {{e_id, with_score}};
@@ -339,11 +343,15 @@ class DBHandler{
 		// 6. Number of questions
 		// 7. Number of retries
 		// 8. Scoring Policy
-		String sql = 'select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions,
-		num_retires, policy, pt_correct, pt_incorrect from Exercises E, Topics T where E.tp_id = T.tp_id
-		and T.c_id = ?';
+		String sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions,"
+				+ "num_retires, policy, pt_correct, pt_incorrect from Exercises E, Topics T where E.tp_id = T.tp_id"
+				+ "and T.c_id = ?;";
 		PreparedStatement ps = conn.prepareStatement(sql);
 		ps.setInt(1, Integer.parseInt(courseId));
+		ResultSet rs = ps.executeQuery();
+		while(rs.next()){
+			
+		}
 
 
 		
@@ -401,8 +409,28 @@ class DBHandler{
 	}
 	
 	public List<Question> getQuestionsInExercise(int exerciseId){
-		
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<Question> qs = new ArrayList<Question>();
+		String sql;
+		try {
+			sql = "select q_text, q_hint from Question Q, Questions_In_Ex E where E.q_id=Q.q_id"
+					+ "and E.ex_id=?; ";
+			ps=conn.prepareStatement(sql);
+			ps.setInt(1, exerciseId);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				String text = rs.getString(1);
+				String hint = rs.getString(2);
+				qs.add(new Question(text, hint));
+			}
+			return qs;
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
 		return null;
+		
 	}
 	
 	public boolean addExerciseToCourse(Exercise exercise, String courseId){
@@ -429,6 +457,59 @@ class DBHandler{
 	
 	public Exercise getExercise(int exerciseId){
 		// Returns the exercise associated with the exerciseId
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql;
+		int id, num_questions, num_retries;
+		Date start_date, end_date;
+		String name="", mode="", policy="", s_date="", e_date="";
+		ExerciseMode e_mode;
+		ScroingPolicy sp;
+		DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+		
+		try {
+			sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions, num_retires, policy"
+					+ "from Exercises where ex_id=?";
+			ps=conn.prepareStatement(sql);
+			ps.setInt(1, exerciseId);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				id = rs.getInt(1);
+				name = rs.getString(2);
+				mode = rs.getString(3);
+				start_date = rs.getDate(4);
+				end_date = rs.getDate(5);
+				num_questions = rs.getInt(6);
+				num_retries = rs.getInt(7);
+				policy = rs.getString(8);
+				
+			}
+			mode = mode.toLowerCase();
+			policy = policy.toLowerCase();
+			s_date = df.format(start_date);
+			e_date = df.format(end_date);
+			if(mode != null) {
+				if(mode.equals("adaptive"))
+					e_mode = ExerciseMode.Adaptive;
+				else
+					e_mode = ExerciseMode.Random;
+			}
+			if(policy != null) {
+				if(policy.equals("latest"))
+					sp = ScroingPolicy.Latest;
+				else {
+					if(policy.equals("maximum"))
+						sp = ScroingPolicy.Maximum;
+					else
+						sp = ScroingPolicy.Average;
+				}
+			}
+			return new Exercise(e_mode, sp, name, start_date, end_date, num_questions, num_retries, id);
+			
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
 		
 		return null;
 	}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="Milestone-2/Code/Backup"/>
+	<classpathentry kind="src" path="Milestone-2/Code/DBMS_P_1/src"/>
+	<classpathentry kind="output" path="Milestone-2/Code/DBMS_P_1/bin"/>
+</classpath>
