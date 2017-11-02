@@ -113,9 +113,34 @@ class DBHandler{
 	public List<String[]> getTaughtCoursesByProfessor(){
 		// Return the taught courses by the logged in professor.
 		// Syntax = <[courseName, courseId], [], []>
-		List<String[]> taughtCourses = new ArrayList<>();
-		taughtCourses.add(new String[]{"ALGO", "CSC-505"});
-		taughtCourses.add(new String[]{"SE", "CSC-510"});
+		if(isProfessor()){
+			List<String[]> taughtCourses = new ArrayList<>();
+			Statement stmt = null;
+			PreparedStatement pstmt = null;
+    		ResultSet rs = null;
+			String courseId, courseName;
+			int n = 0;
+			int profID = Integer.parseInt(loggedInUserId);
+
+		try{
+			// Create a statement object that will send SQL statement to DB
+			String sqlCourseDetails = "select c_id, c_name from COURSES as C where prof_id = ?;";
+			pstmt = conn.prepareStatement(sqlProfDetails);
+			pstmt.clearParameters();
+			pstmt.setInt(1, profID);
+			rs = pstmt.executeQuery(sqlProfDetails);
+			while (rs.next()) {
+		    	courseName = rs.getString("c_name");
+				courseId = Integer.toString(rs.getInt("c_id"));
+				taughtCourses.add(new String[]{courseName, courseId});
+
+			}
+
+
+		}catch(Throwable oops) {
+            oops.printStackTrace();
+        }
+		}
 		
 		return taughtCourses;
 	}
@@ -124,8 +149,26 @@ class DBHandler{
 		// Return the courses for which the logged in user is TA.
 		// Syntax = <[courseName, courseId], [], []>
 		List<String[]> TACourses = new ArrayList<>();
-		TACourses.add(new String[]{"ALGO", "CSC-505"});
-		TACourses.add(new String[]{"SE", "CSC-510"});
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String courseId, courseName;
+		int studentId = Integer.parseInt(loggedInUserId);
+		try{
+			String sqlCourseDetails = "select C.c_id, C.c_name from Courses as C, Grad_Students as G where G.st_id = ?\
+			and G.TA_for = C.c_id;";
+			pstmt = conn.prepareStatement(sqlCourseDetails);
+			pstmt.clearParameters();
+			pstmt.setInt(1, studentId);
+			rs = pstmt.executeQuery(sqlCourseDetails);
+			while(rs.next()){
+				courseName = rs.getString("C.c_name");
+				courseId = Integer.toString(rs.getInt("C.c_id"));
+				TACourses.add(new String[]{courseName, courseId});
+			}
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
 		
 		return TACourses;
 	}
@@ -139,9 +182,52 @@ class DBHandler{
 	}
 
 	public Course getCourseInfo(String courseId){
-		Course course = new Course("CSC-505", "ALGO", "08/15/2017", "07/12/2017", new String[]{"Udit Deshmukh", "Akanksha Shukla"});
-		
-		return course;
+		//Returns course ID, course name, start date, end date, array of TAs
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String courseName, courseStartDate, courseEndDate;
+		int course_id = Integer.parseInt(courseId);
+		int numberOfTA = 0;
+		try{
+			String sqlTAdetails = "select st_name from Grad_Students where TA_for = ?;";
+			String sqlCount = "select count(*) from Grad_Students where TA_for = ?;";
+			pstmt = conn.prepareStatement(sqlCount);
+			pstmt.clearParameters();
+			pstmt.setInt(1, course_id);
+			while(rs.next()){
+				numberOfTA = rs.getInt("count(*)");
+			}
+			pstmt = conn.prepareStatement(sqlTAdetails);
+			pstmt.clearParameters();
+			pstmt.setInt(1, course_id);
+			rs = pstmt.executeQuery(sqlTAdetails);
+			int i = 0;
+			String TA = new String[numberOfTA];
+			while(rs.next()){
+				TA[i] = rs.getString("st_name");
+				i++;
+			}
+
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
+		try{
+			String sqlCourseDetails = "select c_id, c_name, c_start_date, c_end_date from Courses where c_id = ?;";
+			pstmt = conn.prepareStatement(sqlCourseDetails);
+			pstmt.clearParameters();
+			pstmt.setInt(1, course_id);
+			while(rs.next()){
+				courseName = rs.getString("c_name");
+				courseStartDate = rs.getString("c_start_date");
+				courseEndDate = rs.getString("c_end_date");
+			}
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
+		return new Course(courseId, courseName, courseStartDate, courseEndDate, TA);
+		//Course course = new Course("CSC-505", "ALGO", "08/15/2017", "07/12/2017", new String[]{"Udit Deshmukh", "Akanksha Shukla"});
 	}
 	
 	public boolean addNewCourse(Course course){
@@ -160,6 +246,7 @@ class DBHandler{
 	}
 	
 	public StudentReport getStudentReport(String studentId){
+
 		return new StudentReport("Gautam", "Verma", new String[][]{new String[]{"HW1", "100"}, new String[]{"HW2", "97"}, new String[]{"HW3", "93"}});
 	}
 	
@@ -180,7 +267,19 @@ class DBHandler{
 	
 	public List<Question> getQuestionsWithSearchQuery(String searchQuery){
 		List<Question> questions = new ArrayList<>();
-		
+		boolean isTopic = true;
+		int questionId;
+		String topic;
+		try{
+			questionId = Integer.parseInt(searchQuery);
+			isTopic = false;
+		}
+		catch(Exception e){
+			topic = searchQuery;
+		}
+		if(isTopic){
+			
+		}
 		return questions;
 	}
 	
