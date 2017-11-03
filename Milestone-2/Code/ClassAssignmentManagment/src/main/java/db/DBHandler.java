@@ -5,18 +5,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class IdentifierNotSetException extends Exception{
+class IdentifierNotSetException extends Exception{
+	private static final long serialVersionUID = 1L;
+
 	public IdentifierNotSetException(String message){
 		super(message);
 	}
 }
 
-abstract class DBHandler{
+class DBHandler{
 
 	protected static final String jdbcUrl = "";
 	private Connection conn;
 	protected String userName, password;
 
+	
 
 	public boolean createConnection() throws SQLException, IdentifierNotSetException{
 		if (jdbcUrl == null){
