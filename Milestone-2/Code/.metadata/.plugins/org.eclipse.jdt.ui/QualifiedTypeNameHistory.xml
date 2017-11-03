@@ -1,2 +1,52 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<qualifiedTypeNameHistroy/>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="db.DBHandlerAbstract"/>
+<fullyQualifiedTypeName name="java.sql.SQLException"/>
+<fullyQualifiedTypeName name="db.IdentifierNotSetException"/>
+<fullyQualifiedTypeName name="db.UserHandler"/>
+<fullyQualifiedTypeName name="db.UserType"/>
+<fullyQualifiedTypeName name="java.lang.reflect.GenericArrayType"/>
+<fullyQualifiedTypeName name="db.ConsoleCreator"/>
+<fullyQualifiedTypeName name="db.MainFile"/>
+<fullyQualifiedTypeName name="java.lang.Override"/>
+<fullyQualifiedTypeName name="db.ConsoleManager"/>
+<fullyQualifiedTypeName name="db.ProfessorHandler"/>
+<fullyQualifiedTypeName name="db.DBHandler"/>
+<fullyQualifiedTypeName name="java.io.Console"/>
+<fullyQualifiedTypeName name="java.util.Scanner"/>
+<fullyQualifiedTypeName name="LoginDetails"/>
+<fullyQualifiedTypeName name="java.util.InputMismatchException"/>
+<fullyQualifiedTypeName name="java.lang.NumberFormatException"/>
+<fullyQualifiedTypeName name="java.awt.List"/>
+<fullyQualifiedTypeName name="java.util.regex.Pattern"/>
+<fullyQualifiedTypeName name="java.util.regex.Matcher"/>
+<fullyQualifiedTypeName name="DBHandler"/>
+<fullyQualifiedTypeName name="ConsoleManager"/>
+<fullyQualifiedTypeName name="java.lang.StringBuilder"/>
+<fullyQualifiedTypeName name="ExerciseType"/>
+<fullyQualifiedTypeName name="StudentReport"/>
+<fullyQualifiedTypeName name="QuestionType"/>
+<fullyQualifiedTypeName name="javax.xml.ws.handler.MessageContext.Scope"/>
+<fullyQualifiedTypeName name="ScroingPolicy"/>
+<fullyQualifiedTypeName name="java.util.HashSet"/>
+<fullyQualifiedTypeName name="ProfessorHandler"/>
+<fullyQualifiedTypeName name="java.nio.channels.AsynchronousServerSocketChannel"/>
+<fullyQualifiedTypeName name="java.nio.channels.ShutdownChannelGroupException"/>
+<fullyQualifiedTypeName name="Exercise"/>
+<fullyQualifiedTypeName name="java.lang.Integer"/>
+<fullyQualifiedTypeName name="ExerciseMode"/>
+<fullyQualifiedTypeName name="StudentHWAttempt"/>
+<fullyQualifiedTypeName name="java.text.DateFormat"/>
+<fullyQualifiedTypeName name="java.text.SimpleDateFormat"/>
+<fullyQualifiedTypeName name="java.util.Date"/>
+<fullyQualifiedTypeName name="StudentHandler"/>
+<fullyQualifiedTypeName name="TAHandler"/>
+<fullyQualifiedTypeName name="LoggedInUserType"/>
+<fullyQualifiedTypeName name="Course"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="Person"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="Topic"/>
+<fullyQualifiedTypeName name="Question"/>
+<fullyQualifiedTypeName name="java.lang.System"/>
+</qualifiedTypeNameHistroy>

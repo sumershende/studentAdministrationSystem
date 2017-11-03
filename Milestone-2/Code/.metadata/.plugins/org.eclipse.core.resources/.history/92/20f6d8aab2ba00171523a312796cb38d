@@ -1,0 +1,51 @@
+import java.util.List;
+
+class Course {
+	private final String courseId, courseName, startDate, endDate;
+	private final List<Person> TAs;
+	private final List<Topic> topics;
+	private final List<Person> enrolledStudents;
+	
+	public Course(String courseId, String courseName, String startDate, String endDate, 
+			List<Person> TAs, List<Topic> topics, List<Person> studentsEnrolled){
+		this.courseId = courseId;
+		this.courseName = courseName;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.TAs = TAs;
+		this.topics = topics;
+		this.enrolledStudents = studentsEnrolled;
+	}
+	
+	public String getCourseName(){
+		return courseName;
+	}
+	
+	public String getCourseId() {
+		return courseId;
+	}
+
+	public List<Person> getEnrolledStudents() {
+		return enrolledStudents;
+	}
+
+	public String getStartDate() {
+		return startDate;
+	}
+
+	public String getEndDate() {
+		return endDate;
+	}
+
+	public List<Topic> getTopics() {
+		return topics;
+	}
+
+	public List<Person> getTAs() {
+		return TAs;
+	}
+	
+	public boolean hasTAs(){
+		return TAs != null;
+	}
+}

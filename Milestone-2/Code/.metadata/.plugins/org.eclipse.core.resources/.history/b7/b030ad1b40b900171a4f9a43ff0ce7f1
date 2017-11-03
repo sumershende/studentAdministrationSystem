@@ -1,0 +1,43 @@
+import java.util.List;
+
+class StudentHWAttempt {
+	// Fields required for overview: 
+	private final double score, maxScore;
+	private final String submissionDateTime;
+	
+	// Fields required for details:
+	private final List<Question> questions;
+	private final List<Boolean> wasCorrectlyAnswered;
+	
+	public StudentHWAttempt(double score, String submissionDateTime, double maxScore){
+		this(score, submissionDateTime, null, null, maxScore);
+	}
+	
+	public StudentHWAttempt(double score, String submissionDateTime, List<Question> questions, List<Boolean> wasCorrectlyAnswered, double maxScore){
+		this.score = score;
+		this.submissionDateTime = submissionDateTime;
+		this.questions = questions;
+		this.wasCorrectlyAnswered = wasCorrectlyAnswered;
+		this.maxScore = maxScore;
+	}
+
+	public double getScore() {
+		return score;
+	}
+
+	public String getSubmissionDateTime() {
+		return submissionDateTime;
+	}
+
+	public List<Question> getQuestions() {
+		return questions;
+	}
+
+	public List<Boolean> getWasCorrectlyAnswered() {
+		return wasCorrectlyAnswered;
+	}
+
+	public double getMaxScore() {
+		return maxScore;
+	}
+}
