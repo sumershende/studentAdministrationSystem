@@ -23,6 +23,7 @@ class DBHandler{
 	
 	private String loggedInUserName, loggedInUserId;
 	private LoggedInUserType loggedInUserType;
+	private int id;
 
 	private boolean isUserLoggedIn;
 	
@@ -83,8 +84,9 @@ class DBHandler{
 		if(validResult==false){
 			loggedInUserType = LoggedInUserType.InvalidUser;
 			isUserLoggedIn = false;
-		}
-		
+		}else{
+			getId();
+		}		
 		return loggedInUserType;
 	}
 	
@@ -148,11 +150,11 @@ class DBHandler{
 
 		try{
 			// Create a statement object that will send SQL statement to DB
-			String query = "SELECT c_id, c_name FROM courses AS C WHERE userid = ?;";
+			String query = "SELECT c_id, c_name FROM courses AS C WHERE prof_id = ?";
 			pstmt = conn.prepareStatement(query);
 			pstmt.clearParameters();
-			pstmt.setString(1, loggedInUserId);
-			rs = pstmt.executeQuery(query);
+			pstmt.setInt(1, id);
+			rs = pstmt.executeQuery();
 			while (rs.next()) {
 		    	courseName = rs.getString("c_name");
 				courseId = Integer.toString(rs.getInt("c_id"));
@@ -168,6 +170,7 @@ class DBHandler{
 	public List<String[]> getTACourses(){
 		// Return the courses for which the logged in user is TA.
 		// Syntax = <[courseName, courseId], [], []>
+<<<<<<< HEAD
 
 //		List<String[]> TACourses = new ArrayList<>();
 //		PreparedStatement pstmt = null;
@@ -193,6 +196,29 @@ class DBHandler{
 //		
 //		return TACourses;
 		return null;
+=======
+		List<String[]> TACourses = new ArrayList<>();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String courseId, courseName;
+		try{
+			String sqlCourseDetails = "select C.c_id, C.c_name from Courses C, HASTA T where C.c_id = T.c_id and T.st_id=?";
+			pstmt = conn.prepareStatement(sqlCourseDetails);
+			pstmt.clearParameters();
+			pstmt.setInt(1, id);
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				courseName = rs.getString("c_name");
+				courseId = rs.getString("c_id");
+				TACourses.add(new String[]{courseName, courseId});
+			}
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
+		
+		return TACourses;
+>>>>>>> 681a24c4200c85a660b79184cf8c190a3f4140bd
 	}
 	
 	public List<String[]> getStudentEnrolledCourses(){
@@ -598,5 +624,30 @@ class DBHandler{
 		// Returns the questions in the exercise created by the professor.
 		
 		return new ArrayList<>();
+	}
+
+	public void getId() throws SQLException {
+		// TODO Auto-generated method stub
+		String query="";
+		PreparedStatement pstmt;
+		ResultSet rs;
+		if(loggedInUserType==LoggedInUserType.Professor){
+			pstmt = conn.prepareStatement("SELECT prof_id FROM Professor WHERE userid=?");
+			String userid=loggedInUserId;
+			pstmt.setString(1, userid);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+		    	id = rs.getInt("prof_id");
+			}
+		}
+		if(loggedInUserType==LoggedInUserType.Student || loggedInUserType==LoggedInUserType.TA){
+			query = "Select st_id from students where userid=?";
+			pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, loggedInUserId);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+		    	id = rs.getInt("st_id");
+			}
+		}
 	}
 }

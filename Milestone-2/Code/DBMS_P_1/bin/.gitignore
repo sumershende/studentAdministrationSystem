@@ -4,6 +4,7 @@
 /DbTestConnection.class
 /Exercise.class
 /ExerciseMode.class
+<<<<<<< HEAD
 /IdentifierNotSetException.class
 /LoggedInUserType.class
 /MainFile.class
@@ -17,3 +18,7 @@
 /StudentReport.class
 /TAHandler.class
 /Topic.class
+=======
+/LoggedInUserType.class
+/Query.sql
+>>>>>>> 681a24c4200c85a660b79184cf8c190a3f4140bd
