@@ -170,33 +170,7 @@ class DBHandler{
 	public List<String[]> getTACourses(){
 		// Return the courses for which the logged in user is TA.
 		// Syntax = <[courseName, courseId], [], []>
-<<<<<<< HEAD
 
-//		List<String[]> TACourses = new ArrayList<>();
-//		PreparedStatement pstmt = null;
-//		ResultSet rs = null;
-//		String courseId, courseName;
-//		int studentId = Integer.parseInt(loggedInUserId);
-//		try{
-//			String sqlCourseDetails = "select C.c_id, C.c_name from Courses as C, Grad_Students as G where G.st_id = ?\
-//			and G.TA_for = C.c_id;";
-//			pstmt = conn.prepareStatement(sqlCourseDetails);
-//			pstmt.clearParameters();
-//			pstmt.setInt(1, studentId);
-//			rs = pstmt.executeQuery(sqlCourseDetails);
-//			while(rs.next()){
-//				courseName = rs.getString("C.c_name");
-//				courseId = Integer.toString(rs.getInt("C.c_id"));
-//				TACourses.add(new String[]{courseName, courseId});
-//			}
-//		}
-//		catch(Throwable oops){
-//			oops.printStackTrace();
-//		}
-//		
-//		return TACourses;
-		return null;
-=======
 		List<String[]> TACourses = new ArrayList<>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -218,7 +192,7 @@ class DBHandler{
 		}
 		
 		return TACourses;
->>>>>>> 681a24c4200c85a660b79184cf8c190a3f4140bd
+
 	}
 	
 	public List<String[]> getStudentEnrolledCourses(){
