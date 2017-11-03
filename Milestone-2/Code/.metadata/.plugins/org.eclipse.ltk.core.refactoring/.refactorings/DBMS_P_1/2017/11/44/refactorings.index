@@ -1,0 +1,4 @@
+1509728967907	Rename method 'isTAIdValid'
+1509728981629	Rename method 'isTAIdValidToBeAssignedAsTAForCourse'
+1509729427823	Rename type 'LoggedInUserType'
+1509729507518	Rename field 'userType'

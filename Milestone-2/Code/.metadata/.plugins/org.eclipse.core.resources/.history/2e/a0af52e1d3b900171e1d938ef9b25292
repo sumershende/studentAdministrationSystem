@@ -1,5 +1,0 @@
-
-class Topic {
-	private final int topicId;
-	private final String topicName;
-}

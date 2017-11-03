@@ -1,4 +1,0 @@
-class Course {
-	private final String courseId, courseName, startDate, endDate, TA;
-	
-}
