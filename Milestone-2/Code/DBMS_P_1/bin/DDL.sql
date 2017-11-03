@@ -97,3 +97,5 @@ ALTER table Enrolled_In
 ADD CONSTRAINT TAnotStudent
 CHECK (taStudent=0);
 
+--- topics table, make primary key - both
+

@@ -32,7 +32,6 @@
 <fullyQualifiedTypeName name="java.nio.channels.AsynchronousServerSocketChannel"/>
 <fullyQualifiedTypeName name="java.nio.channels.ShutdownChannelGroupException"/>
 <fullyQualifiedTypeName name="Exercise"/>
-<fullyQualifiedTypeName name="java.lang.Integer"/>
 <fullyQualifiedTypeName name="ExerciseMode"/>
 <fullyQualifiedTypeName name="StudentHWAttempt"/>
 <fullyQualifiedTypeName name="java.text.DateFormat"/>
@@ -49,9 +48,13 @@
 <fullyQualifiedTypeName name="Course"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="java.lang.Enum"/>
-<fullyQualifiedTypeName name="LoggedInUserType"/>
 <fullyQualifiedTypeName name="java.sql.PreparedStatement"/>
-<fullyQualifiedTypeName name="java.sql.SQLException"/>
 <fullyQualifiedTypeName name="Topic"/>
+<fullyQualifiedTypeName name="LoggedInUserType"/>
+<fullyQualifiedTypeName name="java.sql.SQLException"/>
+<fullyQualifiedTypeName name="java.sql.ResultSetMetaData"/>
+<fullyQualifiedTypeName name="UserType"/>
+<fullyQualifiedTypeName name="CourseLevel"/>
+<fullyQualifiedTypeName name="java.lang.Integer"/>
 <fullyQualifiedTypeName name="java.lang.System"/>
 </qualifiedTypeNameHistroy>

@@ -137,18 +137,26 @@ class TAHandler {
 		}else{
 			if(isEnroll){
 				// Try to add the student to the course.
-				if(dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1])){
+				Boolean wasEnrolled = dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
+				if(wasEnrolled == null){
+					// Already in the course.
+					consoleManager.showMessageAndWaitForUserToGoBack("The student is already enrolled in the course.");
+				}else if(wasEnrolled){
 					// Successfully added the student to the course.
-					consoleManager.showMessageAndWaitForUserToGoBack("New student successfully added.");
+					consoleManager.showMessageAndWaitForUserToGoBack("The new student was successfully added.");
 				}else{
 					// Error while adding the student to the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("Sorry, there was an error while adding the new student. Please try again.");
 				}
 			}else{
 				// Try to drop the student from the course.
-				if(dbHandler.dropStudentFromCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1])){
+				Boolean wasDropped = dbHandler.dropStudentFromCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
+				if(wasDropped == null){
+					// Already not in the course.
+					consoleManager.showMessageAndWaitForUserToGoBack("Student is already not enrolled in the course!");
+				}else if(wasDropped){
 					// Successfully dropped the student from the course.
-					consoleManager.showMessageAndWaitForUserToGoBack("Student successfully dropped.");
+					consoleManager.showMessageAndWaitForUserToGoBack("Student successfully dropped from the course.");
 				}else{
 					// Error while dropping the student from the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("Sorry, there was an error while dropping the student. Please try again.");

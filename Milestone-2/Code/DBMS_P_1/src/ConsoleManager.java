@@ -179,6 +179,9 @@ class ConsoleManager {
 		System.out.println("> Course Name: " + course.getCourseName());
 		System.out.println("> Course Start Date: " + course.getStartDate());
 		System.out.println("> Course End Date: " + course.getEndDate());
+		System.out.println("> Course Level: " + course.getCourseLevel());
+		System.out.println("> Max students allowed: " + course.getMaxStudentsAllowed());
+		System.out.println("> Total students enrolled: " + course.getEnrolledStudents().size());
 		System.out.print("> Current TA(s): ");
 		if(course.hasTAs()){
 			for(Person TA : course.getTAs()){
@@ -194,12 +197,18 @@ class ConsoleManager {
 		}else{
 			System.out.println("None");
 		}
+		System.out.println("Students enrolled: ");
+		int i = 1;
+		for(Person student :  course.getEnrolledStudents()){
+			System.out.println("\n\t> " + i++ + ". " + student.getName() + "; ID: " + student.getId());
+		}
 	}
 	
 	public void showCourseDetails(String courseId){
 		Course course = dbHandler.getCourseInfo(courseId);
 		showCourseDetails(course);
 	}
+	
 	
 	public int askForUserChoiceAfterShowingCourseDetails(boolean isProf){
 		System.out.println("\n0. Go back.");
@@ -217,9 +226,11 @@ class ConsoleManager {
 		return askForIntInput("Please enter your choice: ");
 	}
 	
+	
 	private void showMessageToGoToPreviousMenu(){
 		System.out.println("Enter 0 to go back to previous menu.");
 	}
+	
 	
 	private boolean isDateValid(String date){
 		final String DATE_FORMAT = "MM/dd/yyyy";
@@ -233,6 +244,7 @@ class ConsoleManager {
             return false;
         }
 	}
+	
 	
 	public Course askNewCourseDetails(){
 		showMessageToGoToPreviousMenu();
@@ -276,6 +288,26 @@ class ConsoleManager {
 				showInvalidChoiceError("Please enter a valid date!");
 			}
 		}	
+		
+		// Ask course level.
+		CourseLevel courseLevel;
+		System.out.println("Select course level:");
+		System.out.println("0. Cancel and go back.");
+		System.out.println("1. Graduate.");
+		System.out.println("2. Under Graduate.");
+		
+		int courseLevelChoice = askForIntInputBetweenRange("Please enter your choice: ", 0, 2);
+		if(courseLevelChoice == 0){
+			return null;
+		}else if(courseLevelChoice == 1){
+			courseLevel = CourseLevel.Grad;
+		}else{
+			courseLevel = CourseLevel.UnderGrad;
+		}
+		
+		// Ask max students allowed.
+		int maxStudentsAllowed = askForIntInputBetweenRange("Please enter the max number of students allowed to take course: ", 0, Integer.MAX_VALUE);
+		if(maxStudentsAllowed == 0) return null;
 		
 		// Ask the TAs.
 		List<Person> TAs = null;
@@ -394,7 +426,8 @@ class ConsoleManager {
 			}
 		}
 		
-		return new Course(courseId, courseName, startDate, endDate, TAs, topics, students);
+		return new Course(courseId, courseName, startDate, endDate, TAs, topics, 
+				students, courseLevel, maxStudentsAllowed);
 	}	
 	
 		

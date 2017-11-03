@@ -179,7 +179,7 @@ class DBHandler{
 		return taughtCourses;
 	}
 	
-	// Approved by AS, GV.
+	// Approved by AS.
 	public List<String[]> getTACourses(){
 		// Return the courses for which the logged in user is TA.
 		// Syntax = <[courseName, courseId], [], []>
@@ -284,7 +284,9 @@ class DBHandler{
 			String name = "c_name";
 			String startDate = "c_start_date";
 			String endDate = "c_end_date";
-			query = "SELECT " + name + ", " + startDate + ", " + endDate + " "
+			String levelGrad = "levelGrad";
+			String maxStudentsIdentifier = "max_students";
+			query = "SELECT " + name + ", " + startDate + ", " + endDate + ", " + levelGrad + ", " + maxStudentsIdentifier + " "
 					+ "FROM courses "
 					+ "WHERE c_id = ?";
 			
@@ -294,12 +296,18 @@ class DBHandler{
 			
 			rs = pstmt.executeQuery();
 			String courseName, courseStartDate, courseEndDate;
+			int isGradLevel, maxStudents;
+			CourseLevel courseLevel;
 			while(rs.next()){
 				courseName 		= rs.getString(name);
 				courseStartDate = rs.getString(startDate);
 				courseEndDate 	= rs.getString(endDate);
-				
-				return new Course(courseId, courseName, courseStartDate, courseEndDate, TAs, topics, studentsEnrolled);
+				isGradLevel		= rs.getInt(levelGrad);
+				if(isGradLevel == 1) courseLevel = CourseLevel.Grad;
+				else courseLevel = CourseLevel.UnderGrad;
+				maxStudents 	= rs.getInt(maxStudentsIdentifier);
+				return new Course(courseId, courseName, courseStartDate, courseEndDate, TAs, 
+						topics, studentsEnrolled, courseLevel, maxStudents);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
@@ -540,16 +548,45 @@ class DBHandler{
 		return false;
 	}
 	
- 	
-	public boolean addNewStudentToCourse(String studentId, String courseId){
+ 	// Approved AS, GV
+	public Boolean addNewStudentToCourse(String studentId, String courseId){
 		// Returns true if the student was successfully added to the course.
+		int studentNumericalId = getId(studentId, UserType.Student);
 		
-		return false;
+		if(studentNumericalId == -1){
+			// Invalid student id
+			return false;
+		}
+		
+		String query = " INSERT INTO Enrolled_In "
+		        + "VALUES (?, ?)";
+		PreparedStatement pstmt = null;
+		
+		try{
+		      pstmt = conn.prepareStatement(query);
+		      pstmt.setString(1, courseId);
+		      pstmt.setInt(2, studentNumericalId);
+
+		      if(pstmt.executeUpdate() == 1){
+		    	  // Successfully added.
+		    	  return true;
+		      }else{
+		    	  // Already present in the course.
+		    	  return null;
+		      }
+		}catch(SQLException s){
+			// Failure, constraint violation.
+			s.printStackTrace();
+			return false;
+		}finally {
+			closeStatement(pstmt);
+		}
 	}
 	
 	
-	public boolean dropStudentFromCourse(String studentId, String courseId){
+	public Boolean dropStudentFromCourse(String studentId, String courseId){
 		// Returns true if the student was successfully dropped from the course.
+		// or null if was already not in the course.
 		
 		return true;
 	}

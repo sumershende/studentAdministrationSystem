@@ -17,5 +17,12 @@ Select * from students where userid=?
 SELECT prof_id FROM Professor WHERE userid='kogan'
 
 select * from HASTA
-select * from Students where st_id=10006
+select * from Students 
+select * from Courses
+select * from enrolled_in
+select * from Topics where c_id = 'CSC440'
+
+SELECT MT.tp_name, MT.tp_id FROM Master_Topics MT INNER JOIN Topics T ON MT.tp_id = T.tp_id WHERE T.c_id = 'CSC440'
+
+where st_id=10006
 select C.c_id, C.c_name,T.st_id from Courses C, HASTA T where C.c_id = T.c_id and T.st_id in (select st_id from HASTA)

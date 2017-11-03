@@ -2,3 +2,4 @@
 1509728981629	Rename method 'isTAIdValidToBeAssignedAsTAForCourse'
 1509729427823	Rename type 'LoggedInUserType'
 1509729507518	Rename field 'userType'
+1509733043342	Rename local variable 'wasDropeed'
