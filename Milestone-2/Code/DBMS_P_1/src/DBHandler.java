@@ -1,10 +1,14 @@
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 enum LoggedInUserType{
@@ -20,6 +24,7 @@ class DBHandler{
 	private String loggedInUserName, loggedInUserId;
 	
 	private LoggedInUserType loggedInUserType;
+	private int id;
 
 	private boolean isUserLoggedIn;
 	
@@ -80,8 +85,9 @@ class DBHandler{
 		if(validResult==false){
 			loggedInUserType = LoggedInUserType.InvalidUser;
 			isUserLoggedIn = false;
-		}
-		
+		}else{
+			getId();
+		}		
 		return loggedInUserType;
 	}
 	
@@ -137,19 +143,17 @@ class DBHandler{
 	public List<String[]> getTaughtCoursesByProfessor(){
 		// Return the taught courses by the logged in professor.
 		// Syntax = <[courseName, courseId], [], []>
-		
+
 		List<String[]> taughtCourses = new ArrayList<>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		String courseId, courseName;
-		String query = "";
 		try{
 			// Create a statement object that will send SQL statement to DB
-			query = "SELECT C.c_id, C.c_name "
-					+ "FROM courses C, professor P "
-					+ "WHERE C.prof_id = P.prof_id AND P.userid = ?";
+			String query = "SELECT c_id, c_name FROM courses AS C WHERE prof_id = ?";
 			pstmt = conn.prepareStatement(query);
-			pstmt.setString(1, loggedInUserId);
+			pstmt.clearParameters();
+			pstmt.setInt(1, id);
 			rs = pstmt.executeQuery();
 			while (rs.next()) {
 		    	courseName = rs.getString("c_name");
@@ -158,7 +162,6 @@ class DBHandler{
 			}
 		}catch(Throwable oops) {
             oops.printStackTrace();
-            System.out.println(query);
         }
 		
 		return taughtCourses;
@@ -167,30 +170,29 @@ class DBHandler{
 	public List<String[]> getTACourses(){
 		// Return the courses for which the logged in user is TA.
 		// Syntax = <[courseName, courseId], [], []>
-//		List<String[]> TACourses = new ArrayList<>();
-//		PreparedStatement pstmt = null;
-//		ResultSet rs = null;
-//		String courseId, courseName;
-//		int studentId = Integer.parseInt(loggedInUserId);
-//		try{
-//			String query = "SELECT C.c_id, C.c_name from Courses as C, Grad_Students as G where G.st_id = ? "
-//					+ "and G.TA_for = C.c_id;";
-//			pstmt = conn.prepareStatement(query);
-//			pstmt.clearParameters();
-//			pstmt.setInt(1, studentId);
-//			rs = pstmt.executeQuery(query);
-//			while(rs.next()){
-//				courseName = rs.getString("C.c_name");
-//				courseId = Integer.toString(rs.getInt("C.c_id"));
-//				TACourses.add(new String[]{courseName, courseId});
-//			}
-//		}
-//		catch(Throwable oops){
-//			oops.printStackTrace();
-//		}
-//		
-//		return TACourses;
-		return null;
+
+		List<String[]> TACourses = new ArrayList<>();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String courseId, courseName;
+		try{
+			String sqlCourseDetails = "select C.c_id, C.c_name from Courses C, HASTA T where C.c_id = T.c_id and T.st_id=?";
+			pstmt = conn.prepareStatement(sqlCourseDetails);
+			pstmt.clearParameters();
+			pstmt.setInt(1, id);
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				courseName = rs.getString("c_name");
+				courseId = rs.getString("c_id");
+				TACourses.add(new String[]{courseName, courseId});
+			}
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
+		
+		return TACourses;
+
 	}
 	
 	public List<String[]> getStudentEnrolledCourses(){
@@ -383,7 +385,7 @@ class DBHandler{
 		// Returns the report of all students in the course.
 		// Fields required in StudentReport:
 		// All.
-		
+
 		// *******TODO Aggregate records for every student*****
 //		List<StudentReport> stReport = new ArrayList<StudentReport>();
 //		String sql = 'select st_id, st_name, with_score, ex_id from Has_Solved H, Grad_Students G
@@ -481,8 +483,28 @@ class DBHandler{
 	}
 	
 	public List<Question> getQuestionsInExercise(int exerciseId){
-		
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<Question> qs = new ArrayList<Question>();
+		String sql;
+		try {
+			sql = "select q_text, q_hint from Question Q, Questions_In_Ex E where E.q_id=Q.q_id"
+					+ "and E.ex_id=?; ";
+			ps=conn.prepareStatement(sql);
+			ps.setInt(1, exerciseId);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				String text = rs.getString(1);
+				String hint = rs.getString(2);
+				qs.add(new Question(text, hint));
+			}
+			return qs;
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
 		return null;
+		
 	}
 	
 	public boolean addExerciseToCourse(Exercise exercise, String courseId){
@@ -509,6 +531,71 @@ class DBHandler{
 	
 	public Exercise getExercise(int exerciseId){
 		// Returns the exercise associated with the exerciseId
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql;
+		int id=-1, num_questions=-1, num_retries=-1, topic_id=-1, pt_correct=-1, pt_incorrect=-1;
+		Date start_date = null, end_date = null;
+		String name="", mode="", policy="", s_date="", e_date="";
+		ExerciseMode e_mode = null;
+		ScroingPolicy sp = null;
+		DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+		HashSet<Integer> qIds = new HashSet<Integer>();
+		
+		try {
+			sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions, num_retires, policy"
+					+ ", tp_id, pt_correct, pt_incorrect from Exercises where ex_id=?";
+			ps=conn.prepareStatement(sql);
+			ps.setInt(1, exerciseId);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				id = rs.getInt(1);
+				name = rs.getString(2);
+				mode = rs.getString(3);
+				start_date = rs.getDate(4);
+				end_date = rs.getDate(5);
+				num_questions = rs.getInt(6);
+				num_retries = rs.getInt(7);
+				policy = rs.getString(8);
+				topic_id = rs.getInt(9);
+				pt_correct = rs.getInt(10);
+				pt_incorrect = rs.getInt(11);
+				
+			}
+			mode = mode.toLowerCase();
+			policy = policy.toLowerCase();
+			s_date = df.format(start_date);
+			e_date = df.format(end_date);
+			if(mode != null) {
+				if(mode.equals("adaptive"))
+					e_mode = ExerciseMode.Adaptive;
+				else
+					e_mode = ExerciseMode.Random;
+			}
+			if(policy != null) {
+				if(policy.equals("latest"))
+					sp = ScroingPolicy.Latest;
+				else {
+					if(policy.equals("maximum"))
+						sp = ScroingPolicy.Maximum;
+					else
+						sp = ScroingPolicy.Average;
+				}
+			}
+			sql = "select q_id from Questions_In_Ex where ex_id = ?;";
+			ps = conn.prepareStatement(sql);
+			ps.setInt(1, exerciseId);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				qIds.add(rs.getInt(1));
+			}
+			return new Exercise(e_mode, sp, name, s_date, e_date, num_questions, num_retries, id, qIds, pt_correct,
+					pt_incorrect, topic_id );
+			
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
 		
 		return null;
 	}
@@ -518,6 +605,37 @@ class DBHandler{
 		// 1. currently open and;
 		// 2. Can be attempted by the student.
 		// Returns null if there are none.
+		String user_id = loggedInUserId;
+		int student_id = -1;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql, c_id;
+		try {
+			sql = "select st_id from Students where userid = ?;";
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, user_id);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				student_id = rs.getInt(1);
+			}
+			if(student_id == -1) 
+				return null;
+			sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?;";
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, courseId);
+			ps.setInt(2, student_id);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				c_id = rs.getString(1);
+			}
+			
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
+		
+		
+		
 		
 		return null;
 	}
@@ -566,5 +684,30 @@ class DBHandler{
 		// Returns the questions in the exercise created by the professor.
 		
 		return new ArrayList<>();
+	}
+
+	public void getId() throws SQLException {
+		// TODO Auto-generated method stub
+		String query="";
+		PreparedStatement pstmt;
+		ResultSet rs;
+		if(loggedInUserType==LoggedInUserType.Professor){
+			pstmt = conn.prepareStatement("SELECT prof_id FROM Professor WHERE userid=?");
+			String userid=loggedInUserId;
+			pstmt.setString(1, userid);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+		    	id = rs.getInt("prof_id");
+			}
+		}
+		if(loggedInUserType==LoggedInUserType.Student || loggedInUserType==LoggedInUserType.TA){
+			query = "Select st_id from students where userid=?";
+			pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, loggedInUserId);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+		    	id = rs.getInt("st_id");
+			}
+		}
 	}
 }

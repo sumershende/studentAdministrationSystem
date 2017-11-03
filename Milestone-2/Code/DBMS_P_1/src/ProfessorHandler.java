@@ -302,6 +302,7 @@ class ProfessorHandler extends TAHandler{
 	}
 	
 	private static void searchOrAddQB(){
+		
 		List<String[]> courses = dbHandler.getTaughtCoursesByProfessor();
 		for(String[] course : courses){
 			List<Question> questions = dbHandler.getQuestionsForCourse(course[1]);
