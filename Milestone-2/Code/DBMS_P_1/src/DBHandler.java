@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 enum LoggedInUserType{
@@ -19,6 +18,7 @@ class DBHandler{
 	private final String dbUserName, dbPassword;
 	
 	private String loggedInUserName, loggedInUserId;
+	
 	private LoggedInUserType loggedInUserType;
 
 	private boolean isUserLoggedIn;
@@ -142,21 +142,23 @@ class DBHandler{
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		String courseId, courseName;
-
+		String query = "";
 		try{
 			// Create a statement object that will send SQL statement to DB
-			String query = "SELECT c_id, c_name FROM courses AS C WHERE userid = ?;";
+			query = "SELECT C.c_id, C.c_name "
+					+ "FROM courses C, professor P "
+					+ "WHERE C.prof_id = P.prof_id AND P.userid = ?";
 			pstmt = conn.prepareStatement(query);
-			pstmt.clearParameters();
 			pstmt.setString(1, loggedInUserId);
-			rs = pstmt.executeQuery(query);
+			rs = pstmt.executeQuery();
 			while (rs.next()) {
 		    	courseName = rs.getString("c_name");
-				courseId = Integer.toString(rs.getInt("c_id"));
+				courseId = rs.getString("c_id");
 				taughtCourses.add(new String[]{courseName, courseId});
 			}
 		}catch(Throwable oops) {
             oops.printStackTrace();
+            System.out.println(query);
         }
 		
 		return taughtCourses;
@@ -171,12 +173,12 @@ class DBHandler{
 //		String courseId, courseName;
 //		int studentId = Integer.parseInt(loggedInUserId);
 //		try{
-//			String sqlCourseDetails = "select C.c_id, C.c_name from Courses as C, Grad_Students as G where G.st_id = ?\
-//			and G.TA_for = C.c_id;";
-//			pstmt = conn.prepareStatement(sqlCourseDetails);
+//			String query = "SELECT C.c_id, C.c_name from Courses as C, Grad_Students as G where G.st_id = ? "
+//					+ "and G.TA_for = C.c_id;";
+//			pstmt = conn.prepareStatement(query);
 //			pstmt.clearParameters();
 //			pstmt.setInt(1, studentId);
-//			rs = pstmt.executeQuery(sqlCourseDetails);
+//			rs = pstmt.executeQuery(query);
 //			while(rs.next()){
 //				courseName = rs.getString("C.c_name");
 //				courseId = Integer.toString(rs.getInt("C.c_id"));
@@ -212,68 +214,154 @@ class DBHandler{
 	}
 
 	public Course getCourseInfo(String courseId){
-		//Returns course ID, course name, start date, end date, array of TAs
-//		PreparedStatement pstmt = null;
-//		ResultSet rs = null;
-//		String courseName, courseStartDate, courseEndDate;
-//		int course_id = Integer.parseInt(courseId);
-//		int numberOfTA = 0;
-//		try{
-//			String sqlTAdetails = "select st_name from Grad_Students where TA_for = ?;";
-//			String sqlCount = "select count(*) from Grad_Students where TA_for = ?;";
-//			pstmt = conn.prepareStatement(sqlCount);
-//			pstmt.clearParameters();
-//			pstmt.setInt(1, course_id);
-//			while(rs.next()){
-//				numberOfTA = rs.getInt("count(*)");
-//			}
-//			pstmt = conn.prepareStatement(sqlTAdetails);
-//			pstmt.clearParameters();
-//			pstmt.setInt(1, course_id);
-//			rs = pstmt.executeQuery(sqlTAdetails);
-//			int i = 0;
-//			String TA = new String[numberOfTA];
-//			while(rs.next()){
-//				TA[i] = rs.getString("st_name");
-//				i++;
-//			}
-//
-//		}
-//		catch(Throwable oops){
-//			oops.printStackTrace();
-//		}
-//		try{
-//			String sqlCourseDetails = "select c_id, c_name, c_start_date, c_end_date from Courses where c_id = ?;";
-//			pstmt = conn.prepareStatement(sqlCourseDetails);
-//			pstmt.clearParameters();
-//			pstmt.setInt(1, course_id);
-//			while(rs.next()){
-//				courseName = rs.getString("c_name");
-//				courseStartDate = rs.getString("c_start_date");
-//				courseEndDate = rs.getString("c_end_date");
-//			}
-//		}
-//		catch(Throwable oops){
-//			oops.printStackTrace();
-//		}
-//		return new Course(courseId, courseName, courseStartDate, courseEndDate, TA);
-//		//Course course = new Course("CSC-505", "ALGO", "08/15/2017", "07/12/2017", new String[]{"Udit Deshmukh", "Akanksha Shukla"});
-		return null;
-	}
-	
-	public List<Topic> getCourseTopics(String courseId){
-		// Returns an array list of topics in the course.  
+		//Returns complete course object.
+		
+		// Approved by GV :)
+		
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		String query;
+		
+		List<Person> TAs = new ArrayList<>();
+		List<Topic> topics;
+		List<Person> studentsEnrolled;
+		
+		try{
+			// Get TAs.
+			TAs = getTAsInCourse(courseId);
+			
+			// Get Topics
+			topics = getCourseTopics(courseId);
+			
+			// Get enrolled students
+			studentsEnrolled = getStudentsEnrolledInCourse(courseId);
+			
+			// Get course Details
+			String name = "c_name";
+			String startDate = "c_start_date";
+			String endDate = "c_end_date";
+			query = "SELECT " + name + ", " + startDate + ", " + endDate + " "
+					+ "FROM courses "
+					+ "WHERE c_id = ?";
+			
+			pstmt = conn.prepareStatement(query);
+			pstmt.clearParameters();
+			pstmt.setString(1, courseId);
+			
+			rs = pstmt.executeQuery();
+			String courseName, courseStartDate, courseEndDate;
+			while(rs.next()){
+				courseName 		= rs.getString(name);
+				courseStartDate = rs.getString(startDate);
+				courseEndDate 	= rs.getString(endDate);
+				
+				return new Course(courseId, courseName, courseStartDate, courseEndDate, TAs, topics, studentsEnrolled);
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 		
 		return null;
 	}
 	
-	public boolean addTopicToCourse(Topic topic, String courseId){
+	private List<Person> getStudentsEnrolledInCourse(String courseId){
+		List<Person> enrolledStudents = new ArrayList<>();
+		
+		try{
+			String query = "SELECT U.name, U.userid "
+					+ "FROM users U, ("
+					+ "SELECT * "
+					+ "FROM Enrolled_In EI INNER JOIN Students S ON S.st_id = EI.st_id"
+					+ ") J "
+					+ "WHERE J.c_id = ? AND U.userid = J.userid";
+			PreparedStatement pstmt = conn.prepareStatement(query);
+			pstmt.clearParameters();
+			pstmt.setString(1, courseId);
+			
+			ResultSet rs = pstmt.executeQuery();
+			String name = "name", id = "userid";
+			String studentName, studentID;
+			while(rs.next()){
+				studentName = rs.getString(name);
+				studentID   = rs.getString(id);
+				enrolledStudents.add(new Person(studentName, studentID));
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		
+		return enrolledStudents;
+	}
+	
+	private List<Person> getTAsInCourse(String courseId){
+		List<Person> TAs = new ArrayList<>();
+		
+		try{
+			String query = "SELECT U.name, U.userid "
+					+ "FROM users U, ("
+					+ "SELECT * "
+					+ "FROM hasTA H INNER JOIN Students S ON S.st_id = H.st_id"
+					+ ") J "
+					+ "WHERE U.userid = J.userid AND J.c_id = ?";
+			
+			PreparedStatement pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, courseId);
+			
+			ResultSet rs = pstmt.executeQuery();
+			String name = "name", id = "userid";
+			String TAName, TAID;
+			while(rs.next()){
+				TAName = rs.getString(name);
+				TAID   = rs.getString(id);
+				TAs.add(new Person(TAName, TAID));
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		
+		return TAs;
+	}
+	
+ 	public List<Topic> getCourseTopics(String courseId){
+		// Returns an array list of topics in the course.  
+		
+		List<Topic> topics = new ArrayList<>();
+		
+		String query = "SELECT MT.tp_name, MT.tp_id "
+				+ "FROM Master_Topics MT INNER JOIN Topics T ON MT.tp_id = T.tp_id "
+				+ "WHERE T.c_id = ?";
+		
+		try{
+			PreparedStatement pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, courseId);
+			
+			ResultSet rs = pstmt.executeQuery();
+			String name = "tp_name";
+			String id = "tp_id";
+			String topicName;
+			int topicID;
+			while(rs.next()){
+				topicName = rs.getString(name);
+				topicID   = rs.getInt(id);
+				System.out.println(topicName + ", " + topicID);
+				topics.add(new Topic(topicID, topicName));
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		
+		return topics;
+	}
+	
+	
+ 	public boolean addTopicToCourse(Topic topic, String courseId){
 		// Returns true if the topic was successfully  added to the course.
 		
 		return true;
 	}
 	
-	public boolean addNewCourse(Course course){
+	
+ 	public boolean addNewCourse(Course course){
 		// Returns true if the course was successfully added.
 		
 		return false;
@@ -402,10 +490,10 @@ class DBHandler{
 		return true;
 	}
 	
-	public HashSet<String> getQIdsInExercise(int exerciseId){
-		
-		return new HashSet<>();
-	}
+//	public HashSet<String> getQIdsInExercise(int exerciseId){
+//		
+//		return new HashSet<>();
+//	}
 	
 	public boolean addQuestionToExercise(int qId, int eId){
 		// Returns true if the question was successfully added to the exercise.
