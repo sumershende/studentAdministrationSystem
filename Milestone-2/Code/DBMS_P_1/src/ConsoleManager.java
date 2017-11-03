@@ -66,12 +66,11 @@ class ConsoleManager {
 	}
 	
 	private void showCommonProfileData(LoggedInUserType userType){
-		System.out.println("1. First Name: " + dbHandler.getLoggedInUserFirstName());
-		System.out.println("2. Last Name: " + dbHandler.getLoggedInUserLastName());
+		System.out.println("1. First Name: " + dbHandler.getLoggedInUserName());
 		if(userType == LoggedInUserType.Student){
-			System.out.println("3. Student Id: " + dbHandler.getLoggedInUserId());
+			System.out.println("2. Student Id: " + dbHandler.getLoggedInUserId());
 		}else{
-			System.out.println("3. Employee Id: " + dbHandler.getLoggedInUserId());
+			System.out.println("2. Employee Id: " + dbHandler.getLoggedInUserId());
 		}
 	}
 	
@@ -243,7 +242,7 @@ class ConsoleManager {
 		while(true){
 			choice = askForStringInput("Do you want to assign TA(s) right now (y/n)?");
 			if(choice.toLowerCase().equals("y")){
-				int TAId;
+				String TAId;
 				int subChoice;
 				while(true){
 					System.out.println("0. Cancel and Go back.");
@@ -254,8 +253,8 @@ class ConsoleManager {
 						TAs = null;
 						break;
 					}else if(subChoice == 1){
-						TAId = askForIntInput("Please enter the Student ID of TA or press 0 to cancel: ");
-						if(TAId == 0){
+						TAId = askForStringInput("Please enter the Student ID of TA or press 0 to cancel: ");
+						if(TAId.equals("0")){
 							continue;
 						}else{
 							if(TAs == null) TAs = new ArrayList<>();
@@ -308,7 +307,7 @@ class ConsoleManager {
 		while(true){
 			choice = askForStringInput("Do you want to enroll students right now (y/n)?");
 			if(choice.toLowerCase().equals("y")){
-				int studentId;
+				String studentId;
 				int subChoice;
 				while(true){
 					System.out.println("0. Cancel and Go back.");
@@ -319,8 +318,8 @@ class ConsoleManager {
 						students = null;
 						break;
 					}else if(subChoice == 1){
-						studentId = askForIntInput("Please enter the Student ID of TA or press 0 to cancel: ");
-						if(studentId == 0){
+						studentId = askForStringInput("Please enter the Student ID of TA or press 0 to cancel: ");
+						if(studentId.equals("0")){
 							continue;
 						}else{
 							if(students == null) students = new ArrayList<>();

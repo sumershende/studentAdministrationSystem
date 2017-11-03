@@ -1,25 +1,21 @@
 
 class Person {
 	private final String name;
-	private final int id;
+	private final String id;
 	
 	public String getName() {
 		return name;
 	}
-
-/*	public String getLastName() {
-		return lastName;
-	}
-*/
-	public int getId() {
+	
+	public String getId() {
 		return id;
 	}
 
-	public Person(int id){
+	public Person(String id){
 		this(null, id);
 	}
 	
-	public Person(String name, int id) {
+	public Person(String name, String id) {
 		this.name = name;
 		this.id = id;
 	}
