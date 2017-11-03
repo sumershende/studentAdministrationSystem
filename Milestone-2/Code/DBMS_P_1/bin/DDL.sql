@@ -22,7 +22,7 @@ create table Roles(role varchar2(50), roleid int primary key);
 create table Users(userid varchar2(30) primary key, password varchar(100), name varchar2(100),roleid int, FOREIGN KEY(roleid) REFERENCES Roles(roleid));
 create table Master_Topics(tp_id int primary key , tp_name varchar2(100));
 create table Professor(prof_id int primary key, userid varchar2(30), FOREIGN KEY (userid) REFERENCES Users(userid));
-create table Courses(c_id varchar2(10) primary key, c_name varchar2(30)NOT NULL, c_start_date date, c_end_date date, prof_id int, levelGrad NUMBER(1,0),max_students int,FOREIGN KEY (prof_id) REFERENCES Professor (prof_id));
+create table Courses(c_id varchar2(10) primary key, c_name varchar2(30)NOT NULL, c_start_date date, c_end_date date, prof_id int, levelGrad NUMBER(1,0), max_students int, FOREIGN KEY (prof_id) REFERENCES Professor (prof_id));
 create table Topics(c_id varchar2(10), tp_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (tp_id) REFERENCES Master_Topics (tp_id));
 create table Students(st_id int primary key, userid varchar2(30), isGrad NUMBER(1,0) NOT NULL, FOREIGN KEY (userid) REFERENCES Users(userid));
 create table Enrolled_In(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (st_id) REFERENCES Students(st_id));

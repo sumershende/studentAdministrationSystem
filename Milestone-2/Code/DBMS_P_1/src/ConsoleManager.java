@@ -179,12 +179,11 @@ class ConsoleManager {
 		System.out.print("> Current TA(s): ");
 		if(course.hasTAs()){
 			for(Person TA : course.getTAs()){
-				System.out.print("\n\t> " + TA.getName());
+				System.out.print("\n\t> " + TA.getName() + "; ID = " + TA.getId());
 			}
 		}else{
 			System.out.print("None");
 		}
-		System.out.print("\n> Topics: ");
 		if(course.hasTopics()){
 			System.out.println();
 			List<Topic> topics = course.getTopics();
