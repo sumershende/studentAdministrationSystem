@@ -136,6 +136,7 @@ class DBHandler{
 		return loggedInUserType;
 	}
 	
+	//Done - Akanksha
 	public List<String[]> getTaughtCoursesByProfessor(){
 		// Return the taught courses by the logged in professor.
 		// Syntax = <[courseName, courseId], [], []>
@@ -164,6 +165,7 @@ class DBHandler{
 		return taughtCourses;
 	}
 	
+	//Done- Akanksha
 	public List<String[]> getTACourses(){
 		// Return the courses for which the logged in user is TA.
 		// Syntax = <[courseName, courseId], [], []>
@@ -278,10 +280,25 @@ class DBHandler{
 		return false;
 	}
 	
-	public boolean addNewStudentToCourse(String studentId, String courseId){
+	//Done -Akanksha
+	public boolean addNewStudentToCourse(int studentId, String courseId){
 		// Returns true if the student was successfully added to the course.
-		
-		return false;
+		String query = " insert into Enrolled_In (c_id, st_id)"
+		        + " values (?, ?)";
+		try{
+		      // create the mysql insert preparedstatement
+		      PreparedStatement preparedStmt = conn.prepareStatement(query);
+		      preparedStmt.setString(1, courseId);
+		      preparedStmt.setInt (2, studentId);
+
+		      // execute the preparedstatement
+		      preparedStmt.execute();
+		}catch(SQLException s){
+			System.out.println(s);
+			return false;
+		}
+
+		return true;
 	}
 	
 	public boolean dropStudentFromCourse(String studentId, String courseId){

@@ -137,7 +137,7 @@ class TAHandler {
 		}else{
 			if(isEnroll){
 				// Try to add the student to the course.
-				if(dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1])){
+				if(dbHandler.addNewStudentToCourse(Integer.parseInt(newStudentAndCourseDetails[0]), newStudentAndCourseDetails[1])){
 					// Successfully added the student to the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("New student successfully added.");
 				}else{
