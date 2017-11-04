@@ -633,7 +633,7 @@ class DBHandler{
 			closeStatement(pstmt);
 		}
 	}	
-
+	//Akanksha
 	public List<StudentReport> getStudentReports(String courseId){
 		// Returns the report of all students in the course.
 		// Fields required in StudentReport:
@@ -675,7 +675,6 @@ class DBHandler{
 		}
 		return reportList;
 	}
-
 
 	public List<Exercise> getExercisesForCourse(String courseId){
 		// Returns a list of all the exercises in the course.
@@ -868,7 +867,7 @@ class DBHandler{
 		List<Question> qs = new ArrayList<Question>();
 		String sql;
 		try {
-			sql = "select q_text, q_hint from Question Q, Questions_In_Ex E where E.q_id=Q.q_id"
+			sql = "select q_text, q_hint from Questions Q, Questions_In_Ex E where E.q_id=Q.q_id"
 					+ "and E.ex_id=?; ";
 			ps=conn.prepareStatement(sql);
 			ps.setInt(1, exerciseId);
