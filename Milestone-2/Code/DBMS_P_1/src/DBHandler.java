@@ -395,8 +395,7 @@ class DBHandler{
  	public List<Topic> getCourseTopics(String courseId){
 		// Returns an array list of topics in the course.  
 		
-		List<Topic> topics = new ArrayList<>();
-		
+		List<Topic> topics = new ArrayList<>();		
 		String query = "SELECT MT.tp_name, MT.tp_id "
 				+ "FROM Master_Topics MT INNER JOIN Topics T ON MT.tp_id = T.tp_id "
 				+ "WHERE T.c_id = ?";
@@ -720,53 +719,132 @@ class DBHandler{
  		}
 	}
 	
-	
+	//Akanksha
 	public List<Question> getQuestionsForCourse(String courseId){
 		// Returns a list containing all the questions in the course.
 		// Fields required in a Question:
 		// All.
 		
 		List<Question> questions = new ArrayList<>();
-		
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<Question> qs = new ArrayList<Question>();
+		String sql;
+		try {
+			sql = "SELECT  q_text, q_hint, q_del_soln, difficulty, m.tp_name"+
+					"FROM QUESTIONS q, TOPICS t, MASTER_TOPICS m"+
+					"WHERE q.tp_id=t.tp_id"+
+					"and t.tp_id=m.tp_id" +
+					"and t.c_id=?";
+			ps=conn.prepareStatement(sql);
+			ps.setString(1, courseId);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				Question q = new Question();
+				q.setText(rs.getString(1));
+				q.setHint(rs.getString(2));
+				q.setDetailedSolution(rs.getString(3)); 
+				q.setDifficultyLevel(rs.getInt(4));
+				q.setTopicName(rs.getString(5));
+				qs.add(q);
+			}
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
 		return questions;
 	}
 	
-	
+	//Akanksha
 	public List<Question> searchQuestionsWithTopicId(int topicId){
 		// Returns a list of questions in topic with id = topicId.
 		
 		List<Question> questions = new ArrayList<>();
+ 		String query = "SELECT q_text "
+				+ "FROM QUESTIONS"
+				+ "WHERE tp_id = ?";
 		
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, topicId);
+			
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				Question q = new Question();
+				q.setText(rs.getString(1));
+				questions.add(q);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
 		return questions;
 	}
 	
-	
+	//Akanksha
 	public List<Question> searchQuestionsWithQuestionId(int qId){
 		// Returns a list of questions based on search by question ID.
 		
-//		List<Question> questions = new ArrayList<>();
-//		boolean isTopic = true;
-//		int questionId;
-//		String topic;
-//		try{
-//			questionId = Integer.parseInt(searchQuery);
-//			isTopic = false;
-//		}
-//		catch(Exception e){
-//			topic = searchQuery;
-//		}
-//		if(isTopic){
-//			
-//		}
-//		return questions;
-		return null;
+		List<Question> questions = new ArrayList<>();
+		String query = "SELECT q_text "
+				+ "FROM QUESTIONS"
+				+ "WHERE q_id = ?";
+		
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, qId);
+			
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				Question q = new Question();
+				q.setText(rs.getString(1));
+				questions.add(q);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+		return questions;
 	}
 	
-	
+	//Akanksha
 	public boolean addQuestionToQuestionBank(Question question){
 		// Returns true if the question was successfully added to the DB.
-		
-		return false;
+		PreparedStatement pstmt = null;
+		try{ 			
+ 			// Now, insert into HasTA
+ 			String query = "INSERT INTO QUESTIONS "
+ 					+ "VALUES(?, ?, ?, ?, ?, ?)";
+ 			pstmt = conn.prepareStatement(query);
+ 			pstmt.setInt(1, question.getTopicId());
+ 			pstmt.setInt(2, question.getId());
+ 			pstmt.setString(3, question.getText());
+ 			pstmt.setString(4, question.getHint());
+ 			pstmt.setString(5, question.getDetailedSolution());
+ 			pstmt.setInt(6, question.getDifficultyLevel());
+ 			
+ 			if(pstmt.executeUpdate() == 0){
+ 				// Failure, already added.
+ 				return false;
+ 			}
+ 		}catch(SQLException e){
+ 			// Failure, constraint violation.
+ 			e.printStackTrace();
+ 			return false;
+ 		}finally{
+ 			closeStatement(pstmt);
+ 		}
+		return true;
 	}
 	
 	
