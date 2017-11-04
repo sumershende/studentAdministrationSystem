@@ -394,8 +394,7 @@ class DBHandler{
  	public List<Topic> getCourseTopics(String courseId){
 		// Returns an array list of topics in the course.  
 		
-		List<Topic> topics = new ArrayList<>();
-		
+		List<Topic> topics = new ArrayList<>();		
 		String query = "SELECT MT.tp_name, MT.tp_id "
 				+ "FROM Master_Topics MT INNER JOIN Topics T ON MT.tp_id = T.tp_id "
 				+ "WHERE T.c_id = ?";
@@ -747,7 +746,7 @@ class DBHandler{
 		return questions;
 	}
 	
-	
+	//Akanksha
 	public List<Question> searchQuestionsWithTopicId(int topicId){
 		// Returns a list of questions in topic with id = topicId.
 		
@@ -778,11 +777,34 @@ class DBHandler{
 		return null;
 	}
 	
-	
+	//Akanksha
 	public boolean addQuestionToQuestionBank(Question question){
 		// Returns true if the question was successfully added to the DB.
-		
-		return false;
+		PreparedStatement pstmt = null;
+		try{ 			
+ 			// Now, insert into HasTA
+ 			String query = "INSERT INTO QUESTIONS "
+ 					+ "VALUES(?, ?, ?, ?, ?, ?)";
+ 			pstmt = conn.prepareStatement(query);
+ 			pstmt.setInt(1, question.getTopicId());
+ 			pstmt.setInt(2, question.getId());
+ 			pstmt.setString(3, question.getText());
+ 			pstmt.setString(4, question.getHint());
+ 			pstmt.setString(5, question.getDetailedSolution());
+ 			pstmt.setInt(6, question.getDifficultyLevel());
+ 			
+ 			if(pstmt.executeUpdate() == 0){
+ 				// Failure, already added.
+ 				return false;
+ 			}
+ 		}catch(SQLException e){
+ 			// Failure, constraint violation.
+ 			e.printStackTrace();
+ 			return false;
+ 		}finally{
+ 			closeStatement(pstmt);
+ 		}
+		return true;
 	}
 	
 	
