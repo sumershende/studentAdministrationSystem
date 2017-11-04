@@ -797,10 +797,27 @@ class DBHandler{
 //		return new HashSet<>();
 //	}
 	
-	
+	//Akanksha
 	public boolean addQuestionToExercise(int qId, int eId){
 		// Returns true if the question was successfully added to the exercise.
-		
+		PreparedStatement pstmt = null;
+ 		try{ 			
+ 			// Now, insert into topics
+ 			String query = "INSERT INTO Questions_In_Ex "
+ 					+ "VALUES(?, ?)";
+ 			pstmt = conn.prepareStatement(query);
+ 			pstmt.setInt(1, eId);
+ 			pstmt.setInt(2, qId);
+ 			
+ 			if(pstmt.executeUpdate() == 0){
+ 				// Failure
+ 				return false;
+ 			} 			
+ 		}catch(SQLException e){
+ 			return false;
+ 		}finally{
+ 			closeStatement(pstmt);
+ 		}
 		return true;
 	}
 	
