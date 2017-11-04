@@ -45,57 +45,57 @@ ALTER TABLE Courses
 ADD CONSTRAINT CheckEndLaterThanStart
 CHECK (c_end_date >= c_start_date);
 
-DROP FUNCTION CheckTAasGradStudent;
-CREATE FUNCTION CheckTAasGradStudent(student_id IN NUMBER)
-return int DETERMINISTIC
-Is ret int;
-begin
-    select count(*) 
-    into ret
-    from Students where st_id=student_id and isGrad=1;
-    return (ret);
-end CheckTAasGradStudent;
-
-ALTER TABLE HASTA
-DROP CONSTRAINT GradStudentAsTA;
-
-ALTER TABLE HASTA
-ADD (taAsGrad int GENERATED ALWAYS AS (CheckTAasGradStudent(st_id)) VIRTUAL);
-
-ALTER table HASTA 
-ADD CONSTRAINT GradStudentAsTA CHECK(taAsGrad=1);
-
-DROP function TAnotStudent;
-CREATE FUNCTION TAnotStudent(st_id IN NUMBER, c_id IN VARCHAR2)
-return int DETERMINISTIC
-Is ret int;
-begin
-	select count(*)
-	into ret
-	from Enrolled_In
-	where c_id=c_id and st_id=st_id;
-	return (ret);
-end TAnotStudent;
-
-ALTER TABLE HASTA
-ADD (taStudent int GENERATED ALWAYS AS (TAnotStudent(c_id, st_id)) VIRTUAL);
-
-ALTER TABLE HASTA
-DROP CONSTRAINT TAStudent;
-
-ALTER table HASTA 
-ADD CONSTRAINT TAStudent
-CHECK (taStudent=0);
-
-ALTER TABLE Enrolled_In
-ADD (taStudent int GENERATED ALWAYS AS (TAnotStudent(c_id, st_id)) VIRTUAL);
-
-ALTER TABLE Enrolled_In
-DROP CONSTRAINT TAnotStudent;
-
-ALTER table Enrolled_In 
-ADD CONSTRAINT TAnotStudent
-CHECK (taStudent=0);
+--DROP FUNCTION CheckTAasGradStudent;
+--CREATE FUNCTION CheckTAasGradStudent(student_id IN NUMBER)
+--return NUMBER DETERMINISTIC
+--Is ret NUMBER;
+--begin
+--    select count(*) 
+--    into ret
+--    from Students where st_id=student_id and isGrad=1;
+--    return (ret);
+--end CheckTAasGradStudent;
+--
+--ALTER TABLE HASTA
+--DROP CONSTRAINT GradStudentAsTA;
+--
+--ALTER TABLE HASTA
+--ADD (taAsGrad NUMBER GENERATED ALWAYS AS (CheckTAasGradStudent(st_id)) VIRTUAL);
+--
+--ALTER table HASTA 
+--ADD CONSTRAINT GradStudentAsTA CHECK(taAsGrad=1);
+--
+--DROP function TAnotStudent;
+--CREATE FUNCTION TAnotStudent(st_id IN NUMBER, c_id IN VARCHAR2)
+--return NUMBER DETERMINISTIC
+--Is ret NUMBER;
+--begin
+--	select count(*)
+--	into ret
+--	from Enrolled_In
+--	where c_id=c_id and st_id=st_id;
+--	return (ret);
+--end TAnotStudent;
+--
+--ALTER TABLE HASTA
+--ADD (taStudent NUMBER GENERATED ALWAYS AS (TAnotStudent(c_id, st_id)) VIRTUAL);
+--
+--ALTER TABLE HASTA
+--DROP CONSTRAINT TAStudent;
+--
+--ALTER table HASTA 
+--ADD CONSTRAINT TAStudent
+--CHECK (taStudent=0);
+--
+--ALTER TABLE Enrolled_In
+--ADD (taStudent NUMBER GENERATED ALWAYS AS (TAnotStudent(c_id, st_id)) VIRTUAL);
+--
+--ALTER TABLE Enrolled_In
+--DROP CONSTRAINT TAnotStudent;
+--
+--ALTER table Enrolled_In 
+--ADD CONSTRAINT TAnotStudent
+--CHECK (taStudent=0);
 
 --- topics table, make primary key - both
 

@@ -7,12 +7,13 @@ WHERE U.userid = ?;, Error Msg = ORA-00933: SQL command not properly ended
 
 SELECT prof_id FROM Professor WHERE userid = 'kogan'
 	
-
+INSERT INTO Enrolled_In (c_id, st_id) VALUES ('CSC541', 10003);
 select * from courses c inner join users u on c.prof_id=
 
+insert into Enrolled_In (c_id, st_id) values ('CSC',10007)
 SELECT prof_id FROM Students WHERE userid = ?
 
-Select * from students where userid=?
+Select * from Enrolled_In where userid=?
 
 SELECT prof_id FROM Professor WHERE userid='kogan'
 Select * from courses

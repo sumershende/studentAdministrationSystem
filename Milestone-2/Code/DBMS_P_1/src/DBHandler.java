@@ -574,24 +574,24 @@ class DBHandler{
 		}
 	}
 	
- 	// Approved AS, GV
+ 	// Approved AS
 	public Boolean addNewStudentToCourse(String studentId, String courseId){
 		// Returns true if the student was successfully added to the course.
-		int studentNumericalId = getId(studentId, UserType.Student);
+/*		int studentNumericalId = getId(studentId, UserType.Student);
 		
 		if(studentNumericalId == -1){
 			// Invalid student id
 			return false;
 		}
 		
-		String query = " INSERT INTO Enrolled_In "
+*/		String query = "INSERT INTO Enrolled_In (C_ID, ST_ID)"
 		        + "VALUES (?, ?)";
 		PreparedStatement pstmt = null;
 		
 		try{
 		      pstmt = conn.prepareStatement(query);
 		      pstmt.setString(1, courseId);
-		      pstmt.setInt(2, studentNumericalId);
+		      pstmt.setInt(2, Integer.parseInt(studentId));
 
 		      if(pstmt.executeUpdate() == 1){
 		    	  // Successfully added.
@@ -609,14 +609,30 @@ class DBHandler{
 		}
 	}
 	
-	
+	// Approved AS
 	public Boolean dropStudentFromCourse(String studentId, String courseId){
 		// Returns true if the student was successfully dropped from the course.
 		// or null if was already not in the course.
-		
-		return true;
-	}
-	
+		PreparedStatement pstmt = null;
+		try{ 			
+ 			String query = "DELETE FROM Enrolled_in WHERE st_id=? and c_id=?";
+ 			pstmt = conn.prepareStatement(query);
+ 			pstmt.setString(1, studentId);
+ 			pstmt.setString(2, courseId);
+ 			
+ 			if(pstmt.executeUpdate() == 0){
+ 				return null;
+ 			}else{
+ 				return true;
+ 			}
+ 		}catch(SQLException e){
+ 			// Failure, constraint violation.
+ 			e.printStackTrace();
+ 			return false;
+ 		}finally{
+ 			closeStatement(pstmt);
+ 		}
+	}	
 	
 	public List<StudentReport> getStudentReports(String courseId){
 		// Returns the report of all students in the course.
@@ -908,10 +924,7 @@ class DBHandler{
 		}
 		catch(Throwable oops){
 			oops.printStackTrace();
-		}
-		
-		
-		
+		}		
 		
 		return null;
 	}
