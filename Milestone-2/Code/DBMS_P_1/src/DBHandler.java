@@ -784,23 +784,18 @@ class DBHandler{
  		}
 	}
 	
-	//Akanksha
+	//Akanksha & Sumer
 	public List<Question> getQuestionsForCourse(String courseId){
 		// Returns a list containing all the questions in the course.
 		// Fields required in a Question:
 		// All.
 		
-		List<Question> questions = new ArrayList<>();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		List<Question> qs = new ArrayList<Question>();
 		String sql;
 		try {
-			sql = "SELECT  q_text, q_hint, q_del_soln, difficulty, m.tp_name"+
-					"FROM QUESTIONS q, TOPICS t, MASTER_TOPICS m"+
-					"WHERE q.tp_id=t.tp_id"+
-					"and t.tp_id=m.tp_id" +
-					"and t.c_id=?";
+			sql = "SELECT  q_text, q_hint, q_del_soln, difficulty, q_id FROM QUESTIONS q, TOPICS t  WHERE q.tp_id=t.tp_id and t.c_id=?";
 			ps=conn.prepareStatement(sql);
 			ps.setString(1, courseId);
 			rs = ps.executeQuery();
@@ -810,15 +805,47 @@ class DBHandler{
 				q.setHint(rs.getString(2));
 				q.setDetailedSolution(rs.getString(3)); 
 				q.setDifficultyLevel(rs.getInt(4));
-				q.setTopicName(rs.getString(5));
+				q.setId(rs.getInt(5));
 				qs.add(q);
 			}
 		}
 		catch(Throwable oops){
 			oops.printStackTrace();
 		}
-		return questions;
+		return qs;
 	}
+	
+		//Sumer
+		public List<Question> getQuestionsForCourseAndTopic(String courseId,int topicId){
+			// Returns a list containing all the questions in the course.
+			// Fields required in a Question:
+			// All.
+			
+			PreparedStatement ps = null;
+			ResultSet rs = null;
+			List<Question> qs = new ArrayList<Question>();
+			String sql;
+			try {
+				sql = "SELECT  q_text, q_hint, q_del_soln, difficulty, q_id FROM QUESTIONS q, TOPICS t  WHERE q.tp_id=t.tp_id and t.c_id=? and t.tp_id=?";
+				ps=conn.prepareStatement(sql);
+				ps.setString(1, courseId);
+				ps.setInt(2, topicId);
+				rs = ps.executeQuery();
+				while(rs.next()) {
+					Question q = new Question();
+					q.setText(rs.getString(1));
+					q.setHint(rs.getString(2));
+					q.setDetailedSolution(rs.getString(3)); 
+					q.setDifficultyLevel(rs.getInt(4));
+					q.setId(rs.getInt(5));
+					qs.add(q);
+				}
+			}
+			catch(Throwable oops){
+				oops.printStackTrace();
+			}
+			return qs;
+		}
 	
 	//Akanksha
 	public List<Question> searchQuestionsWithTopicId(int topicId){
@@ -949,7 +976,7 @@ class DBHandler{
 //		return new HashSet<>();
 //	}
 	
-	//Akanksha
+	//Akanksha & Sumer
 	public boolean addQuestionToExercise(int qId, int eId){
 		// Returns true if the question was successfully added to the exercise.
 		PreparedStatement pstmt = null;
@@ -964,7 +991,16 @@ class DBHandler{
  			if(pstmt.executeUpdate() == 0){
  				// Failure
  				return false;
- 			} 			
+ 			}
+ 			String query1 = " UPDATE Exercises SET NUM_QUESTIONS = (Select Count(*) from QUESTIONS_IN_EX where ex_id = ?) where ex_id = ?";
+ 			PreparedStatement pstmt1 = conn.prepareStatement(query1);
+ 			pstmt1.setInt(1, eId);
+ 			pstmt1.setInt(2, eId);
+ 			pstmt1.executeQuery();
+ 			if(pstmt1.executeUpdate() == 0){
+ 				// Failure
+ 				return false;
+ 			}
  		}catch(SQLException e){
  			return false;
  		}finally{

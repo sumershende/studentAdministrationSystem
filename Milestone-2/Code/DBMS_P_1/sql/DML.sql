@@ -1,3 +1,4 @@
-select q_text, q_hint from Questions Q, Questions_In_Ex E where E.q_id=Q.q_id and E.ex_id=1;
-
-select q_text, q_hint from Questions Q, Questions_In_Ex E where E.q_id=Q.q_id and E.ex_id=1
+SELECT  q_text, q_hint, q_del_soln, difficulty, q_id FROM QUESTIONS q, TOPICS t  WHERE q.tp_id=t.tp_id and t.c_id='CSC540' and t.tp_id=2
+ 
+ 
+ 

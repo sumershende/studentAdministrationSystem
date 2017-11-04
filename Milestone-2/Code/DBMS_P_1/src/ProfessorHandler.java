@@ -286,7 +286,7 @@ class ProfessorHandler extends TAHandler{
 				// Go back
 				break;
 			}
-			if(!choice.equals("Random") || !choice.equals("Adaptive")){
+			if(!choice.equals("Random") && !choice.equals("Adaptive")){
 				consoleManager.showInvalidChoiceError();
 				continue;
 			}

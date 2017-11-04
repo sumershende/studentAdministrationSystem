@@ -74,7 +74,9 @@ class Question {
 	public Question() {
 		// TODO Auto-generated constructor stub
 	}
-
+	public void print() {
+		System.out.println(""+text+difficultyLevel+topicId+id+hint+topicName+questionType+detailedSolution+parameterValues+correctAnswers+this.incorrectAnswers+this.options+this.correctChoice);
+	}
 	public void setText(String text) {
 		this.text = text;
 	}
