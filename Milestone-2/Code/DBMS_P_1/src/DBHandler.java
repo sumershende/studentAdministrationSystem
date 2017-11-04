@@ -674,14 +674,6 @@ class DBHandler{
 		// 6. Number of questions
 		// 7. Number of retries
 		// 8. Scoring Policy
-//		String sql = 'select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions,
-//		num_retires, policy, pt_correct, pt_incorrect from Exercises E, Topics T where E.tp_id = T.tp_id
-//		and T.c_id = ?';
-//		PreparedStatement ps = conn.prepareStatement(sql);
-//		ps.setInt(1, Integer.parseInt(courseId));
-
-
-		
 		return null;
 	}
 	
@@ -812,10 +804,26 @@ class DBHandler{
 		return true;
 	}
 	
-	
+	//Akanksha
 	public boolean removeQuestionFromExercise(int qId, int eId){
 		// Returns true if the question was successfully removed from the exercise.
-		
+		PreparedStatement pstmt = null;
+		try{ 			
+ 			String query = "DELETE FROM Questions_In_Ex WHERE q_id=? and ex_id=?";
+ 			pstmt = conn.prepareStatement(query);
+ 			pstmt.setInt(1, qId);
+ 			pstmt.setInt(2, eId);
+ 			
+ 			if(pstmt.executeUpdate() == 0){
+ 				return false;
+ 			}
+ 		}catch(SQLException e){
+ 			// Failure, constraint violation.
+ 			e.printStackTrace();
+ 			return false;
+ 		}finally{
+ 			closeStatement(pstmt);
+ 		}
 		return true;
 	}
 	

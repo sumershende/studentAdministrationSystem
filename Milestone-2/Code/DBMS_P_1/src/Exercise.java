@@ -12,14 +12,16 @@ class Exercise {
 	
 	private ExerciseMode exerciseMode;
 	
-	private final String startDate, endDate, name;
+	private String startDate, endDate, name;
+
 	private int numQuestions, numRetries, id, topicId;
 
-	private final ScroingPolicy scroingPolicy;
+	private ScroingPolicy scroingPolicy;
 	
-	private final HashSet<Integer> qIds;
+	private HashSet<Integer> qIds;
 
-	private final int pointsAwardedPerCorrectAnswer, pointsDeductedPerIncorrectAnswer;
+	private int pointsAwardedPerCorrectAnswer, pointsDeductedPerIncorrectAnswer;
+	
 	
 	public Exercise(ExerciseMode exerciseMode, ScroingPolicy scroingPolicy, String name, 
 			String startDate, String endDate, int numQuestions, int numRetries, int id, 
@@ -37,6 +39,71 @@ class Exercise {
 		this.pointsAwardedPerCorrectAnswer = pointsAwardedPerCorrectAnswer;
 		this.pointsDeductedPerIncorrectAnswer = pointsDeductedPerIncorrectAnswer;
 		this.topicId = topicId;
+	}
+
+
+	public Exercise() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public void setExerciseMode(ExerciseMode exerciseMode) {
+		this.exerciseMode = exerciseMode;
+	}
+
+
+	public void setStartDate(String startDate) {
+		this.startDate = startDate;
+	}
+
+
+	public void setEndDate(String endDate) {
+		this.endDate = endDate;
+	}
+
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
+	public void setNumQuestions(int numQuestions) {
+		this.numQuestions = numQuestions;
+	}
+
+
+	public void setNumRetries(int numRetries) {
+		this.numRetries = numRetries;
+	}
+
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+
+	public void setTopicId(int topicId) {
+		this.topicId = topicId;
+	}
+
+
+	public void setScroingPolicy(ScroingPolicy scroingPolicy) {
+		this.scroingPolicy = scroingPolicy;
+	}
+
+
+	public void setqIds(HashSet<Integer> qIds) {
+		this.qIds = qIds;
+	}
+
+
+	public void setPointsAwardedPerCorrectAnswer(int pointsAwardedPerCorrectAnswer) {
+		this.pointsAwardedPerCorrectAnswer = pointsAwardedPerCorrectAnswer;
+	}
+
+
+	public void setPointsDeductedPerIncorrectAnswer(
+			int pointsDeductedPerIncorrectAnswer) {
+		this.pointsDeductedPerIncorrectAnswer = pointsDeductedPerIncorrectAnswer;
 	}
 
 	public ExerciseMode getExerciseMode() {
