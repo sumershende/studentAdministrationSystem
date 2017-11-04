@@ -17,15 +17,15 @@ public class PushDataIntoDb {
 			//step1 load the driver class  
 			Class.forName("oracle.jdbc.driver.OracleDriver");  
 			Connection con=DriverManager.getConnection("jdbc:oracle:thin:@orca.csc.ncsu.edu:1521:orcl01","gverma","200158973");  
-//			insertHasTa("Roles","Roles",con); //Inserting roles
-//			insertUsers("User","Users",con); //Insert into Users table
-//			insertStudents("Students","Students",con);	//insert into Students
-//			insertProfessor("Professor","Professor",con);	//insert into professor
-//			insertProfessor("Master_Topic","Master_Topics",con);	//insert into Master_Topic
-//			insertCourses("Courses","Courses",con);	//inserting course
-//			insertHasTa2("HasTa","HasTa",con);	//insert HasTA
-//			insertHasTa("Topics","Topics",con);	//insert topics
-//			insertHasTa2("Enrolled_In","Enrolled_In",con);	//insert topics
+			insertHasTa("Roles","Roles",con); //Inserting roles
+			insertUsers("User","Users",con); //Insert into Users table
+			insertStudents("Students","Students",con);	//insert into Students
+			insertProfessor("Professor","Professor",con);	//insert into professor
+			insertProfessor("Master_Topic","Master_Topics",con);	//insert into Master_Topic
+			insertCourses("Courses","Courses",con);	//inserting course
+			insertHasTa2("HasTa","HasTa",con);	//insert HasTA
+			insertHasTa("Topics","Topics",con);	//insert topics
+			insertHasTa2("Enrolled_In","Enrolled_In",con);	//insert topics
 			con.close();  
 		  
 		}catch(Exception e){ 
