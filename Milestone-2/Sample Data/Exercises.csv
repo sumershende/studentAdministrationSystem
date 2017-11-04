@@ -1,0 +1,11 @@
+﻿Ex_id,Ex_Name,Ex_Mode,Start date,End Date,Num_Question,Num_retries,Policy,TP_ID,Pt_correct,Pt_Incorrect
+1,ER Model,Random,08/27/2017,08/31/2017,5,3,Maximum,1,3,1
+2,SQL,Adaptive,09/25/2017,10/25/2017,4,2,Latest,2,3,0
+3,Storing Data:Disks and Files,Random,10/25/2017,11/25/2017,6,1,Average,3,2,1
+4,Primary File Organization,Adaptive,11/27/2017,11/30/2017,3,3,Maximum,4,3,0
+5,Hashing Techniques,Random,09/25/2017,10/15/2017,5,2,Latest,5,4,1
+6,Binary Tree Structures,Adaptive,07/25/2017,08/25/2017,4,2,Average,6,3,0
+7,AVL Trees,Random,08/27/2017,09/27/2017,2,3,Maximum,7,3,2
+8,Sequential File Organization,Adaptive,09/25/2017,10/25/2017,6,1,Latest,8,3,0
+9,BinarySearch,Random,11/25/2017,12/25/2017,4,2,Average,9,3,1
+10,Interpolation Search,Adaptive,12-10-2017,12/27/2017,3,1,Maximum,10,4,1
