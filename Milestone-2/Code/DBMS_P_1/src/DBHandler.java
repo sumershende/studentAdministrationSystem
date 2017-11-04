@@ -542,7 +542,7 @@ class DBHandler{
  		return true;
  	}
  	
- 	
+ 	// Approved AS
  	public Boolean addNewCourse(Course course){
 		// Returns true if the course was successfully added.
  		String query = " INSERT INTO Courses "
