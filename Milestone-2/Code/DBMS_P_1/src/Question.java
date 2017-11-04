@@ -27,8 +27,8 @@ class Question {
 	
 	private String[] incorrectAnswers;
 	
-	public Question(String text, String hint){
-		this(text, hint, null, -1, -1, -1, null, null, null, null, null, null, 
+	public Question(String text, String hint, int id){
+		this(text, hint, null, -1, -1, id, null, null, null, null, null, null, 
 				-1);
 	}
 	
