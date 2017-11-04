@@ -3,6 +3,7 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
@@ -679,10 +680,74 @@ class DBHandler{
 //				and T.c_id = ?';
 //				PreparedStatement ps = conn.prepareStatement(sql);
 //				ps.setInt(1, Integer.parseInt(courseId));
-
-
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql;
+		int id=-1, num_questions=-1, num_retries=-1, topic_id=-1, pt_correct=-1, pt_incorrect=-1;
+		Date start_date = null, end_date = null;
+		String name="", mode="", policy="", s_date="", e_date="";
+		ExerciseMode e_mode = null;
+		ScroingPolicy sp = null;
+		DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+		HashSet<Integer> qIds = new HashSet<Integer>();
+		List<Exercise> ans = new ArrayList<Exercise>();
+		try {
+			sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions, num_retries, policy, E.tp_id, pt_correct, pt_incorrect from Exercises E, Topics T where E.tp_id = T.tp_id and T.c_id = ?";
+			ps=conn.prepareStatement(sql);
+			ps.setString(1, courseId);
+			rs = ps.executeQuery();
+//			ResultSetMetaData rsmd = rs.getMetaData();
+//			   int columnsNumber = rsmd.getColumnCount();
+//			   while (rs.next()) {System.out.println();
+//			       for (int i = 1; i <= columnsNumber; i++) {
+//			           if (i > 1) System.out.print(",  ");
+//			           String columnValue = rs.getString(i);
+//			           System.out.print(columnValue + " " + rsmd.getColumnName(i));
+//			       }}
+			while(rs.next()) {
+				id = rs.getInt(1);
+				name = rs.getString(2);
+				mode = rs.getString(3);
+				start_date = rs.getDate(4);
+				end_date = rs.getDate(5);
+				num_questions = rs.getInt(6);
+				num_retries = rs.getInt(7);
+				policy = rs.getString(8);
+				topic_id = rs.getInt(9);
+				pt_correct = rs.getInt(10);
+				pt_incorrect = rs.getInt(11);
 				
-				return null;
+			
+			mode = mode.toLowerCase();
+			policy = policy.toLowerCase();
+			s_date = df.format(start_date);
+			e_date = df.format(end_date);
+			if(mode != null) {
+				if(mode.equals("adaptive"))
+					e_mode = ExerciseMode.Adaptive;
+				else
+					e_mode = ExerciseMode.Random;
+			}
+			if(policy != null) {
+				if(policy.equals("latest"))
+					sp = ScroingPolicy.Latest;
+				else {
+					if(policy.equals("maximum"))
+						sp = ScroingPolicy.Maximum;
+					else
+						sp = ScroingPolicy.Average;
+				}
+			}
+//			System.out.println(""+e_mode+sp+name+s_date+e_date+num_questions+num_retries+id+qIds+pt_correct+pt_incorrect+topic_id);
+			ans.add(new Exercise(e_mode, sp, name, s_date, e_date, num_questions, num_retries, id, qIds, pt_correct,
+					pt_incorrect, topic_id ));
+			}
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
+		
+		return ans;
 	}
 	
 	// Approved by GV
