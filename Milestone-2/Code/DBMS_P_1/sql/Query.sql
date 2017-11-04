@@ -1,6 +1,11 @@
 SELECT q_text,  FROM QUESTIONS_IN_EX qe, QUESTIONS q 
 where qe.q_id=q.q_id and ex_id='' and qe.q_id=''
 
+SELECT S.st_id, U.name, with_score, H.ex_id
+					FROM Has_Solved H, Students S, Users U
+					WHERE H.st_id = S.st_id and S.isGrad=1 and U.userid=S.userid and H.ex_id in 
+								(select E.ex_id from Exercises E, Topics T
+								where T.c_id = 'CSC540' and E.tp_id = T.tp_id )
 
 SELECT  q_text, q_hint, q_del_soln, difficulty, m.tp_name
 FROM QUESTIONS q, TOPICS t, MASTER_TOPICS m
@@ -8,8 +13,9 @@ WHERE q.tp_id=t.tp_id
 and t.tp_id=m.tp_id
 and t.c_id='CSC540'
 
+select * from HAS_SOLVED
 select * from questions
-
+select * from TOPICS
 select * from Users
 SELECT c_id, c_name FROM courses C inner join Pusers U on C.prof_id=U.userid 
 WHERE U.userid = 'kogan' 
