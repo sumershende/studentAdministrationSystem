@@ -27,7 +27,7 @@ create table Topics(c_id varchar2(10), tp_id int, FOREIGN KEY (c_id) REFERENCES 
 create table Students(st_id int primary key, userid varchar2(30), isGrad NUMBER(1,0) NOT NULL, FOREIGN KEY (userid) REFERENCES Users(userid));
 create table Enrolled_In(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (st_id) REFERENCES Students(st_id));
 create table HasTA(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (st_id) REFERENCES Students(st_id));
-create table Questions(tp_id int,q_id int primary key, q_text varchar2(200) NOT NULL, q_hint varchar2(100), q_del_soln varchar(200), FOREIGN KEY (tp_id) REFERENCES Master_Topics (tp_id));
+create table Questions(tp_id int,q_id int primary key, q_text varchar2(200) NOT NULL, q_hint varchar2(100), q_del_soln varchar(200), difficulty int, FOREIGN KEY (tp_id) REFERENCES Master_Topics (tp_id));
 create table Fixed_Questions(q_id int,q_ans varchar(100)NOT NULL, FOREIGN KEY (q_id) REFERENCES Questions(q_id));
 create table Fixed_Inc_Answers(q_id int, q_inc_answers varchar(100),FOREIGN KEY (q_id) REFERENCES Questions(q_id));
 create table Param_Questions(q_id int, q_par_num int NOT NULL, q_comb_num int NOT NULL, q_param_value varchar2(50), FOREIGN KEY (q_id) REFERENCES Questions(q_id));
@@ -47,8 +47,8 @@ CHECK (c_end_date >= c_start_date);
 
 DROP FUNCTION CheckTAasGradStudent;
 CREATE FUNCTION CheckTAasGradStudent(student_id IN NUMBER)
-return number DETERMINISTIC
-Is ret number;
+return int DETERMINISTIC
+Is ret int;
 begin
     select count(*) 
     into ret
@@ -60,15 +60,15 @@ ALTER TABLE HASTA
 DROP CONSTRAINT GradStudentAsTA;
 
 ALTER TABLE HASTA
-ADD (taAsGrad NUMBER GENERATED ALWAYS AS (CheckTAasGradStudent(st_id)) VIRTUAL);
+ADD (taAsGrad int GENERATED ALWAYS AS (CheckTAasGradStudent(st_id)) VIRTUAL);
 
 ALTER table HASTA 
 ADD CONSTRAINT GradStudentAsTA CHECK(taAsGrad=1);
 
 DROP function TAnotStudent;
 CREATE FUNCTION TAnotStudent(st_id IN NUMBER, c_id IN VARCHAR2)
-return number DETERMINISTIC
-Is ret number;
+return int DETERMINISTIC
+Is ret int;
 begin
 	select count(*)
 	into ret
@@ -78,7 +78,7 @@ begin
 end TAnotStudent;
 
 ALTER TABLE HASTA
-ADD (taStudent NUMBER GENERATED ALWAYS AS (TAnotStudent(c_id, st_id)) VIRTUAL);
+ADD (taStudent int GENERATED ALWAYS AS (TAnotStudent(c_id, st_id)) VIRTUAL);
 
 ALTER TABLE HASTA
 DROP CONSTRAINT TAStudent;
@@ -88,7 +88,7 @@ ADD CONSTRAINT TAStudent
 CHECK (taStudent=0);
 
 ALTER TABLE Enrolled_In
-ADD (taStudent NUMBER GENERATED ALWAYS AS (TAnotStudent(c_id, st_id)) VIRTUAL);
+ADD (taStudent int GENERATED ALWAYS AS (TAnotStudent(c_id, st_id)) VIRTUAL);
 
 ALTER TABLE Enrolled_In
 DROP CONSTRAINT TAnotStudent;

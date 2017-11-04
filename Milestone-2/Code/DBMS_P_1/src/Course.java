@@ -1,3 +1,4 @@
+import java.sql.Date;
 import java.util.List;
 
 enum CourseLevel{
@@ -5,7 +6,8 @@ enum CourseLevel{
 }
 
 class Course {
-	private final String courseId, courseName, startDate, endDate;
+	private final String courseId, courseName;
+	private final Date startDate, endDate;
 	private final List<Person> TAs;
 	private final List<Topic> topics;
 	private final List<Person> enrolledStudents;
@@ -14,7 +16,7 @@ class Course {
 	
 	private final int maxStudentsAllowed;
 	
-	public Course(String courseId, String courseName, String startDate, String endDate, 
+	public Course(String courseId, String courseName, Date startDate, Date endDate, 
 			List<Person> TAs, List<Topic> topics, List<Person> studentsEnrolled, 
 			CourseLevel courseLevel, int maxStudentsAllowed){
 		this.courseId = courseId;
@@ -40,11 +42,11 @@ class Course {
 		return enrolledStudents;
 	}
 
-	public String getStartDate() {
+	public Date getStartDate() {
 		return startDate;
 	}
 
-	public String getEndDate() {
+	public Date getEndDate() {
 		return endDate;
 	}
 

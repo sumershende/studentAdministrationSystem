@@ -1,5 +1,6 @@
 
 
+import java.util.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,6 +18,7 @@ class ConsoleManager {
 	private Scanner sc;
 	
 	private DBHandler dbHandler;
+	final String DATE_FORMAT = "MM/dd/yyyy";
 	
 	private ConsoleManager(){
 		// Make it singleton
@@ -232,9 +234,7 @@ class ConsoleManager {
 	}
 	
 	
-	private boolean isDateValid(String date){
-		final String DATE_FORMAT = "MM/dd/yyyy";
-		
+	private boolean isDateValid(String date){		
 		try {
             DateFormat df = new SimpleDateFormat(DATE_FORMAT);
             df.setLenient(false);
@@ -245,6 +245,18 @@ class ConsoleManager {
         }
 	}
 	
+	private java.sql.Date getDate(String date){
+		DateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        df.setLenient(false);
+        try {
+			Date parsed = df.parse(date);
+			return (new java.sql.Date(parsed.getTime()));			
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
 	public Course askNewCourseDetails(){
 		showMessageToGoToPreviousMenu();
@@ -266,24 +278,32 @@ class ConsoleManager {
 		}
 		
 		// Ask start date.
-		String startDate;
+		String startDateStr;
+		java.sql.Date startDate;
 		while(true){
-			startDate =  askForStringInput("3. Enter start date (mm/dd/yyyy): ");
-			if (startDate.equals("0")){
+			startDateStr =  askForStringInput("3. Enter start date (mm/dd/yyyy): ");
+			if (startDateStr.equals("0")){
 				return null;
-			}else if(isDateValid(startDate)) break;
+			}else if(getDate(startDateStr)!=null){
+				startDate=getDate(startDateStr);
+				break;
+			}
 			else{
 				showInvalidChoiceError("Please enter a valid date!");
 			}
 		}
 		
 		// Ask end date.
-		String endDate;
+		String endDateStr;
+		java.sql.Date endDate;
 		while(true){
-			endDate =  askForStringInput("3. Enter end date (mm/dd/yyyy): ");
-			if (endDate.equals("0")){
+			endDateStr =  askForStringInput("3. Enter end date (mm/dd/yyyy): ");
+			if (endDateStr.equals("0")){
 				return null;
-			}else if(isDateValid(endDate)) break;
+			}else if(isDateValid(endDateStr)){
+				endDate=getDate(endDateStr);
+				break;
+			}
 			else{
 				showInvalidChoiceError("Please enter a valid date!");
 			}

@@ -295,13 +295,14 @@ class DBHandler{
 			pstmt.setString(1, courseId);
 			
 			rs = pstmt.executeQuery();
-			String courseName, courseStartDate, courseEndDate;
+			String courseName;
+			Date courseStartDate, courseEndDate;
 			int isGradLevel, maxStudents;
 			CourseLevel courseLevel;
 			while(rs.next()){
 				courseName 		= rs.getString(name);
-				courseStartDate = rs.getString(startDate);
-				courseEndDate 	= rs.getString(endDate);
+				courseStartDate = rs.getDate(startDate);
+				courseEndDate 	= rs.getDate(endDate);
 				isGradLevel		= rs.getInt(levelGrad);
 				if(isGradLevel == 1) courseLevel = CourseLevel.Grad;
 				else courseLevel = CourseLevel.UnderGrad;
@@ -544,8 +545,33 @@ class DBHandler{
  	
  	public Boolean addNewCourse(Course course){
 		// Returns true if the course was successfully added.
+ 		String query = " INSERT INTO Courses "
+		        + "VALUES (?, ?, ?, ?,?,?,?)";
+		PreparedStatement pstmt = null;
 		
-		return false;
+		try{
+		      pstmt = conn.prepareStatement(query);
+		      pstmt.setString(1, course.getCourseId());
+		      pstmt.setString(2, course.getCourseName());
+		      pstmt.setDate(3, course.getStartDate());
+		      pstmt.setDate(4, course.getEndDate());
+		      pstmt.setInt(5, getId(loggedInUserId, loggedInUserType));
+		      pstmt.setInt(6, course.getCourseLevel().ordinal());
+		      pstmt.setInt(7, course.getMaxStudentsAllowed());
+		      if(pstmt.executeUpdate() == 1){
+		    	  // Successfully added.
+		    	  return true;
+		      }else{
+		    	  // Already present in the course.
+		    	  return null;
+		      }
+		}catch(SQLException s){
+			// Failure, constraint violation.
+			s.printStackTrace();
+			return false;
+		}finally {
+			closeStatement(pstmt);
+		}
 	}
 	
  	// Approved AS, GV
@@ -942,7 +968,7 @@ class DBHandler{
 		return new ArrayList<>();
 	}
 
-
+	//Done-Akanksha
 	private int getId(String userId, UserType userType) {
 		// TODO Auto-generated method stub
 		String query;
