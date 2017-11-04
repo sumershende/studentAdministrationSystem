@@ -1191,9 +1191,6 @@ class DBHandler{
 					}
 					
 					return exercise_list;
-							
-					
-					
 				}
 				catch(Throwable oops){
 					oops.printStackTrace();
@@ -1210,8 +1207,8 @@ class DBHandler{
 				// Returns null if there are none.
 				String user_id = loggedInUserId;
 				int student_id = -1;
-				PreparedStatement ps = null;
-				ResultSet rs = null;
+				PreparedStatement ps = null, ps2 = null;
+				ResultSet rs = null, rs2 = null;
 				String sql;
 				int score, pt_correct, pt_incorrect;
 				Date submit, ex_end_date;
@@ -1243,12 +1240,45 @@ class DBHandler{
 						pt_correct = rs.getInt(4);
 						pt_incorrect = rs.getInt(5);
 						is_submission_done = (!exercise_open(ex_end_date));
-						hw_attempt.add(new StudentHWAttempt(score, df.format(submit), -1, pt_correct, pt_incorrect, is_submission_done));
+						sql = "select Q.q_text, Q.q_hint, is_correct, Q.q_del_soln, Q.q_id from Questions Q, Ouestions_In_Ex QE, Assign_Attempt A"
+								+ " where QE.ex_id=? "
+								+ "and Q.q_id = QE.q_id "
+								+ "and A.ex_id = ? and A.st_id = ? and A.q_id = QE.q_id;";
+						ps2 = conn.prepareStatement(sql);
+						ps2.setInt(1, exerciseId);
+						ps2.setInt(2, exerciseId);
+						ps2.setInt(3, student_id);
+						rs2 = ps.executeQuery();
+						String q_text, q_hint, q_del_soln;
+						List<Question> questions = new ArrayList<Question>();
+						List<Boolean> wasCorrectlyAnswered = new ArrayList<Boolean>();
+						while(rs2.next()) {
+							q_text = rs2.getString(1);
+							q_hint = rs2.getString(2);
+							if(is_submission_done) {
+								q_del_soln = rs2.getString(4);
+								questions.add(new Question(q_text, q_hint, q_del_soln));
+							}
+							else
+								questions.add(new Question(q_text, q_hint, rs.getInt(5)));
+							int is_correct = rs2.getInt(3);
+							boolean correct;
+							if(is_correct == 1) {
+								correct = true;
+							}
+							else
+								correct = false;
+							wasCorrectlyAnswered.add(correct);
+							
+						}
+						hw_attempt.add(new StudentHWAttempt(score, df.format(submit), questions, wasCorrectlyAnswered, 
+								-1, pt_correct, pt_incorrect, is_submission_done));
 					}
+					
 					return hw_attempt;
 					
 				}
-				catch(Throwable oops){
+				catch(SQLException oops){
 					oops.printStackTrace();
 				}
 				
@@ -1261,6 +1291,7 @@ class DBHandler{
 		// If the deadline has passed, contains detailed solution too.
 		// If the optional hint is not present, it is set to null.
 		
+
 		return null;
 	}
 	
