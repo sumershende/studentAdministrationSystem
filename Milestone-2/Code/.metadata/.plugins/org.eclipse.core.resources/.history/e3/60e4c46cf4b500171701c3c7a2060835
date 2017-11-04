@@ -1,5 +1,0 @@
-
-class StudentReport {
-	private String firstName, lastName;
-	String[] scores;
-}

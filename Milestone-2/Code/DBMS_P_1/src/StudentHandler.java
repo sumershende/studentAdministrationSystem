@@ -81,6 +81,7 @@ class StudentHandler {
 					}
 				}
 				if(validSelection){
+					consoleManager.showCourseDetails(courseId);
 					viewSelectedCourse(courseId);
 				}else{
 					consoleManager.showInvalidChoiceError("Please select a valid course ID!");

@@ -27,27 +27,25 @@ public class MainFile {
 				}
 				else if (choice == 1){
 					// Login
-					System.out.print("Username: ");
-					String userName = sc.nextLine();
-					System.out.print("Password: ");
-					String password = sc.nextLine();
+					String userId = consoleManager.askForStringInput("Enter Username: ");
+					String password = consoleManager.askForStringInput("Enter password: ");
 					
 					consoleManager.clearScreen();
 					
-					LoggedInUserType userType = dbHandler.login(userName, password);
+					UserType userType = dbHandler.login(userId, password);
 					
-					if(userType == LoggedInUserType.InvalidUser){
+					if(userType == UserType.InvalidUser){
 						System.out.println("Invalid username/login.");
-					}else if(userType == LoggedInUserType.Professor){
+					}else if(userType == UserType.Professor){
 						// Professor
 						ProfessorHandler.execute();
-					}else if(userType == LoggedInUserType.TA){
+					}else if(userType == UserType.TA){
 						// TA
 						// Ask the user whether he wants to login as TA or student.
 						boolean switchAccount = TAHandler.execute();
 						while(true){
 							if(switchAccount){
-								if(dbHandler.getLoggedInUserType() == LoggedInUserType.TA){
+								if(dbHandler.getLoggedInUserType() == UserType.TA){
 									// Switch to student account.
 									dbHandler.changeTAToStudent();
 									switchAccount = StudentHandler.execute(true);
@@ -58,7 +56,7 @@ public class MainFile {
 								}
 							}else break;
 						}
-					}else if(userType == LoggedInUserType.Student){
+					}else if(userType == UserType.Student){
 						// Student
 						StudentHandler.execute(false);
 					}
@@ -71,6 +69,8 @@ public class MainFile {
 			
 		}catch(SQLException sqlExcpt){
 			sqlExcpt.printStackTrace();
+		}finally{
+			dbHandler.closeConnection();
 		}
 	}
 }

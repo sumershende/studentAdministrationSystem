@@ -1,5 +1,8 @@
 
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -65,32 +68,31 @@ class ConsoleManager {
 		}
 	}
 	
-	private void showCommonProfileData(LoggedInUserType userType){
-		System.out.println("1. First Name: " + dbHandler.getLoggedInUserFirstName());
-		System.out.println("2. Last Name: " + dbHandler.getLoggedInUserLastName());
-		if(userType == LoggedInUserType.Student){
-			System.out.println("3. Student Id: " + dbHandler.getLoggedInUserId());
+	private void showCommonProfileData(UserType userType){
+		System.out.println("1. First Name: " + dbHandler.getLoggedInUserName());
+		if(userType == UserType.Student){
+			System.out.println("2. Student Id: " + dbHandler.getLoggedInUserId());
 		}else{
-			System.out.println("3. Employee Id: " + dbHandler.getLoggedInUserId());
+			System.out.println("2. Employee Id: " + dbHandler.getLoggedInUserId());
 		}
 	}
 	
 	public void showProfProfile(){
-		showCommonProfileData(LoggedInUserType.Professor);
+		showCommonProfileData(UserType.Professor);
 		
 		List<String[]> taughtCourses = dbHandler.getTaughtCoursesByProfessor();
 		consoleManager.showCourses(taughtCourses, "Courses taught by you:");
 	}
 	
 	public void showTAProfile(){
-		showCommonProfileData(LoggedInUserType.TA);
+		showCommonProfileData(UserType.TA);
 		
 		List<String[]> TACourses = dbHandler.getTACourses();
 		showCourses(TACourses, "Courses of which you are TA:");
 	}
 	
 	public void showStudentProfile(){
-		showCommonProfileData(LoggedInUserType.Student);
+		showCommonProfileData(UserType.Student);
 		
 		List<String[]> studentCourses = dbHandler.getStudentEnrolledCourses();
 		showCourses(studentCourses, "Courses in which you are enrolled: ");
@@ -177,15 +179,17 @@ class ConsoleManager {
 		System.out.println("> Course Name: " + course.getCourseName());
 		System.out.println("> Course Start Date: " + course.getStartDate());
 		System.out.println("> Course End Date: " + course.getEndDate());
+		System.out.println("> Course Level: " + course.getCourseLevel());
+		System.out.println("> Max students allowed: " + course.getMaxStudentsAllowed());
+		System.out.println("> Total students enrolled: " + course.getEnrolledStudents().size());
 		System.out.print("> Current TA(s): ");
 		if(course.hasTAs()){
 			for(Person TA : course.getTAs()){
-				System.out.print("\n\t> " + TA.getFirstName() + " " + TA.getLastName());
+				System.out.print("\n\t> " + TA.getName() + "; ID = " + TA.getId());
 			}
 		}else{
 			System.out.print("None");
 		}
-		System.out.print("\n> Topics: ");
 		if(course.hasTopics()){
 			System.out.println();
 			List<Topic> topics = course.getTopics();
@@ -193,7 +197,18 @@ class ConsoleManager {
 		}else{
 			System.out.println("None");
 		}
+		System.out.println("Students enrolled: ");
+		int i = 1;
+		for(Person student :  course.getEnrolledStudents()){
+			System.out.println("\n\t> " + i++ + ". " + student.getName() + "; ID: " + student.getId());
+		}
 	}
+	
+	public void showCourseDetails(String courseId){
+		Course course = dbHandler.getCourseInfo(courseId);
+		showCourseDetails(course);
+	}
+	
 	
 	public int askForUserChoiceAfterShowingCourseDetails(boolean isProf){
 		System.out.println("\n0. Go back.");
@@ -211,39 +226,96 @@ class ConsoleManager {
 		return askForIntInput("Please enter your choice: ");
 	}
 	
+	
 	private void showMessageToGoToPreviousMenu(){
 		System.out.println("Enter 0 to go back to previous menu.");
 	}
 	
+	
+	private boolean isDateValid(String date){
+		final String DATE_FORMAT = "MM/dd/yyyy";
+		
+		try {
+            DateFormat df = new SimpleDateFormat(DATE_FORMAT);
+            df.setLenient(false);
+            df.parse(date);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
+	}
+	
+	
 	public Course askNewCourseDetails(){
 		showMessageToGoToPreviousMenu();
 		// Ask course ID.
-		String courseId =   askForStringInput("1. Enter Course Id: ");
-		if (courseId.equals("0")){
-			return null;
+		String courseId;
+		while(true){
+			courseId =	 	askForStringInput("1. Enter Course Id: ");
+			if (courseId.equals("0")){
+				return null;
+			}else if(dbHandler.isNewCourseIdValid(courseId)) break;
+			else{
+				showInvalidChoiceError("A course with this ID already exists! Please try again.");
+			}
 		}
 		// Ask course name.
 		String courseName = askForStringInput("2. Enter Course Name: ");
 		if (courseName.equals("0")){
 			return null;
 		}
+		
 		// Ask start date.
-		String startDate =  askForStringInput("3. Enter start date (mm/dd/yyyy): ");
-		if (startDate.equals("0")){
-			return null;
+		String startDate;
+		while(true){
+			startDate =  askForStringInput("3. Enter start date (mm/dd/yyyy): ");
+			if (startDate.equals("0")){
+				return null;
+			}else if(isDateValid(startDate)) break;
+			else{
+				showInvalidChoiceError("Please enter a valid date!");
+			}
 		}
+		
 		// Ask end date.
-		String endDate = askForStringInput("4. Enter end date (mm/dd/yyyy): ");
-		if (endDate.equals("0")){
+		String endDate;
+		while(true){
+			endDate =  askForStringInput("3. Enter end date (mm/dd/yyyy): ");
+			if (endDate.equals("0")){
+				return null;
+			}else if(isDateValid(endDate)) break;
+			else{
+				showInvalidChoiceError("Please enter a valid date!");
+			}
+		}	
+		
+		// Ask course level.
+		CourseLevel courseLevel;
+		System.out.println("Select course level:");
+		System.out.println("0. Cancel and go back.");
+		System.out.println("1. Graduate.");
+		System.out.println("2. Under Graduate.");
+		
+		int courseLevelChoice = askForIntInputBetweenRange("Please enter your choice: ", 0, 2);
+		if(courseLevelChoice == 0){
 			return null;
-		}		
+		}else if(courseLevelChoice == 1){
+			courseLevel = CourseLevel.Grad;
+		}else{
+			courseLevel = CourseLevel.UnderGrad;
+		}
+		
+		// Ask max students allowed.
+		int maxStudentsAllowed = askForIntInputBetweenRange("Please enter the max number of students allowed to take course: ", 0, Integer.MAX_VALUE);
+		if(maxStudentsAllowed == 0) return null;
+		
 		// Ask the TAs.
 		List<Person> TAs = null;
 		String choice;
 		while(true){
 			choice = askForStringInput("Do you want to assign TA(s) right now (y/n)?");
 			if(choice.toLowerCase().equals("y")){
-				int TAId;
+				String TAId;
 				int subChoice;
 				while(true){
 					System.out.println("0. Cancel and Go back.");
@@ -254,12 +326,29 @@ class ConsoleManager {
 						TAs = null;
 						break;
 					}else if(subChoice == 1){
-						TAId = askForIntInput("Please enter the Student ID of TA or press 0 to cancel: ");
-						if(TAId == 0){
-							continue;
-						}else{
-							if(TAs == null) TAs = new ArrayList<>();
-							TAs.add(new Person(TAId));
+						while(true){
+							TAId = askForStringInput("Please enter the Student ID of TA or press 0 to cancel: ");
+							if(TAId.equals("0")){
+								TAs = null;
+								break;
+							}else if(dbHandler.isTAIdValidForCourse(TAId, courseId)){
+								// Valid
+								if(TAs == null) TAs = new ArrayList<>();
+								// Check if professor already mentioned him.
+								boolean alreadyMentioned = false;
+								for(Person TA : TAs){
+									if(TA.getId().equals(TAId)){
+										alreadyMentioned = true;
+									}
+								}
+								if(!alreadyMentioned)
+									TAs.add(new Person(TAId));
+								else
+									showInvalidChoiceError("You have already mentioned him to be a TA for the class!");
+								break;
+							}else{
+								showInvalidChoiceError("Please enter a valid TA ID!");
+							}
 						}
 					}else if(subChoice == 2){
 						break;
@@ -287,10 +376,10 @@ class ConsoleManager {
 						topics = null;
 						break;
 					}else if(subChoice == 1){
-						Topic newTopic = askNewTopicDetails();
-						if(newTopic != null){
+						int newTopicId = askForIntInput("Please enter topic ID or press 0 to cancel: ");
+						if(newTopicId != 0){
 							if(topics == null) topics = new ArrayList<>();
-							topics.add(newTopic);
+							topics.add(new Topic(newTopicId, null));
 						}
 					}else if(subChoice == 2){
 						break;
@@ -308,7 +397,7 @@ class ConsoleManager {
 		while(true){
 			choice = askForStringInput("Do you want to enroll students right now (y/n)?");
 			if(choice.toLowerCase().equals("y")){
-				int studentId;
+				String studentId;
 				int subChoice;
 				while(true){
 					System.out.println("0. Cancel and Go back.");
@@ -319,8 +408,8 @@ class ConsoleManager {
 						students = null;
 						break;
 					}else if(subChoice == 1){
-						studentId = askForIntInput("Please enter the Student ID of TA or press 0 to cancel: ");
-						if(studentId == 0){
+						studentId = askForStringInput("Please enter the Student ID of TA or press 0 to cancel: ");
+						if(studentId.equals("0")){
 							continue;
 						}else{
 							if(students == null) students = new ArrayList<>();
@@ -337,22 +426,11 @@ class ConsoleManager {
 			}
 		}
 		
-		return new Course(courseId, courseName, startDate, endDate, TAs, topics, students);
+		return new Course(courseId, courseName, startDate, endDate, TAs, topics, 
+				students, courseLevel, maxStudentsAllowed);
 	}	
 	
-	public Topic askNewTopicDetails(){
-		int topicId = askForIntInput("Please enter the topic ID or press 0 to cancel: ");
-		String topicName;
-		if(topicId == 0){
-			return null;
-		}
 		
-		topicName = askForStringInput("Please enter the topic name: ");
-		if(topicName.equals("0")) return null;
-		
-		return new Topic(topicId, topicName);
-	}
-	
 	public void showMessageAndWaitForUserToGoBack(String message){
 		if(message!=null){
 			System.out.println(message);
@@ -422,14 +500,23 @@ class ConsoleManager {
 		return choice;
 	}
 	
-	public Integer askTAId(){
+	
+	public String askTAId(String courseId){
 		showMessageToGoToPreviousMenu();
-		int TAId = askForIntInput("Please enter Student ID of TA: ");
-		if (TAId == 0){
+		String TAId = askForStringInput("Please enter Student ID of TA: ");
+		if (TAId.equals("0")){
 			// Cancel operation. Go back.
 			return null;
-		}else{
+		}
+		Boolean isTAIdValid = dbHandler.isTAIdValidForCourse(TAId, courseId);
+		if(isTAIdValid == null){
+			showInvalidChoiceError("This student is already assigned assigned as the TA for the class!");
+			return null;
+		}else if(isTAIdValid){
 			return TAId;
+		}else{
+			showInvalidChoiceError("Please enter a valid TA ID!");
+			return askTAId(courseId);
 		}
 	}
 	
@@ -615,7 +702,7 @@ class ConsoleManager {
 	public void showCourseTopics(List<Topic> topics){
 		System.out.println("> Topics in this course: ");
 		for(int topic = 1; topic <= topics.size() ; ++topic){
-			System.out.println("Topic #" + (topic + 1));
+			System.out.println("Topic #" + (topic));
 			System.out.println("\t> ID: " + topics.get(topic-1).getTopicId());
 			System.out.println("\t> Name: " + topics.get(topic-1).getTopicName());
 		}
@@ -897,7 +984,7 @@ class ConsoleManager {
 		return askForIntInputBetweenRange("Please enter your choice: ", 0, totalOptions);
 	}
 	
-	public LoggedInUserType askTAHowHeWantsToLogin(){
+	public UserType askTAHowHeWantsToLogin(){
 		System.out.println("0. Logout.");
 		System.out.println("1. Continue as TA.");
 		System.out.println("2. Continue as student.");
@@ -907,9 +994,9 @@ class ConsoleManager {
 		case 0:
 			return null;
 		case 1:
-			return LoggedInUserType.TA;
+			return UserType.TA;
 		case 2:
-			return LoggedInUserType.Student;
+			return UserType.Student;
 		default:
 			// Pass. This can never occur.
 			return null;

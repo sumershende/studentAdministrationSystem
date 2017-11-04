@@ -1,13 +1,22 @@
 import java.util.List;
 
+enum CourseLevel{
+	Grad, UnderGrad;
+}
+
 class Course {
 	private final String courseId, courseName, startDate, endDate;
 	private final List<Person> TAs;
 	private final List<Topic> topics;
 	private final List<Person> enrolledStudents;
 	
+	private final CourseLevel courseLevel;
+	
+	private final int maxStudentsAllowed;
+	
 	public Course(String courseId, String courseName, String startDate, String endDate, 
-			List<Person> TAs, List<Topic> topics, List<Person> studentsEnrolled){
+			List<Person> TAs, List<Topic> topics, List<Person> studentsEnrolled, 
+			CourseLevel courseLevel, int maxStudentsAllowed){
 		this.courseId = courseId;
 		this.courseName = courseName;
 		this.startDate = startDate;
@@ -15,6 +24,8 @@ class Course {
 		this.TAs = TAs;
 		this.topics = topics;
 		this.enrolledStudents = studentsEnrolled;
+		this.courseLevel = courseLevel;
+		this.maxStudentsAllowed = maxStudentsAllowed;
 	}
 	
 	public String getCourseName(){
@@ -37,6 +48,10 @@ class Course {
 		return endDate;
 	}
 
+	public int getMaxStudentsAllowed() {
+		return maxStudentsAllowed;
+	}
+
 	public List<Topic> getTopics() {
 		return topics;
 	}
@@ -45,6 +60,10 @@ class Course {
 		return TAs;
 	}
 	
+	public CourseLevel getCourseLevel() {
+		return courseLevel;
+	}
+
 	public boolean hasTAs(){
 		return TAs != null && TAs.size() != 0;
 	}

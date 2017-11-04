@@ -1,27 +1,22 @@
 
 class Person {
-	private final String firstName, lastName;
-	private final int id;
+	private final String name;
+	private final String id;
 	
-	public String getFirstName() {
-		return firstName;
+	public String getName() {
+		return name;
 	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public int getId() {
+	
+	public String getId() {
 		return id;
 	}
 
-	public Person(int id){
-		this(null, null, id);
+	public Person(String id){
+		this(null, id);
 	}
 	
-	public Person(String firstName, String lastName, int id) {
-		this.firstName = firstName;
-		this.lastName = lastName;
+	public Person(String name, String id) {
+		this.name = name;
 		this.id = id;
 	}
 }

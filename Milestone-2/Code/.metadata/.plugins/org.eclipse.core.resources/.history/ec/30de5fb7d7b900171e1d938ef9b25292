@@ -1,5 +1,0 @@
-
-class Person {
-	private final String firstName, lastName;
-	private final int id;
-}

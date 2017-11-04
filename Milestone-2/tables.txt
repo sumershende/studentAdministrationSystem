@@ -1,0 +1,44 @@
+tregan tregan  Tom Regan 3
+jmick jmick  Jenelle Mick 2
+mfisher mfisher  Michal Fisher 3
+jander jander  Joseph Anderson 3
+jharla jharla  Jitendra Harlalka 2
+aneela aneela  Aishwarya Neelakantan 2
+mjones mjones  Mary Jones 2
+jmoyer jmoyer  James Moyer 2
+kogan kogan  Kemafor Ogan 1
+rchirkova rchirkova  Rada Chirkova 1
+chealey chealey  Christipher Healey 1
+
+
+Professor 1
+TA 2
+Student 3
+
+CSC440 4
+CSC540 1
+CSC541 4
+CSC440 6
+CSC540 3
+CSC540 4
+CSC540 6
+CSC541 6
+CSC440 4
+CSC540 1
+CSC541 4
+CSC440 6
+CSC540 3
+CSC540 4
+CSC540 6
+CSC541 6
+
+1 ER Model
+2 SQL
+3 Storing Data:Disks and Files
+4 Primary File Organization
+5 Hashing Techniques
+6 Binary Tree Structures
+7 AVL Trees
+8 Sequential File Organization
+9 BinarySearch
+10 Interpolation Search

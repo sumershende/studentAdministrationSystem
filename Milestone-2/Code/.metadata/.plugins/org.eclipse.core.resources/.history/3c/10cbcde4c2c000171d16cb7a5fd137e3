@@ -1,0 +1,173 @@
+import java.util.List;
+
+class TAHandler {
+	protected static ConsoleManager consoleManager;
+	
+	protected static DBHandler dbHandler;
+	
+	protected TAHandler(){
+		
+	}
+	
+	public static boolean execute(){
+		consoleManager = ConsoleManager.getConsoleManager();
+		dbHandler = DBHandler.getDBHandler();
+		
+		int choice;
+		
+		while(true){
+			consoleManager.showTAHomeScreen();
+			choice = consoleManager.askForIntInput("Please enter your choice: ");
+			
+			if (choice == 1){
+				// View Profile
+				viewProfile();
+			}else if(choice == 2){
+				// View courses of which the person is TA.
+				displayTACourses();
+			}else if(choice == 3){
+				// Enroll/Drop A Student
+				String prompt = "1. Enroll a student\n2. Drop a student\nPress 0 to go back.";
+				int subChoice = -1;
+				while (subChoice != 0){
+					switch(consoleManager.askForIntInput(prompt)){
+					case 0:
+						subChoice = 0;
+						break;
+					case 1:
+						enrollOrDropStudent(true, null);
+						break;
+					case 2:
+						enrollOrDropStudent(false, null);
+						break;
+					default:
+						consoleManager.showInvalidChoiceError();
+					}
+				}				
+			}else if(choice == 4){
+				// Switch to student account.
+				return true;
+			}else if(choice == 5){
+				// Logout
+				if(dbHandler.logout()) break;
+				else consoleManager.showMessageAndWaitForUserToGoBack("Error logging out.");
+			}else{
+				consoleManager.showInvalidChoiceError();
+			}
+		}
+		return false;
+	}
+	
+	private static void viewProfile(){
+		consoleManager.showTAProfile();
+		consoleManager.showMessageAndWaitForUserToGoBack(null);
+	}
+	
+	private static void displayTACourses(){
+		List<String[]> TACourses = dbHandler.getTACourses();
+		
+		int choice;
+		while(true){
+			consoleManager.showCourses(TACourses, "Courses of which you are TA:");
+			choice = consoleManager.askForUserChoiceAfterShowingCourses(dbHandler.isProfessor());
+			if (choice == 0){
+				break;
+			}else if(choice == 1){
+				// View a particular course.
+				String courseId;
+				Course course = null;
+				while(true){
+					courseId = consoleManager.askForStringInput("Please enter the course ID or 0 to cancel: ");
+					if(courseId.equals("0")) break;
+					course = dbHandler.getCourseInfo(courseId);
+					if(course == null){
+						consoleManager.showInvalidChoiceError("Please enter a valid course ID!");
+					}else break;
+				}
+				if(courseId.equals("0") || course == null) continue;
+				
+				while(choice != 0){
+					consoleManager.showCourseDetails(course);
+					choice = consoleManager.askForUserChoiceAfterShowingCourseDetails(dbHandler.isProfessor());
+					switch (choice) {
+					case 0:
+						// Return
+						break;
+					case 1:
+						// View Exercises
+						viewExercises(courseId);
+						choice = 1;
+						break;
+					case 2:
+						// Enroll a student
+						enrollOrDropStudent(true, courseId);
+						choice = 1;
+						break;
+					case 3:
+						// Drop a student
+						enrollOrDropStudent(false, courseId);
+						choice = 1;
+						break;
+					case 4:
+						// View report
+						viewReport(courseId);
+						choice = 1;
+						break;
+					default:
+						consoleManager.showInvalidChoiceError();
+						break;
+					}
+				}
+			}else{
+				consoleManager.showInvalidChoiceError();
+			}
+		}
+	}
+	
+	private static void viewExercises(String courseId){
+		List<Exercise> exercisesInThisCourse = dbHandler.getExercisesForCourse(courseId);
+		consoleManager.showExercisesDetailsForCourse(courseId, exercisesInThisCourse);
+		consoleManager.showMessageAndWaitForUserToGoBack("Please enter 0 to go back.");
+	}
+	
+	protected static void enrollOrDropStudent(boolean isEnroll, String courseId){
+		String[] newStudentAndCourseDetails = consoleManager.askForNewStudentDetails(courseId);
+		if(newStudentAndCourseDetails == null){
+			// User cancelled the operation.
+		}else{
+			if(isEnroll){
+				// Try to add the student to the course.
+				Boolean wasEnrolled = dbHandler.addNewStudentToCourse(Integer.parseInt(newStudentAndCourseDetails[0]), newStudentAndCourseDetails[1]);
+				if(wasEnrolled == null){
+					// Already in the course.
+					
+				}else if(){
+					// Successfully added the student to the course.
+					consoleManager.showMessageAndWaitForUserToGoBack("New student successfully added.");
+				}else{
+					// Error while adding the student to the course.
+					consoleManager.showMessageAndWaitForUserToGoBack("Sorry, there was an error while adding the new student. Please try again.");
+				}
+			}else{
+				// Try to drop the student from the course.
+				if(dbHandler.dropStudentFromCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1])){
+					// Successfully dropped the student from the course.
+					consoleManager.showMessageAndWaitForUserToGoBack("Student successfully dropped.");
+				}else{
+					// Error while dropping the student from the course.
+					consoleManager.showMessageAndWaitForUserToGoBack("Sorry, there was an error while dropping the student. Please try again.");
+				}
+			}
+		}
+	}
+	
+	protected static void viewReport(String courseId){
+		List<StudentReport> studentReports = dbHandler.getStudentReports(courseId);
+		if(studentReports == null){
+			// No report for this course.
+			consoleManager.showMessageAndWaitForUserToGoBack("No report found for course with ID: " + courseId);
+		}else{
+			consoleManager.showReportForCourse(studentReports, courseId);
+		}
+	}
+}

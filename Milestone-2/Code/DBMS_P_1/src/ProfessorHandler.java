@@ -121,7 +121,9 @@ class ProfessorHandler extends TAHandler{
 						break;
 					case 7:
 						// Add topic
-						addTopic(courseId);
+						if(addTopic(courseId)){
+							course = dbHandler.getCourseInfo(courseId);
+						}
 						choice = 1;
 						break;
 					default:
@@ -246,7 +248,7 @@ class ProfessorHandler extends TAHandler{
 	}
 	
 	private static void addTA(String courseId){
-		Integer newTAId = consoleManager.askTAId();
+		String newTAId = consoleManager.askTAId(courseId);
 		if (newTAId != null){
 			// Try to assign this TA
 			if(dbHandler.assignTAToCourse(newTAId, courseId)){
@@ -259,14 +261,20 @@ class ProfessorHandler extends TAHandler{
 		}
 	}
 	
-	private static void addTopic(String courseId){
-		Topic newTopic = consoleManager.askNewTopicDetails();
-		if(newTopic != null){
-			if(dbHandler.addTopicToCourse(newTopic, courseId)){
-				consoleManager.showMessageAndWaitForUserToGoBack("Topic successfully added to the course.");
-			}else{
-				consoleManager.showMessageAndWaitForUserToGoBack("Error while adding topic to the course.");
-			}
+	private static boolean addTopic(String courseId){
+		int topicId = consoleManager.askForIntInput("Please enter the topic ID or press 0 to cancel: ");
+		if(topicId == 0) return false;
+		Boolean result = dbHandler.addTopicToCourse(topicId, courseId);
+		if(result == null){
+			consoleManager.showMessageAndWaitForUserToGoBack("Topic already present in the course!");
+			return false;
+		}
+		else if(result){
+			consoleManager.showMessageAndWaitForUserToGoBack("Topic successfully added to the course.");
+			return true;
+		}else{
+			consoleManager.showMessageAndWaitForUserToGoBack("Error while adding topic to the course. Please check if the topic ID is valid.");
+			return false;
 		}
 	}
 	
@@ -302,6 +310,7 @@ class ProfessorHandler extends TAHandler{
 	}
 	
 	private static void searchOrAddQB(){
+		
 		List<String[]> courses = dbHandler.getTaughtCoursesByProfessor();
 		for(String[] course : courses){
 			List<Question> questions = dbHandler.getQuestionsForCourse(course[1]);
