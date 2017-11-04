@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -678,16 +679,24 @@ class DBHandler{
 
 	public List<Exercise> getExercisesForCourse(String courseId){
 		// Returns a list of all the exercises in the course.
-		// Fields required in Exercise:
-		// 1. Name
-		// 2. ID
-		// 3. Mode
-		// 4. Start Date
-		// 5. End Date
-		// 6. Number of questions
-		// 7. Number of retries
-		// 8. Scoring Policy
-		return null;
+				// Fields required in Exercise:
+				// 1. Name
+				// 2. ID
+				// 3. Mode
+				// 4. Start Date
+				// 5. End Date
+				// 6. Number of questions
+				// 7. Number of retries
+				// 8. Scoring Policy
+//				String sql = 'select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions,
+//				num_retires, policy, pt_correct, pt_incorrect from Exercises E, Topics T where E.tp_id = T.tp_id
+//				and T.c_id = ?';
+//				PreparedStatement ps = conn.prepareStatement(sql);
+//				ps.setInt(1, Integer.parseInt(courseId));
+
+
+				
+				return null;
 	}
 
 	// Approved by GV
@@ -938,132 +947,156 @@ class DBHandler{
 
 
 	public Exercise getExercise(int exerciseId){
-		// Returns the exercise associated with the exerciseId
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		String sql;
-		int id=-1, num_questions=-1, num_retries=-1, topic_id=-1, pt_correct=-1, pt_incorrect=-1;
-		Date start_date = null, end_date = null;
-		String name="", mode="", policy="", s_date="", e_date="";
-		ExerciseMode e_mode = null;
-		ScroingPolicy sp = null;
-		DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-		HashSet<Integer> qIds = new HashSet<Integer>();
-
-		try {
-			sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions, num_retires, policy"
-					+ ", tp_id, pt_correct, pt_incorrect from Exercises where ex_id=?";
-			ps=conn.prepareStatement(sql);
-			ps.setInt(1, exerciseId);
-			rs = ps.executeQuery();
-			while(rs.next()) {
-				id = rs.getInt(1);
-				name = rs.getString(2);
-				mode = rs.getString(3);
-				start_date = rs.getDate(4);
-				end_date = rs.getDate(5);
-				num_questions = rs.getInt(6);
-				num_retries = rs.getInt(7);
-				policy = rs.getString(8);
-				topic_id = rs.getInt(9);
-				pt_correct = rs.getInt(10);
-				pt_incorrect = rs.getInt(11);
-
-			}
-			mode = mode.toLowerCase();
-			policy = policy.toLowerCase();
-			s_date = df.format(start_date);
-			e_date = df.format(end_date);
-			if(mode != null) {
-				if(mode.equals("adaptive"))
-					e_mode = ExerciseMode.Adaptive;
-				else
-					e_mode = ExerciseMode.Random;
-			}
-			if(policy != null) {
-				if(policy.equals("latest"))
-					sp = ScroingPolicy.Latest;
-				else {
-					if(policy.equals("maximum"))
-						sp = ScroingPolicy.Maximum;
-					else
-						sp = ScroingPolicy.Average;
-				}
-			}
-			sql = "select q_id from Questions_In_Ex where ex_id = ?;";
-			ps = conn.prepareStatement(sql);
-			ps.setInt(1, exerciseId);
-			rs = ps.executeQuery();
-			while(rs.next()) {
-				qIds.add(rs.getInt(1));
-			}
-			return new Exercise(e_mode, sp, name, s_date, e_date, num_questions, num_retries, id, qIds, pt_correct,
-					pt_incorrect, topic_id );
-
-		}
-		catch(Throwable oops){
-			oops.printStackTrace();
-		}
-
 		return null;
 	}
 
 
 	public List<String> getCurrentOpenUnattemptedHWs(String courseId){
 		// Returns the IDs of the exercises that are:
-		// 1. currently open and;
-		// 2. Can be attempted by the student.
-		// Returns null if there are none.
-		String user_id = loggedInUserId;
-		int student_id = -1;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		String sql, c_id;
-		try {
-			sql = "select st_id from Students where userid = ?;";
-			ps = conn.prepareStatement(sql);
-			ps.setString(1, user_id);
-			rs = ps.executeQuery();
-			while(rs.next()) {
-				student_id = rs.getInt(1);
-			}
-			if(student_id == -1) 
+				// 1. currently open and;
+				// 2. Can be attempted by the student.
+				// Returns null if there are none.
+				String user_id = loggedInUserId;
+				int student_id = -1;
+				PreparedStatement ps = null;
+				ResultSet rs = null;
+				String sql, c_id = null;
+				int exercise_id;
+				Date start_date, end_date;
+				List<String> exercise_list = new ArrayList<String>();
+				try {
+					sql = "select st_id from Students where userid = ?;";
+					ps = conn.prepareStatement(sql);
+					ps.setString(1, user_id);
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						student_id = rs.getInt(1);
+					}
+					if(student_id == -1) 
+						return null;
+					sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?;";
+					ps = conn.prepareStatement(sql);
+					ps.setString(1, courseId);
+					ps.setInt(2, student_id);
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						c_id = rs.getString(1);
+					}
+					if(!courseId.equals(c_id))
+						return null;
+					sql = "select ex_id, ex_start_date, ex_end_date from Exercises E, Topics T where T.c_id = ?"
+							+ "and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?;);";
+					ps = conn.prepareStatement(sql);
+					ps.setString(1, courseId);
+					ps.setInt(2, student_id);
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						exercise_id = rs.getInt(1);
+						start_date = rs.getDate(2);
+						end_date = rs.getDate(3);
+						if(exercise_open(end_date)) {
+							exercise_list.add(Integer.toString(exercise_id));
+						}
+						
+					}
+					return exercise_list;	
+				}
+				catch(Throwable oops){
+					oops.printStackTrace();
+				}
 				return null;
-			sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?;";
-			ps = conn.prepareStatement(sql);
-			ps.setString(1, courseId);
-			ps.setInt(2, student_id);
-			rs = ps.executeQuery();
-			while(rs.next()) {
-				c_id = rs.getString(1);
-			}
-
-		}
-		catch(Throwable oops){
-			oops.printStackTrace();
-		}		
-
-		return null;
 	}
 
 
 	public List<String> getAttemptedHWs(String courseId){
 		// Returns the IDs of the exercises that are:
-		// 1. attempted by the student.
-		// Returns null if there are none.
-
-
-		return null;
+				// 1. attempted by the student.
+				// Returns null if there are none.
+				String user_id = loggedInUserId;
+				int student_id = -1;
+				PreparedStatement ps = null;
+				ResultSet rs = null;
+				String sql;
+				List<String> exercise_list = new ArrayList<String>();
+				try {
+					sql = "select st_id from Students where userid = ?;";
+					ps = conn.prepareStatement(sql);
+					ps.setString(1, user_id);
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						student_id = rs.getInt(1);
+					}
+					if(student_id == -1) 
+						return null;
+					sql = "select ex_id form Assign_Attempt where st_id = ?;";
+					ps = conn.prepareStatement(sql);
+					ps.setInt(1, student_id);
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						exercise_list.add(Integer.toString(rs.getInt(1)));
+					}
+					
+					return exercise_list;
+							
+					
+					
+				}
+				catch(Throwable oops){
+					oops.printStackTrace();
+				}
+				return null;
 	}
 
 
 	public List<StudentHWAttempt> getAttamptedHWsOverView(String courseId, int exerciseId){
 		// Returns the attempts of the student for the exercise with Id exerciseId
-		// in course with course ID courseId.
-		// Fields required: score and submission date and time.
-		// Returns null if there are none.
-
-		return null;
+				// in course with course ID courseId.
+				// Fields required: score and submission date and time.
+				// Returns null if there are none.
+				String user_id = loggedInUserId;
+				int student_id = -1;
+				PreparedStatement ps = null;
+				ResultSet rs = null;
+				String sql;
+				int score, pt_correct, pt_incorrect;
+				Date submit, ex_end_date;
+				boolean is_submission_done;
+				List<StudentHWAttempt> hw_attempt = new ArrayList<StudentHWAttempt>();
+				try {
+					sql = "select st_id from Students where userid = ?;";
+					ps = conn.prepareStatement(sql);
+					ps.setString(1, user_id);
+					rs = ps.executeQuery();
+					DateFormat df = new SimpleDateFormat("yyyy-mm-dd");
+					while(rs.next()) {
+						student_id = rs.getInt(1);
+					}
+					if(student_id == -1) 
+						return null;
+					sql = "select with_score, submit_time, ex_end_date, pt_correct, pt_incorrect from "
+							+ "Has_Solved H, Exercises E, Topics T where H.st_id = ? and H.ex_id = ? and H.ex_id = E.ex_id "
+							+ "and E.tp_id = T.tp_id and T.c_id = ?;";
+					ps = conn.prepareStatement(sql);
+					ps.setInt(1, student_id);
+					ps.setInt(2, exerciseId);
+					ps.setString(3, courseId);
+					rs = ps.executeQuery();
+					while(rs.next()) {
+						score = rs.getInt(1);
+						submit = rs.getDate(2);
+						ex_end_date = rs.getDate(3);
+						pt_correct = rs.getInt(4);
+						pt_incorrect = rs.getInt(5);
+						is_submission_done = (!exercise_open(ex_end_date));
+						hw_attempt.add(new StudentHWAttempt(score, df.format(submit), -1, pt_correct, pt_incorrect, is_submission_done));
+					}
+					return hw_attempt;
+					
+				}
+				catch(Throwable oops){
+					oops.printStackTrace();
+				}
+				return null;
 	}	
 
 
@@ -1150,5 +1183,17 @@ class DBHandler{
 
 		// Invalid userId.
 		return -1;
+	}
+	
+	public boolean exercise_open(Date end_date) {
+		DateFormat df = new SimpleDateFormat("yyyy-mm-dd");
+		String start_date_string, end_date_string;
+		end_date_string = df.format(end_date);
+		LocalDate today = LocalDate.now();
+		LocalDate end = LocalDate.parse(end_date_string);
+		if(today.isBefore(end) || today.isEqual(end))
+			return true;
+		return false;	
+		
 	}
 }
