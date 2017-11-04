@@ -678,7 +678,7 @@ class DBHandler{
 //				num_retires, policy, pt_correct, pt_incorrect from Exercises E, Topics T where E.tp_id = T.tp_id
 //				and T.c_id = ?';
 //				PreparedStatement ps = conn.prepareStatement(sql);
-//				ps.setInt(1, Integer.parseInt(courseId));
+//				ps.setString(1, courseId);
 
 
 				
@@ -1090,9 +1090,6 @@ class DBHandler{
 					}
 					
 					return exercise_list;
-							
-					
-					
 				}
 				catch(Throwable oops){
 					oops.printStackTrace();
