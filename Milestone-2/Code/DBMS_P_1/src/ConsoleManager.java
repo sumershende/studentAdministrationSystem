@@ -475,10 +475,9 @@ class ConsoleManager {
 	public void showReportForCourse(List<StudentReport> studentReports, String courseId){
 		System.out.println("Report for course: " + courseId);
 		for(StudentReport studentReport : studentReports){
-			System.out.println("> First Name: " + studentReport.getFirstName());
-			System.out.println("> Last Name: " + studentReport.getLastName());
+			System.out.println("> Name: " + studentReport.getName());
 			System.out.println("> Scores for each exercise: ");
-			for(String[] scorePerHW : studentReport.getScoresPerHW()){
+			for(Integer[] scorePerHW : studentReport.getScoresPerHW()){
 				System.out.println("\t" + scorePerHW[0] + ": " + scorePerHW[1]);
 			}
 		}

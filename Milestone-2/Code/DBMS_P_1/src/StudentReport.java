@@ -1,24 +1,41 @@
+import java.util.List;
+
 
 class StudentReport {
-	private final String firstName, lastName;
-
-	private final String[][] scoresPerHW;
+	private int studentId;
+	private String name;
+	private List<Integer[]> scoresPerHW;
 	
-	public StudentReport(String firstName, String lastName, String[][] scoresPerHW){
-		this.firstName = firstName;
-		this.lastName = lastName;
+	public StudentReport(String name, List<Integer[]> scoresPerHW){
+		this.setName(name);
 		this.scoresPerHW = scoresPerHW;
 	}
 	
-	public String getFirstName() {
-		return firstName;
+	public StudentReport() {
+		// TODO Auto-generated constructor stub
 	}
 
-	public String getLastName() {
-		return lastName;
+	public void setScoresPerHW(List<Integer[]> scoresPerHW) {
+		this.scoresPerHW = scoresPerHW;
 	}
 
-	public String[][] getScoresPerHW() {
+	public List<Integer[]> getScoresPerHW() {
 		return scoresPerHW;
+	}
+
+	public int getStudentId() {
+		return studentId;
+	}
+
+	public void setStudentId(int studentId) {
+		this.studentId = studentId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }
