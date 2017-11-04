@@ -7,25 +7,25 @@ enum QuestionType{
 class Question {
 	
 	// Fields shown to student for the attempt before deadline:
-	private final String text, hint;
+	private String text, hint;
 	// Fields shown to student for the attempt after deadline:
-	private final String detailedSolution;
+	private String detailedSolution;
 	
 	
 	// Fields only present while attempting a question:
-	private final List<String> options;
-	private final int correctChoice;
+	private List<String> options;
+	private int correctChoice;
 	
 	
 	// Fields not shown to student:
-	private final String topicName;
-	private final int difficultyLevel, topicId, id;
+	private String topicName;
+	private int difficultyLevel, topicId, id;
 	
-	private final QuestionType questionType;
+	private QuestionType questionType;
 	
-	private final String[][] parameterValues, correctAnswers;
+	private String[][] parameterValues, correctAnswers;
 	
-	private final String[] incorrectAnswers;
+	private String[] incorrectAnswers;
 	
 	public Question(String text, String hint){
 		this(text, hint, null, -1, -1, -1, null, null, null, null, null, null, 
@@ -69,6 +69,62 @@ class Question {
 		this.incorrectAnswers = incorrectAnswers;
 		this.options = options;
 		this.correctChoice = correctChoice;
+	}
+	
+	public Question() {
+		// TODO Auto-generated constructor stub
+	}
+
+	public void setText(String text) {
+		this.text = text;
+	}
+
+	public void setHint(String hint) {
+		this.hint = hint;
+	}
+
+	public void setDetailedSolution(String detailedSolution) {
+		this.detailedSolution = detailedSolution;
+	}
+
+	public void setOptions(List<String> options) {
+		this.options = options;
+	}
+
+	public void setCorrectChoice(int correctChoice) {
+		this.correctChoice = correctChoice;
+	}
+
+	public void setTopicName(String topicName) {
+		this.topicName = topicName;
+	}
+
+	public void setDifficultyLevel(int difficultyLevel) {
+		this.difficultyLevel = difficultyLevel;
+	}
+
+	public void setTopicId(int topicId) {
+		this.topicId = topicId;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public void setQuestionType(QuestionType questionType) {
+		this.questionType = questionType;
+	}
+
+	public void setParameterValues(String[][] parameterValues) {
+		this.parameterValues = parameterValues;
+	}
+
+	public void setCorrectAnswers(String[][] correctAnswers) {
+		this.correctAnswers = correctAnswers;
+	}
+
+	public void setIncorrectAnswers(String[] incorrectAnswers) {
+		this.incorrectAnswers = incorrectAnswers;
 	}
 
 	public String getText() {

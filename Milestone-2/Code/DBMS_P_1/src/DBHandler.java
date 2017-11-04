@@ -999,11 +999,33 @@ class DBHandler{
 		return null;
 	}
 	
-	
+	//Akanksha
 	public List<Question> getQuestionsInRandomExercise(int exerciseId, String courseId){
 		// Returns the questions in the exercise created by the professor.
+		List<Question> questions = new ArrayList<Question>();
+		String query = "SELECT q_text FROM QUESTIONS_IN_EX qe, QUESTIONS q "+
+						"WHERE qe.q_id=q.q_id and ex_id=? and qe.q_id=?";
 		
-		return new ArrayList<>();
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, exerciseId);
+			pstmt.setString(2, courseId);
+			
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				Question q=new Question();
+				q.setText(rs.getString(1));
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+		return questions;
 	}
 
 	//Done-Akanksha

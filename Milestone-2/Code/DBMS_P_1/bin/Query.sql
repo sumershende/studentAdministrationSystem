@@ -1,3 +1,7 @@
+Select * from QUESTIONS_IN_EX qe, QUESTIONS q 
+where qe.q_id=q.q_id and ex_id='' and q_id=''
+
+
 select * from Users
 SELECT c_id, c_name FROM courses C inner join Pusers U on C.prof_id=U.userid 
 WHERE U.userid = 'kogan' 
