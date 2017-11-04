@@ -1204,7 +1204,7 @@ class DBHandler{
 						pt_correct = rs.getInt(4);
 						pt_incorrect = rs.getInt(5);
 						is_submission_done = (!exercise_open(ex_end_date));
-						sql = "select q_text, q_hint, is_correct, q_del_soln from Questions Q, Ouestions_In_Ex QE, Assign_Attempt A"
+						sql = "select Q.q_text, Q.q_hint, is_correct, Q.q_del_soln, Q.q_id from Questions Q, Ouestions_In_Ex QE, Assign_Attempt A"
 								+ " where QE.ex_id=? "
 								+ "and Q.q_id = QE.q_id "
 								+ "and A.ex_id = ? and A.st_id = ? and A.q_id = QE.q_id;";
@@ -1224,7 +1224,7 @@ class DBHandler{
 								questions.add(new Question(q_text, q_hint, q_del_soln));
 							}
 							else
-								questions.add(new Question(q_text, q_hint));
+								questions.add(new Question(q_text, q_hint, rs.getInt(5)));
 							int is_correct = rs2.getInt(3);
 							boolean correct;
 							if(is_correct == 1) {
