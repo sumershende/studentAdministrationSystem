@@ -98,4 +98,35 @@ CHECK (c_end_date >= c_start_date);
 --CHECK (taStudent=0);
 
 --- topics table, make primary key - both
+DROP TRIGGER ta_not_student;
+CREATE OR REPLACE TRIGGER ta_not_student
+BEFORE INSERT OR UPDATE
+   ON HASTA
+   FOR EACH ROW
+DECLARE
+   ret NUMBER;
+BEGIN
+	select count(*) into ret
+	from Enrolled_In
+	where c_id = :new.c_id and st_id = :new.st_id;	
+    IF ret > 0 THEN
+    	raise_application_error(-20010,'ERROR: Enrolled in class. So, cannot become a TA');
+  	END IF;      
+END;
+
+DROP TRIGGER ta_grad_student;
+CREATE OR REPLACE TRIGGER ta_grad_student
+BEFORE INSERT OR UPDATE
+   ON HASTA
+   FOR EACH ROW
+DECLARE
+   ret NUMBER;
+BEGIN
+	select count(*) into ret
+	from Students
+	where isgrad=0 and st_id = :new.st_id;	
+    IF ret > 0 THEN
+    	raise_application_error(-20010,'ERROR: Not a grad student. So, cannot become a TA');
+  	END IF;      
+END;
 

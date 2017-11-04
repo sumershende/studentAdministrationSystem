@@ -639,28 +639,40 @@ class DBHandler{
 		// Returns the report of all students in the course.
 		// Fields required in StudentReport:
 		// All.
-
-		// *******TODO Aggregate records for every student*****
-//		List<StudentReport> stReport = new ArrayList<StudentReport>();
-//		String sql = 'select st_id, st_name, with_score, ex_id from Has_Solved H, Grad_Students G
-//		where H.st_id = G.st_id and H.ex_id in (select ex_id from Exercises E, Topics T 
-//		where T.c_id = ? and E.tp_id = T.tp_id )';
-//		PreparedStatement ps = conn.prepareStatement(sql);
-//		ps.setInt(1, Integer.parseInt(courseId));
-//		ResultSet rs = ps.executeQuery();
-//		while(rs.next()){
-//			String st_id = Integetr.toString(rs.getInt(1));
-//			String st_name = rs.getString(2);
-//			String lName = '';
-//			String with_score = Integer.toString(rs.getInt(3));
-//			String e_id = Integer.toString(rs.getInt(4));
-//			String[][] scores = {{e_id, with_score}};
-//			stReport.add(new StudentReport(st_name, lName, scores));
-//		}
-//
-//		
-//		return stReport;
-		return null;
+		List<StudentReport> reportList = new ArrayList<StudentReport>();
+ 		String queryStudentId = "SELECT DISTINCT E.st_id, U.name FROM Enrolled_In E, Students S, Users U"
+ 				+ " WHERE E.st_id=S.st_id and S.userid=U.userid and c_id=?";
+ 		try{
+ 			PreparedStatement ps = conn.prepareStatement(queryStudentId);
+ 			ps.setString(1, courseId);
+ 			ResultSet rs = ps.executeQuery();
+ 			while(rs.next()){
+ 				StudentReport report = new StudentReport();
+ 				report.setStudentId(rs.getInt(1));
+ 				report.setName(rs.getString(2));
+ 				reportList.add(report);
+ 			}
+ 			for(StudentReport report :reportList){
+ 				String query="SELECT ex_id, with_score"+
+ 						"FROM HAS_SOLVED "+
+ 						"WHERE st_id=?";	
+ 				PreparedStatement ps1 = conn.prepareStatement(query);
+ 				ps1.setInt(1, Integer.parseInt(courseId));
+ 				ResultSet rs1 = ps.executeQuery();
+ 				Integer[] arr= new Integer[2];
+ 				List<Integer[]> list=new ArrayList<Integer[]>();
+ 				while(rs1.next()){
+ 					arr[0]=rs.getInt(1);
+ 					arr[1]=rs.getInt(2);
+ 					list.add(arr);
+ 				}
+ 				report.setScoresPerHW(list);
+ 			}	
+ 		}catch(SQLException e){
+ 			System.out.println(e);
+ 			return null;
+ 		}
+ 		return reportList;
 	}
 	
 	// Sumer
@@ -1316,7 +1328,7 @@ class DBHandler{
 		// Returns the questions in the exercise created by the professor.
 		List<Question> questions = new ArrayList<Question>();
 		String query = "SELECT q_text FROM QUESTIONS_IN_EX qe, QUESTIONS q "+
-						"WHERE qe.q_id=q.q_id and ex_id=? and qe.q_id=?";
+						"WHERE qe.q_id=q.q_id and ex_id=?";
 		
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -1324,7 +1336,6 @@ class DBHandler{
 		try{
 			pstmt = conn.prepareStatement(query);
 			pstmt.setInt(1, exerciseId);
-			pstmt.setString(2, courseId);
 			
 			rs = pstmt.executeQuery();
 			while(rs.next()){
