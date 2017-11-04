@@ -751,30 +751,61 @@ class DBHandler{
 		// Returns a list of questions in topic with id = topicId.
 		
 		List<Question> questions = new ArrayList<>();
+ 		String query = "SELECT q_text "
+				+ "FROM QUESTIONS"
+				+ "WHERE tp_id = ?";
 		
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, topicId);
+			
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				Question q = new Question();
+				q.setText(rs.getString(1));
+				questions.add(q);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
 		return questions;
 	}
 	
-	
+	//Akanksha
 	public List<Question> searchQuestionsWithQuestionId(int qId){
 		// Returns a list of questions based on search by question ID.
 		
-//		List<Question> questions = new ArrayList<>();
-//		boolean isTopic = true;
-//		int questionId;
-//		String topic;
-//		try{
-//			questionId = Integer.parseInt(searchQuery);
-//			isTopic = false;
-//		}
-//		catch(Exception e){
-//			topic = searchQuery;
-//		}
-//		if(isTopic){
-//			
-//		}
-//		return questions;
-		return null;
+		List<Question> questions = new ArrayList<>();
+		String query = "SELECT q_text "
+				+ "FROM QUESTIONS"
+				+ "WHERE q_id = ?";
+		
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, qId);
+			
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				Question q = new Question();
+				q.setText(rs.getString(1));
+				questions.add(q);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+		return questions;
 	}
 	
 	//Akanksha
