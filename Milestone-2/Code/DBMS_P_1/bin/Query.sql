@@ -1,6 +1,14 @@
-Select * from QUESTIONS_IN_EX qe, QUESTIONS q 
-where qe.q_id=q.q_id and ex_id='' and q_id=''
+SELECT q_text,  FROM QUESTIONS_IN_EX qe, QUESTIONS q 
+where qe.q_id=q.q_id and ex_id='' and qe.q_id=''
 
+
+SELECT  q_text, q_hint, q_del_soln, difficulty, m.tp_name
+FROM QUESTIONS q, TOPICS t, MASTER_TOPICS m
+WHERE q.tp_id=t.tp_id
+and t.tp_id=m.tp_id
+and t.c_id='CSC540'
+
+select * from questions
 
 select * from Users
 SELECT c_id, c_name FROM courses C inner join Pusers U on C.prof_id=U.userid 

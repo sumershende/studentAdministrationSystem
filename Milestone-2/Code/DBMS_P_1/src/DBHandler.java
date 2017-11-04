@@ -711,14 +711,39 @@ class DBHandler{
  		}
 	}
 	
-	
+	//Akanksha
 	public List<Question> getQuestionsForCourse(String courseId){
 		// Returns a list containing all the questions in the course.
 		// Fields required in a Question:
 		// All.
 		
 		List<Question> questions = new ArrayList<>();
-		
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<Question> qs = new ArrayList<Question>();
+		String sql;
+		try {
+			sql = "SELECT  q_text, q_hint, q_del_soln, difficulty, m.tp_name"+
+					"FROM QUESTIONS q, TOPICS t, MASTER_TOPICS m"+
+					"WHERE q.tp_id=t.tp_id"+
+					"and t.tp_id=m.tp_id" +
+					"and t.c_id=?";
+			ps=conn.prepareStatement(sql);
+			ps.setString(1, courseId);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				Question q = new Question();
+				q.setText(rs.getString(1));
+				q.setHint(rs.getString(2));
+				q.setDetailedSolution(rs.getString(3)); 
+				q.setDifficultyLevel(rs.getInt(4));
+				q.setTopicName(rs.getString(5));
+				qs.add(q);
+			}
+		}
+		catch(Throwable oops){
+			oops.printStackTrace();
+		}
 		return questions;
 	}
 	
