@@ -663,7 +663,7 @@ class DBHandler{
 		return null;
 	}
 	
-	
+	// Sumer
 	public List<Exercise> getExercisesForCourse(String courseId){
 		// Returns a list of all the exercises in the course.
 				// Fields required in Exercise:
@@ -912,7 +912,7 @@ class DBHandler{
 		return true;
 	}
 	
-	
+	// Checked :Sumer
 	public List<Question> getQuestionsInExercise(int exerciseId){
 		PreparedStatement ps = null;
 		ResultSet rs = null;
