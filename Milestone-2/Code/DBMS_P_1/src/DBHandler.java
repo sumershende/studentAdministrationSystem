@@ -576,7 +576,7 @@ class DBHandler{
 	}
 	
  	// Approved AS
-	public Boolean addNewStudentToCourse(String studentId, String courseId){
+	public boolean addNewStudentToCourse(String studentId, String courseId){
 		// Returns true if the student was successfully added to the course.
 /*		int studentNumericalId = getId(studentId, UserType.Student);
 		
@@ -599,7 +599,7 @@ class DBHandler{
 		    	  return true;
 		      }else{
 		    	  // Already present in the course.
-		    	  return null;
+		    	  return false;
 		      }
 		}catch(SQLException s){
 			// Failure, constraint violation.
@@ -635,6 +635,7 @@ class DBHandler{
  		}
 	}	
 	
+	//Akanksha
 	public List<StudentReport> getStudentReports(String courseId){
 		// Returns the report of all students in the course.
 		// Fields required in StudentReport:
@@ -654,10 +655,10 @@ class DBHandler{
  			}
  			for(StudentReport report :reportList){
  				String query="SELECT ex_id, with_score"+
- 						"FROM HAS_SOLVED "+
- 						"WHERE st_id=?";	
+ 						" FROM HAS_SOLVED "+
+ 						" WHERE st_id=?";	
  				PreparedStatement ps1 = conn.prepareStatement(query);
- 				ps1.setInt(1, Integer.parseInt(courseId));
+ 				ps1.setString(1, courseId);
  				ResultSet rs1 = ps.executeQuery();
  				Integer[] arr= new Integer[2];
  				List<Integer[]> list=new ArrayList<Integer[]>();
@@ -767,18 +768,18 @@ class DBHandler{
 	public Boolean assignTAToCourse(String TAId, String courseId){
 		// Returns true if the TA was successfully assigned to the course.
 		PreparedStatement pstmt = null;
-		int TANumericalId = getId(TAId, UserType.TA);
+		/*int TANumericalId = getId(TAId, UserType.TA);
 		if(TANumericalId == -1){
 			// Invalid TA Id!
 			return false;
-		}
+		}*/
  		try{ 			
  			// Now, insert into HasTA
  			String query = "INSERT INTO HasTA "
  					+ "VALUES(?, ?)";
  			pstmt = conn.prepareStatement(query);
  			pstmt.setString(1, courseId);
- 			pstmt.setInt(2, TANumericalId);
+ 			pstmt.setInt(2, Integer.parseInt(TAId));
  			
  			if(pstmt.executeUpdate() == 0){
  				// Failure, already added.
@@ -789,11 +790,13 @@ class DBHandler{
  			}
  		}catch(SQLException e){
  			// Failure, constraint violation.
- 			e.printStackTrace();
- 			return false;
+ 			if(e.getErrorCode()==-20010) {
+ 				System.out.println("This person is already enrolled or is not a grad student");
+ 			}
  		}finally{
  			closeStatement(pstmt);
  		}
+ 		return true;
 	}
 	
 	//Akanksha & Sumer
@@ -865,8 +868,8 @@ class DBHandler{
 		
 		List<Question> questions = new ArrayList<>();
  		String query = "SELECT q_text "
-				+ "FROM QUESTIONS"
-				+ "WHERE tp_id = ?";
+				+ " FROM QUESTIONS"
+				+ " WHERE tp_id = ?";
 		
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -896,7 +899,7 @@ class DBHandler{
 		
 		List<Question> questions = new ArrayList<>();
 		String query = "SELECT q_text "
-				+ "FROM QUESTIONS"
+				+ "FROM QUESTIONS "
 				+ "WHERE q_id = ?";
 		
 		ResultSet rs = null;

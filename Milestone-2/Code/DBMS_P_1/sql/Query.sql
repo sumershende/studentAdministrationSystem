@@ -62,3 +62,7 @@ select DESCRIPTION, TRIGGER_BODY  from user_triggers
 SHOW ERRORS TRIGGER TA_NOT_STUDENT
 
 SELECT * FROM QUESTIONS_IN_EX qe, QUESTIONS q WHERE qe.q_id=q.q_id and ex_id=? and qe.q_id=?
+
+
+--- Professor is able to view any course
+--To edit an exercise, please enter its ID or press 0 to go back: 
