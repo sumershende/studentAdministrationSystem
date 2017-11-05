@@ -30,7 +30,7 @@ create table HasTA(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES C
 create table Questions(tp_id int, q_id int primary key, q_text varchar2(200) NOT NULL, q_hint varchar2(100), q_del_soln varchar(200), difficulty int, FOREIGN KEY (tp_id) REFERENCES Master_Topics (tp_id) ON DELETE CASCADE);
 create table Fixed_Questions(q_id int,q_ans varchar(100)NOT NULL, FOREIGN KEY (q_id) REFERENCES Questions(q_id) ON DELETE CASCADE);
 create table Fixed_Inc_Answers(q_id int, q_inc_answers varchar(100),FOREIGN KEY (q_id) REFERENCES Questions(q_id) ON DELETE CASCADE);
-create table Param_Questions(q_id int, q_par_num int NOT NULL, q_comb_num int NOT NULL, q_param_value varchar2(50), FOREIGN KEY (q_id) REFERENCES Questions(q_id) ON DELETE CASCADE);
+create table Param_Questions(q_id int, q_par_num int NOT NULL, q_comb_num int NOT NULL, q_param_value varchar2(50), FOREIGN KEY (q_id) REFERENCES Questions(q_id) ON DELETE CASCADE, UNIQUE(q_id, q_par_num, q_comb_num, q_param_value));
 create table Param_Answers(q_id int, q_comb_num int, q_ans varchar2(100));
 create table Exercises(ex_id int primary key, ex_name varchar2(30)NOT NULL,ex_mode varchar2(20)NOT NULL, ex_start_date date NOT NULL, ex_end_date date NOT NULL, num_questions int NOT NULL, num_retries int NOT NULL, policy varchar2(20) NOT NULL, tp_id int, pt_correct int, pt_incorrect int, FOREIGN KEY (tp_id) REFERENCES Master_Topics(tp_id) ON DELETE CASCADE);
 create table Questions_In_Ex(ex_id int,q_id int, FOREIGN KEY (q_id) REFERENCES Questions(q_id),FOREIGN KEY (ex_id) REFERENCES Exercises(ex_id));
@@ -104,7 +104,6 @@ CHECK (ex_end_date >= ex_start_date);
 --ADD CONSTRAINT TAnotStudent
 --CHECK (taStudent=0);
 
---- topics table, make primary key - both
 DROP TRIGGER ta_not_student;
 CREATE OR REPLACE TRIGGER ta_not_student
 BEFORE INSERT OR UPDATE
