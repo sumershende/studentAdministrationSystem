@@ -1234,7 +1234,7 @@ class DBHandler{
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, user_id);
 					rs = ps.executeQuery();
-					DateFormat df = new SimpleDateFormat("yyyy-mm-dd");
+					DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 					while(rs.next()) {
 						student_id = rs.getInt(1);
 					}
@@ -1312,8 +1312,97 @@ class DBHandler{
 	
 	
 	public boolean addHWAttempt(StudentHWAttempt attempt, String courseId, int exerciseId){
+		String user_id = loggedInUserId;
+		int student_id = -1;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql;
+		List<String> exercise_list = new ArrayList<String>();
+		try {
+			sql = "select st_id from Students where userid = ?;";
+			ps = conn.prepareStatement(sql);
+			ps.setString(1, user_id);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				student_id = rs.getInt(1);
+			}
+			if(student_id == -1) 
+				return false;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
 		
-		
+		int attempt_number = -1;
+		try {
+			Statement s = conn.createStatement();
+			
+			sql = "select max(attempt_num) from Assign_Attempt;";
+			rs = s.executeQuery(sql);
+			while(rs.next()) {
+				attempt_number = rs.getInt(1);
+			}
+			attempt_number++;
+			
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		List<Question> questions;
+		List<Boolean> wasCorrectlyAnswered;
+		questions = attempt.getQuestions();
+		wasCorrectlyAnswered = attempt.getWasCorrectlyAnswered();
+		for(int i=0;i<questions.size();i++) {
+			Question q = questions.get(i);
+			int q_id = q.getId();
+			boolean is_correct = wasCorrectlyAnswered.get(i);
+			int correct, correct_count=0, incorrect_count=0;
+			if(is_correct) {
+				correct_count++;
+				correct = 1;
+			}
+			else {
+				incorrect_count++;
+				correct = 0;
+			}
+			try {
+				sql = "INSERT into Assign_Attempt values(?, ?, ?, ?, ?, null);";
+				ps = conn.prepareStatement(sql);
+				ps.setInt(1, attempt_number);
+				ps.setInt(2, exerciseId);
+				ps.setInt(3, q_id);
+				ps.setInt(4, student_id);
+				ps.setInt(5, correct);
+				if(ps.executeUpdate() == 0) {
+					return false;
+				}
+			}
+			
+			catch(SQLException e) {
+				e.printStackTrace();
+			}
+			int pt_correct = attempt.getPointsPerCorrectAnswer();
+			int pt_incorrect = attempt.getPointsPerIncorrectAnswer();
+			int score = (pt_correct*correct_count) - (pt_incorrect*incorrect_count);
+			String submit_time_string = attempt.getSubmissionDateTime();
+			SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+			LocalDate submit_date = LocalDate.parse(submit_time_string);
+			Date sqlDate = Date.valueOf(submit_date);
+			try {
+				sql = "INSERT into Has_Solved values(?, ?, ?, ?);";
+				ps = conn.prepareStatement(sql);
+				ps.setInt(1, student_id);
+				ps.setInt(2, exerciseId);
+				ps.setInt(3, score);
+				ps.setDate(4, sqlDate);
+				if(ps.executeUpdate() == 0)
+					return false;
+			}
+			catch(SQLException e) {
+				e.printStackTrace();
+			}
+			
+		}
 		return true;
 	}
 	
@@ -1387,7 +1476,7 @@ class DBHandler{
 	}
 	
 	public boolean exercise_open(Date end_date) {
-		DateFormat df = new SimpleDateFormat("yyyy-mm-dd");
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		String start_date_string, end_date_string;
 		end_date_string = df.format(end_date);
 		LocalDate today = LocalDate.now();
