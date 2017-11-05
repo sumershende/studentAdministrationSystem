@@ -1,0 +1,207 @@
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+class StudentHandler {
+	private static DBHandler dbHandler;
+	private static ConsoleManager consoleManager;
+	
+	private StudentHandler(){
+
+	}
+	
+	public static boolean execute(boolean isAlsoTA){
+		dbHandler = DBHandler.getDBHandler();
+		consoleManager = ConsoleManager.getConsoleManager();
+		
+		int choice;
+		
+		while(true){
+			consoleManager.showStudentHomeScreen(isAlsoTA);
+			choice = consoleManager.askForIntInput("Please enter your choice: ");
+			if(isAlsoTA){
+				if (choice == 1){
+					// View Profile
+					viewProfile();
+				}else if(choice == 2){
+					// View courses of which the person is TA.
+					displayStudentCourses();
+				}else if(choice == 3){
+					// Switch to TA account.
+					return true;
+				}else if(choice == 4){
+					// Logout
+					if(dbHandler.logout()) break;
+					else consoleManager.showMessageAndWaitForUserToGoBack("Error logging out.");	
+				}else{
+					consoleManager.showInvalidChoiceError();
+				}
+			}else{
+				if (choice == 1){
+					// View Profile
+					viewProfile();
+				}else if(choice == 2){
+					// View courses of which the person is TA.
+					displayStudentCourses();
+				}else if(choice == 3){
+					// Logout
+					if(dbHandler.logout()) break;
+					else consoleManager.showMessageAndWaitForUserToGoBack("Error logging out.");	
+				}else{
+					consoleManager.showInvalidChoiceError();
+				}
+			}
+		}
+		return false;
+	}
+	
+	private static void viewProfile(){
+		consoleManager.showStudentProfile();
+		consoleManager.showMessageAndWaitForUserToGoBack(null);
+	}
+	
+	private static void displayStudentCourses(){
+		List<String[]> enrolledCourses = dbHandler.getStudentEnrolledCourses();
+		while(true){
+			consoleManager.showCourses(enrolledCourses, "Courses you are enrolled in: ");
+			
+			int choice = consoleManager.askForChoiceAtStudentEnrolledCourses();
+			if(choice == 0) return;
+			else{
+				// View details of a particular course
+				String courseId = consoleManager.askForStringInput("Please enter the course ID: ");
+				if(courseId.equals("0")) continue;
+				boolean validSelection = false;
+				for(String[] enrolledCourse : enrolledCourses){
+					if(enrolledCourse[1].equals(courseId)){
+						validSelection = true;
+						break;
+					}
+				}
+				if(validSelection){
+					consoleManager.showCourseDetails(courseId);
+					viewSelectedCourse(courseId);
+				}else{
+					consoleManager.showInvalidChoiceError("Please select a valid course ID!");
+				}
+				
+			}
+		}
+	}
+	
+	private static void viewSelectedCourse(String courseId){
+		List<String> exercises;
+		int choice;
+		
+		while(true){
+			choice = consoleManager.asForChoiceAtStudentViewSelectedCourse();
+			
+			if(choice == 0) return;
+			else if(choice == 1){
+				// View/Attempt current open HWs
+				exercises = dbHandler.getCurrentOpenUnattemptedHWs(courseId);
+				if(exercises == null){
+					// No available exercises.
+					consoleManager.showMessageAndWaitForUserToGoBack("No open exercises available.");
+					continue;
+				}
+			}else{
+				// See past HW submissions.
+				exercises = dbHandler.getAttemptedHWs(courseId);
+				if(exercises == null){
+					// No available exercises.
+					consoleManager.showMessageAndWaitForUserToGoBack("No past submissions for this course.");
+					continue;
+				}
+			}
+			
+			int exerciseId = consoleManager.showExerciseListToStudentAndAskChoice(exercises);
+			
+			if(exerciseId != 0){
+				if(choice == 1){
+					attemptExercise(courseId, exerciseId);
+				}else{
+					viewAttemptsOfExercise(courseId, exerciseId);
+				}
+			}
+		}
+	}
+	
+	private static void attemptExercise(String courseId, int exerciseId){
+		Exercise exercise = dbHandler.getExercise(exerciseId);
+		Question question;
+		List<Question> questions = null;
+		Boolean wasLastQuestionAnsweredCorrectly = null;
+		int totalOptions, choice;
+		
+		int score = 0, maxScore = exercise.getNumQuestions() * exercise.getPointsAwardedPerCorrectAnswer();
+		int pointsPerCorrectAnswer = exercise.getPointsAwardedPerCorrectAnswer();
+		int pointsPerIncorrectAnswer = exercise.getPointsDeductedPerIncorrectAnswer();
+		List<Boolean> wasCorrectlyAnswered = new ArrayList<>();
+		String submissionDateTime = null;
+		
+		if(exercise.getExerciseMode() == ExerciseMode.Random){
+			// Random exercise
+			questions = dbHandler.getQuestionsInRandomExercise(exerciseId, courseId);
+		}
+		
+		for(int questionNum = 1 ; questionNum <= exercise.getNumQuestions() ; ++questionNum){
+			if(exercise.getExerciseMode() == ExerciseMode.Random){
+				question = questions.get(questionNum - 1);
+			}else{
+				question = dbHandler.getNextQuestionInAdaptiveExercise(exerciseId, courseId, wasLastQuestionAnsweredCorrectly);
+			}
+			questions.add(question);
+			
+			totalOptions = consoleManager.showQuestionToAttempt(question, questionNum);
+			choice = consoleManager.askForStudentAnswerChoice(totalOptions);
+			
+			if(choice == question.getCorrectChoice()){
+				// Correct answer
+				wasLastQuestionAnsweredCorrectly = true;
+				score += pointsPerCorrectAnswer;
+			}else if(choice == 1){
+				// Skipped
+				wasLastQuestionAnsweredCorrectly = null;
+			}else if(choice == 0){
+				// Cancel attempt and go back
+				return;
+			}else{
+				// Incorrect answer
+				wasLastQuestionAnsweredCorrectly = true;
+				score -= pointsPerIncorrectAnswer;
+			}
+			
+			wasCorrectlyAnswered.add(wasLastQuestionAnsweredCorrectly);
+		}
+		
+		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		Date date = new Date();
+		submissionDateTime = dateFormat.format(date);
+		
+		// Show the summary of attempt.
+		StudentHWAttempt attempt = new StudentHWAttempt(score, submissionDateTime, 
+				questions, wasCorrectlyAnswered, maxScore, pointsPerCorrectAnswer, 
+				pointsPerIncorrectAnswer, false);
+		
+		consoleManager.showStudentAttemptDetails(attempt, exerciseId);
+	}
+	
+	private static void viewAttemptsOfExercise(String courseId, int exerciseId){
+		List<StudentHWAttempt> studentHWAttempts = dbHandler.getAttamptedHWsOverView(courseId, exerciseId);
+		
+		while(true){
+			consoleManager.showStudentAttemptsOverview(studentHWAttempts, exerciseId);
+			
+			int chosenAttemptToView = consoleManager.askWhichAttemptToView(studentHWAttempts.size());
+			
+			if(chosenAttemptToView == 0) return;
+			else{
+				// View detailed attempt.
+				consoleManager.showStudentAttemptDetails(studentHWAttempts.get(chosenAttemptToView-1), exerciseId);
+			}
+		}
+	}
+}

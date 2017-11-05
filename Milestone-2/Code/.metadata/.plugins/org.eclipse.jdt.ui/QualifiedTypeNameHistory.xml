@@ -18,8 +18,6 @@
 <fullyQualifiedTypeName name="java.awt.List"/>
 <fullyQualifiedTypeName name="java.util.regex.Pattern"/>
 <fullyQualifiedTypeName name="java.util.regex.Matcher"/>
-<fullyQualifiedTypeName name="DBHandler"/>
-<fullyQualifiedTypeName name="ConsoleManager"/>
 <fullyQualifiedTypeName name="java.lang.StringBuilder"/>
 <fullyQualifiedTypeName name="ExerciseType"/>
 <fullyQualifiedTypeName name="StudentReport"/>
@@ -51,11 +49,14 @@
 <fullyQualifiedTypeName name="LoggedInUserType"/>
 <fullyQualifiedTypeName name="java.sql.SQLException"/>
 <fullyQualifiedTypeName name="java.sql.ResultSetMetaData"/>
-<fullyQualifiedTypeName name="UserType"/>
 <fullyQualifiedTypeName name="CourseLevel"/>
-<fullyQualifiedTypeName name="java.lang.Integer"/>
 <fullyQualifiedTypeName name="java.util.Map"/>
 <fullyQualifiedTypeName name="java.lang.Exception"/>
 <fullyQualifiedTypeName name="java.lang.NumberFormatException"/>
+<fullyQualifiedTypeName name="java.lang.Integer"/>
+<fullyQualifiedTypeName name="UserType"/>
+<fullyQualifiedTypeName name="DBHandler"/>
+<fullyQualifiedTypeName name="ConsoleManager"/>
+<fullyQualifiedTypeName name="javax.sound.midi.ShortMessage"/>
 <fullyQualifiedTypeName name="java.lang.System"/>
 </qualifiedTypeNameHistroy>
