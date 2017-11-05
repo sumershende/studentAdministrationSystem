@@ -137,8 +137,8 @@ class TAHandler {
 		}else{
 			if(isEnroll){
 				// Try to add the student to the course.
-				Boolean wasEnrolled = dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
-				if(wasEnrolled == null){
+				boolean wasEnrolled = dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
+				if(wasEnrolled == false){
 					// Already in the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("The student is already enrolled in the course.");
 				}else if(wasEnrolled){

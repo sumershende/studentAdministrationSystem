@@ -663,8 +663,8 @@ class DBHandler{
  				Integer[] arr= new Integer[2];
  				List<Integer[]> list=new ArrayList<Integer[]>();
  				while(rs1.next()){
- 					arr[0]=rs.getInt(1);
- 					arr[1]=rs.getInt(2);
+ 					arr[0]=rs1.getInt(1);
+ 					arr[1]=rs1.getInt(2);
  					list.add(arr);
  				}
  				report.setScoresPerHW(list);
@@ -867,7 +867,7 @@ class DBHandler{
 		// Returns a list of questions in topic with id = topicId.
 		
 		List<Question> questions = new ArrayList<>();
- 		String query = "SELECT q_text "
+ 		String query = "SELECT tp_id, q_id, q_text,q_del_soln, difficulty"
 				+ " FROM QUESTIONS"
 				+ " WHERE tp_id = ?";
 		
@@ -898,7 +898,7 @@ class DBHandler{
 		// Returns a list of questions based on search by question ID.
 		
 		List<Question> questions = new ArrayList<>();
-		String query = "SELECT q_text "
+		String query = "SELECT tp_id, q_id, q_text,q_del_soln, difficulty "
 				+ "FROM QUESTIONS "
 				+ "WHERE q_id = ?";
 		
