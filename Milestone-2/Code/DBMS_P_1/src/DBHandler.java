@@ -867,9 +867,9 @@ class DBHandler{
 		// Returns a list of questions in topic with id = topicId.
 		
 		List<Question> questions = new ArrayList<>();
- 		String query = "SELECT tp_id, q_id, q_text,q_del_soln, difficulty"
-				+ " FROM QUESTIONS"
-				+ " WHERE tp_id = ?";
+ 		String query = "SELECT q.tp_id,t.tp_name, q_id, q_text,q_del_soln, difficulty "+
+ 						"FROM QUESTIONS q, MASTER_TOPICS t "+
+ 						"WHERE q.tp_id=t.tp_id and q.tp_id = ?";
 		
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -881,7 +881,19 @@ class DBHandler{
 			rs = pstmt.executeQuery();
 			while(rs.next()){
 				Question q = new Question();
-				q.setText(rs.getString(1));
+				q.setTopicId(rs.getInt(1));
+				q.setTopicName(rs.getString(2));
+				q.setId(rs.getInt(3));
+				q.setText(rs.getString(4));
+				int qtype=getQuestionType(q.getId());
+				if(qtype==0){
+					q.setQuestionType(QuestionType.Fixed);
+				}else{
+					q.setQuestionType(QuestionType.Parameterized);
+				}				
+				//q.setHint(rs.getString(2));
+				q.setDetailedSolution(rs.getString(5)); 
+				q.setDifficultyLevel(rs.getInt(6));
 				questions.add(q);
 			}
 		}catch(SQLException e){
@@ -898,9 +910,9 @@ class DBHandler{
 		// Returns a list of questions based on search by question ID.
 		
 		List<Question> questions = new ArrayList<>();
-		String query = "SELECT tp_id, q_id, q_text,q_del_soln, difficulty "
-				+ "FROM QUESTIONS "
-				+ "WHERE q_id = ?";
+		String query = "SELECT q.tp_id,t.tp_name, q_id, q_text,q_del_soln, difficulty "+
+ 						"FROM QUESTIONS q, MASTER_TOPICS t "+
+ 						"WHERE q.tp_id=t.tp_id and q.q_id = ?";
 		
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -912,7 +924,19 @@ class DBHandler{
 			rs = pstmt.executeQuery();
 			while(rs.next()){
 				Question q = new Question();
-				q.setText(rs.getString(1));
+				q.setTopicId(rs.getInt(1));
+				q.setTopicName(rs.getString(2));
+				q.setId(rs.getInt(3));
+				q.setText(rs.getString(4));
+				int qtype=getQuestionType(q.getId());
+				if(qtype==0){
+					q.setQuestionType(QuestionType.Fixed);
+				}else{
+					q.setQuestionType(QuestionType.Parameterized);
+				}				
+				//q.setHint(rs.getString(2));
+				q.setDetailedSolution(rs.getString(5)); 
+				q.setDifficultyLevel(rs.getInt(6));
 				questions.add(q);
 			}
 		}catch(SQLException e){
@@ -1528,5 +1552,34 @@ class DBHandler{
 			return true;
 		return false;	
 		
+	}
+	
+	//Akanksha
+	public int getQuestionType(int questionId){
+		int questionType = -1;
+		String query = "select CASE "+
+						"WHEN EXISTS (SELECT F.q_id FROM FIXED_QUESTIONS F WHERE F.q_id=Q.q_id ) THEN 0 "+
+						"ELSE 1 "+
+						"END AS question_type "+
+						"FROM Questions Q where q_id=?";
+
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, questionId);
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				questionType=rs.getInt(1);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+		return questionType;
+
 	}
 }
