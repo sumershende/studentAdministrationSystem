@@ -76,3 +76,6 @@ select CASE
 FROM Questions Q where q_id=4
 --- Professor and TA is able to view any course
 --To edit an exercise, please enter its ID or press 0 to go back: 
+Select * from courses where  c_id='CSC440'
+select e.c_id, count(st_id)  from Enrolled_In e inner join courses c on e.c_id=c.c_id
+group by e.c_id having e.c_id='CSC440'
