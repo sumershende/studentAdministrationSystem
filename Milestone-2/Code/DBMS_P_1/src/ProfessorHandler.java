@@ -298,12 +298,12 @@ class ProfessorHandler extends TAHandler{
 				// Add adaptive Exercise
 				newExercise = consoleManager.askDetailsAboutNewExercise(ExerciseMode.Adaptive, courseId);
 			}
-			if(newExercise != null)
+			if(newExercise != null) {
 				if(dbHandler.addExerciseToCourse(newExercise, courseId)){
 					consoleManager.showMessageAndWaitForUserToGoBack("Exercise successfully added. Press 0 to go back.");
 				}else{
 					consoleManager.showMessageAndWaitForUserToGoBack("Error while adding the exercise. Press 0 to go back.");
-				}
+				}}
 			
 			break;
 		}

@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,7 +23,7 @@ class DBHandler{
 	protected static final String jdbcUrl = "jdbc:oracle:thin:@orca.csc.ncsu.edu:1521:orcl01";
 	private static Connection conn;
 	private final String dbUserName, dbPassword;
-	
+	final String DATE_FORMAT = "MM/dd/yyyy";
 	private String loggedInUserName, loggedInUserId;
 	
 	private UserType loggedInUserType;
@@ -979,6 +980,20 @@ class DBHandler{
 		
 	}
 	
+	public java.sql.Date getDate(String date){
+		SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT);
+        df.setLenient(false);
+        try {
+			java.sql.Date parsed = (Date) df.parse(date);
+			return (new java.sql.Date(parsed.getTime()));			
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	
 	//Sumer
 	public boolean addExerciseToCourse(Exercise ex, String courseId){
 		PreparedStatement pstmt = null;
@@ -989,32 +1004,20 @@ class DBHandler{
  			pstmt.setInt(1, ex.getId());
  			pstmt.setString(2,ex.getName());
  			pstmt.setString(3,ex.getExerciseMode().toString());
- 			pstmt.setDate(4,ex.getStartDate());
- 			pstmt.setDate(5,ex.getEndDate());
+ 			pstmt.setDate(4,getDate(ex.getStartDate()));
+ 			pstmt.setDate(5,getDate(ex.getEndDate()));
  			pstmt.setInt(6, ex.getNumQuestions());
- 			pstmt.set
- 			
- 			
- 					exerciseMode, ScroingPolicy scroingPolicy, String name, 
-			String startDate, String endDate, int numQuestions, int numRetries, int id, 
-			HashSet<Integer> qIds, int pointsAwardedPerCorrectAnswer, 
-			int pointsDeductedPerIncorrectAnswer, int topicId
- 			pstmt.setInt(1, eId);
- 			pstmt.setInt(2, qId);
+ 			pstmt.setInt(7, ex.getNumRetries());
+ 			pstmt.setString(8,ex.getScroingPolicy().toString());
+ 			pstmt.setInt(9,ex.getTopicId());
+ 			pstmt.setInt(10,ex.getPointsAwardedPerCorrectAnswer());
+ 			pstmt.setInt(11,ex.getPointsDeductedPerIncorrectAnswer());
  			
  			if(pstmt.executeUpdate() == 0){
  				// Failure
  				return false;
  			}
- 			String query1 = " UPDATE Exercises SET NUM_QUESTIONS = (Select Count(*) from QUESTIONS_IN_EX where ex_id = ?) where ex_id = ?";
- 			PreparedStatement pstmt1 = conn.prepareStatement(query1);
- 			pstmt1.setInt(1, eId);
- 			pstmt1.setInt(2, eId);
- 			pstmt1.executeQuery();
- 			if(pstmt1.executeUpdate() == 0){
- 				// Failure
- 				return false;
- 			}
+ 			
  		}catch(SQLException e){
  			return false;
  		}finally{
