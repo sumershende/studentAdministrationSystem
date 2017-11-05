@@ -2,15 +2,15 @@ import java.sql.Date;
 import java.util.List;
 
 enum CourseLevel{
-	Grad, UnderGrad;
+	UnderGrad, Grad;
 }
 
 class Course {
 	private final String courseId, courseName;
 	private final Date startDate, endDate;
-	private final List<Person> TAs;
+	private List<Person> TAs;
 	private final List<Topic> topics;
-	private final List<Person> enrolledStudents;
+	private List<Person> enrolledStudents;
 	
 	private final CourseLevel courseLevel;
 	
@@ -42,6 +42,10 @@ class Course {
 		return enrolledStudents;
 	}
 
+	public void setEnrolledStudents(List<Person> enrolledStudents) {
+		this.enrolledStudents = enrolledStudents;
+	}
+
 	public Date getStartDate() {
 		return startDate;
 	}
@@ -62,6 +66,10 @@ class Course {
 		return TAs;
 	}
 	
+	public void setTAs(List<Person> tAs) {
+		TAs = tAs;
+	}
+
 	public CourseLevel getCourseLevel() {
 		return courseLevel;
 	}

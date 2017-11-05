@@ -100,12 +100,19 @@ class TAHandler {
 						break;
 					case 2:
 						// Enroll a student
-						enrollOrDropStudent(true, courseId);
+						Boolean wasEnrolled = enrollOrDropStudent(true, courseId);
+						if(wasEnrolled != null && wasEnrolled){
+							// New student, enrolled.
+							course.setEnrolledStudents(dbHandler.getStudentsEnrolledInCourse(courseId));
+						}
 						choice = 1;
 						break;
 					case 3:
 						// Drop a student
-						enrollOrDropStudent(false, courseId);
+						Boolean wasDropped = enrollOrDropStudent(false, courseId);
+						if(wasDropped != null && wasDropped){
+							course.setEnrolledStudents(dbHandler.getStudentsEnrolledInCourse(courseId));
+						}
 						choice = 1;
 						break;
 					case 4:
@@ -135,6 +142,7 @@ class TAHandler {
 		consoleManager.showExercisesDetailsForCourse(courseId, exercisesInThisCourse);
 		consoleManager.showMessageAndWaitForUserToGoBack("Please enter 0 to go back.");
 	}
+	
 	private static boolean addTopic(String courseId){
 		int topicId = consoleManager.askForIntInput("Please enter the topic ID or press 0 to cancel: ");
 		if(topicId == 0) return false;
@@ -152,14 +160,15 @@ class TAHandler {
 		}
 	}
 	
-	protected static void enrollOrDropStudent(boolean isEnroll, String courseId){
+	protected static Boolean enrollOrDropStudent(boolean isEnroll, String courseId){
 		String[] newStudentAndCourseDetails = consoleManager.askForNewStudentDetails(courseId);
 		if(newStudentAndCourseDetails == null){
 			// User cancelled the operation.
+			return null;
 		}else{
 			if(isEnroll){
 				// Try to add the student to the course.
-				boolean wasEnrolled = dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
+				Boolean wasEnrolled = dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
 				if(wasEnrolled == false){
 					// Already in the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("The student is already enrolled in the course.");
@@ -170,6 +179,7 @@ class TAHandler {
 					// Error while adding the student to the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("Sorry, there was an error while adding the new student. Please try again.");
 				}
+				return wasEnrolled;
 			}else{
 				// Try to drop the student from the course.
 				Boolean wasDropped = dbHandler.dropStudentFromCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
@@ -183,6 +193,7 @@ class TAHandler {
 					// Error while dropping the student from the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("Sorry, there was an error while dropping the student. Please try again.");
 				}
+				return wasDropped;
 			}
 		}
 	}
