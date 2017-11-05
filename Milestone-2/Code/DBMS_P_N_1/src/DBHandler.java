@@ -31,12 +31,16 @@ class DBHandler{
 	private boolean isUserLoggedIn;
 	
 	private static DBHandler dbHandler;
+	private int last_question_difficulty;
 	
 	private DBHandler(){
 		// Singleton
 		dbUserName = "gverma";
 		dbPassword = "200158973";
 		isUserLoggedIn = false;
+		last_question_difficulty = 3;
+		
+		
 	}
 	
 	public static DBHandler getDBHandler(){
@@ -1233,76 +1237,89 @@ class DBHandler{
 	}
 	
 	
-	public Exercise getExercise(int exerciseId){
-		// Returns the exercise associated with the exerciseId
-				PreparedStatement ps = null;
-				ResultSet rs = null;
-				String sql;
-				int id=-1, num_questions=-1, num_retries=-1, topic_id=-1, pt_correct=-1, pt_incorrect=-1;
-				Date start_date = null, end_date = null;
-				String name="", mode="", policy="", s_date="", e_date="";
-				ExerciseMode e_mode = null;
-				ScroingPolicy sp = null;
-				DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-				HashSet<Integer> qIds = new HashSet<Integer>();
-				
-				try {
-					sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions, num_retires, policy"
-							+ ", tp_id, pt_correct, pt_incorrect from Exercises where ex_id=?";
-					ps=conn.prepareStatement(sql);
-					ps.setInt(1, exerciseId);
-					rs = ps.executeQuery();
-					while(rs.next()) {
-						id = rs.getInt(1);
-						name = rs.getString(2);
-						mode = rs.getString(3);
-						start_date = rs.getDate(4);
-						end_date = rs.getDate(5);
-						num_questions = rs.getInt(6);
-						num_retries = rs.getInt(7);
-						policy = rs.getString(8);
-						topic_id = rs.getInt(9);
-						pt_correct = rs.getInt(10);
-						pt_incorrect = rs.getInt(11);
+	//Verified - Udit
+		public Exercise getExercise(int exerciseId){
+			// Returns the exercise associated with the exerciseId
+					PreparedStatement ps = null;
+					ResultSet rs = null;
+					String sql;
+					int id=-1, num_questions=-1, num_retries=-1, topic_id=-1, pt_correct=-1, pt_incorrect=-1;
+					Date start_date = null, end_date = null;
+					String name="", mode="", policy="", s_date="", e_date="";
+					ExerciseMode e_mode = null;
+					ScroingPolicy sp = null;
+					DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+					HashSet<Integer> qIds = new HashSet<Integer>();
+					
+					try {
+						sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions, num_retries, policy"
+								+ ", tp_id, pt_correct, pt_incorrect from Exercises where ex_id=?";
+						ps=conn.prepareStatement(sql);
+						ps.setInt(1, exerciseId);
+						rs = ps.executeQuery();
+						while(rs.next()) {
+							id = rs.getInt(1);
+							name = rs.getString(2);
+							mode = rs.getString(3);
+							start_date = rs.getDate(4);
+							end_date = rs.getDate(5);
+							num_questions = rs.getInt(6);
+							num_retries = rs.getInt(7);
+							policy = rs.getString(8);
+							topic_id = rs.getInt(9);
+							pt_correct = rs.getInt(10);
+							pt_incorrect = rs.getInt(11);
+							
+						}
+						mode = mode.toLowerCase();
+						policy = policy.toLowerCase();
+						s_date = df.format(start_date);
+						e_date = df.format(end_date);
+						if(mode != null) {
+							if(mode.equals("adaptive"))
+								e_mode = ExerciseMode.Adaptive;
+							else
+								e_mode = ExerciseMode.Random;
+						}
+						if(policy != null) {
+							if(policy.equals("latest"))
+								sp = ScroingPolicy.Latest;
+							else {
+								if(policy.equals("maximum"))
+									sp = ScroingPolicy.Maximum;
+								else
+									sp = ScroingPolicy.Average;
+							}
+						}
+						sql = "select q_id from Questions_In_Ex where ex_id = ?";
+						ps = conn.prepareStatement(sql);
+						ps.setInt(1, exerciseId);
+						rs = ps.executeQuery();
+						while(rs.next()) {
+							qIds.add(rs.getInt(1));
+						}
+						System.out.println(e_mode);
+						System.out.println(sp);
+						System.out.println(name);
+						System.out.println(s_date);
+						System.out.println(e_date);
+						System.out.println(num_questions);
+						System.out.println(num_retries);
+						System.out.println(id);
+						System.out.println(qIds);
+						System.out.println(pt_correct);
+						System.out.println(pt_incorrect);
+						System.out.println(topic_id);
+						return new Exercise(e_mode, sp, name, s_date, e_date, num_questions, num_retries, id, qIds, pt_correct,
+								pt_incorrect, topic_id );
 						
 					}
-					mode = mode.toLowerCase();
-					policy = policy.toLowerCase();
-					s_date = df.format(start_date);
-					e_date = df.format(end_date);
-					if(mode != null) {
-						if(mode.equals("adaptive"))
-							e_mode = ExerciseMode.Adaptive;
-						else
-							e_mode = ExerciseMode.Random;
+					catch(Throwable oops){
+						oops.printStackTrace();
 					}
-					if(policy != null) {
-						if(policy.equals("latest"))
-							sp = ScroingPolicy.Latest;
-						else {
-							if(policy.equals("maximum"))
-								sp = ScroingPolicy.Maximum;
-							else
-								sp = ScroingPolicy.Average;
-						}
-					}
-					sql = "select q_id from Questions_In_Ex where ex_id = ?;";
-					ps = conn.prepareStatement(sql);
-					ps.setInt(1, exerciseId);
-					rs = ps.executeQuery();
-					while(rs.next()) {
-						qIds.add(rs.getInt(1));
-					}
-					return new Exercise(e_mode, sp, name, s_date, e_date, num_questions, num_retries, id, qIds, pt_correct,
-							pt_incorrect, topic_id );
 					
-				}
-				catch(Throwable oops){
-					oops.printStackTrace();
-				}
-				
-				return null;
-	}
+					return null;
+		}
 	
 	
 	public List<String> getCurrentOpenUnattemptedHWs(String courseId){
@@ -1367,42 +1384,42 @@ class DBHandler{
 	}
 	
 	//Have to check again after data is added to Assign_Attempt : Udit
-	public List<String> getAttemptedHWs(String courseId){
-		// Returns the IDs of the exercises that are:
-				// 1. attempted by the student.
-				// Returns null if there are none.
-				String user_id = loggedInUserId;
-				int student_id = -1;
-				PreparedStatement ps = null;
-				Statement s = null;
-				ResultSet rs = null;
-				String sql;
-				List<String> exercise_list = new ArrayList<String>();
-				try {
-					student_id =getId(loggedInUserId, loggedInUserType);
-					if(student_id == -1) 
-						return null;
-					//System.out.println(student_id);
-					sql = "select ex_id from Assign_Attempt where st_id = ?";
-					ps = conn.prepareStatement(sql);
-					ps.setInt(1, student_id);
-					rs = ps.executeQuery();
-					while(rs.next()) {
-						exercise_list.add(Integer.toString(rs.getInt(1)));
+		public List<String> getAttemptedHWs(String courseId){
+			// Returns the IDs of the exercises that are:
+					// 1. attempted by the student.
+					// Returns null if there are none.
+					String user_id = loggedInUserId;
+					int student_id = -1;
+					PreparedStatement ps = null;
+					Statement s = null;
+					ResultSet rs = null;
+					String sql;
+					List<String> exercise_list = new ArrayList<String>();
+					try {
+						student_id =getId(loggedInUserId, loggedInUserType);
+						if(student_id == -1) 
+							return null;
+						//System.out.println(student_id);
+						sql = "select ex_id from Assign_Attempt where st_id = ?";
+						ps = conn.prepareStatement(sql);
+						ps.setInt(1, student_id);
+						rs = ps.executeQuery();
+						while(rs.next()) {
+							exercise_list.add(Integer.toString(rs.getInt(1)));
+						}
+						
+						return exercise_list;
+					}
+					catch(SQLException e){
+						e.printStackTrace();
+					}
+					finally {
+						closeStatement(ps);
+						closeResultSet(rs);
 					}
 					
-					return exercise_list;
-				}
-				catch(SQLException e){
-					e.printStackTrace();
-				}
-				finally {
-					closeStatement(ps);
-					closeResultSet(rs);
-				}
-				
-				return null;
-	}
+					return null;
+		}
 	
 	
 	public List<StudentHWAttempt> getAttamptedHWsOverView(String courseId, int exerciseId){
@@ -1581,10 +1598,25 @@ class DBHandler{
 	}
 	
 	
+	public int get_question_difficulty() {
+		return last_question_difficulty;
+	}
+	
+	public void set_question_difficulty(int difficulty) {
+		this.last_question_difficulty = difficulty;
+	}
+	
 	public Question getNextQuestionInAdaptiveExercise(int exerciseId, String courseId, Boolean wasLastAnsweredCorrectly){
 		// Get next question based on the user's answer.
 		// wasLastAnsweredCorrectly = null for first question or if the last question
 		// was skipped.
+		int question_difficulty = get_question_difficulty();
+		if(wasLastAnsweredCorrectly)
+			question_difficulty++;
+		else
+			question_difficulty--;
+		
+		
 		
 		return null;
 	}
