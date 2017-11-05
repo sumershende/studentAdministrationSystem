@@ -602,7 +602,7 @@ class ConsoleManager {
 		while(true){
 			id = askForIntInput("Please enter id for the question: ");
 			if(id == 0) return null;
-			else if(true){
+			else if(dbHandler.isNewQuestionIdValid(id)){
 				break;
 			}
 		}

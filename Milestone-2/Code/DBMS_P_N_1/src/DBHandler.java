@@ -989,7 +989,8 @@ class DBHandler{
 			return qs;
 		}
 	
-	//Akanksha
+	// Akanksha
+	// Tested by GV
 	public List<Question> searchQuestionsWithTopicId(int topicId){
 		// Returns a list of questions in topic with id = topicId.
 		
@@ -1012,13 +1013,7 @@ class DBHandler{
 				q.setTopicName(rs.getString(2));
 				q.setId(rs.getInt(3));
 				q.setText(rs.getString(4));
-				int qtype=getQuestionType(q.getId());
-				if(qtype==0){
-					q.setQuestionType(QuestionType.Fixed);
-				}else{
-					q.setQuestionType(QuestionType.Parameterized);
-				}				
-				//q.setHint(rs.getString(2));
+				q.setQuestionType(getQuestionType(q.getId()));
 				q.setDetailedSolution(rs.getString(5)); 
 				q.setDifficultyLevel(rs.getInt(6));
 				questions.add(q);
@@ -1032,7 +1027,8 @@ class DBHandler{
 		return questions;
 	}
 	
-	//Akanksha
+	// Akanksha
+	// Tested by GV
 	public List<Question> searchQuestionsWithQuestionId(int qId){
 		// Returns a list of questions based on search by question ID.
 		
@@ -1055,13 +1051,7 @@ class DBHandler{
 				q.setTopicName(rs.getString(2));
 				q.setId(rs.getInt(3));
 				q.setText(rs.getString(4));
-				int qtype=getQuestionType(q.getId());
-				if(qtype==0){
-					q.setQuestionType(QuestionType.Fixed);
-				}else{
-					q.setQuestionType(QuestionType.Parameterized);
-				}				
-				//q.setHint(rs.getString(2));
+				q.setQuestionType(getQuestionType(q.getId()));
 				q.setDetailedSolution(rs.getString(5)); 
 				q.setDifficultyLevel(rs.getInt(6));
 				questions.add(q);
@@ -1075,12 +1065,12 @@ class DBHandler{
 		return questions;
 	}
 	
-	//Akanksha
+	// Akanksha
 	public boolean addQuestionToQuestionBank(Question question){
 		// Returns true if the question was successfully added to the DB.
 		PreparedStatement pstmt = null;
 		try{ 			
- 			// Now, insert into HasTA
+ 			// Now, insert into Questions
  			String query = "INSERT INTO QUESTIONS "
  					+ "VALUES(?, ?, ?, ?, ?, ?)";
  			pstmt = conn.prepareStatement(query);
@@ -1106,13 +1096,16 @@ class DBHandler{
 	}
 	
 	// Checked :Sumer
+	// Done
 	public List<Question> getQuestionsInExercise(int exerciseId){
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		List<Question> qs = new ArrayList<Question>();
 		String sql;
 		try {
-			sql = "select q_text, q_hint, Q.q_id from Questions Q, Questions_In_Ex E where E.q_id=Q.q_id and E.ex_id=? ";
+			sql = "SELECT q_text, q_hint, Q.q_id "
+					+ "FROM Questions Q, Questions_In_Ex E "
+					+ "WHERE E.q_id=Q.q_id and E.ex_id=? ";
 			ps=conn.prepareStatement(sql);
 			ps.setInt(1, exerciseId);
 			rs = ps.executeQuery();
@@ -1143,8 +1136,8 @@ class DBHandler{
 		}
 	}
 	
-	
 	// Sumer
+	// Done
 	public boolean addExerciseToCourse(Exercise ex, String courseId){
 		PreparedStatement pstmt = null;
  		try{ 			
@@ -1592,9 +1585,14 @@ class DBHandler{
 	//Akanksha
 	public List<Question> getQuestionsInRandomExercise(int exerciseId, String courseId){
 		// Returns the questions in the exercise created by the professor.
+		// Fields required:
+		// 1. Text
+		// 2. Incorrect Answers.
+		// 3. Correct Answer
+		
 		List<Question> questions = new ArrayList<Question>();
-		String query = "SELECT q_text FROM QUESTIONS_IN_EX qe, QUESTIONS q "+
-						"WHERE qe.q_id=q.q_id and ex_id=?";
+		String query = "SELECT q_text FROM QUESTIONS_IN_EX qe, QUESTIONS q "
+				+ "WHERE qe.q_id=q.q_id and ex_id=?";
 		
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -1649,6 +1647,7 @@ class DBHandler{
 		return -1;
 	}
 	
+	
 	public boolean exercise_open(Date end_date) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		String  end_date_string;
@@ -1661,8 +1660,9 @@ class DBHandler{
 		
 	}
 	
-	//Akanksha
-	public int getQuestionType(int questionId){
+	// Akanksha
+	// Verified: GV
+	private QuestionType getQuestionType(int questionId){
 		int questionType = -1;
 		String query = "select CASE "+
 						"WHEN EXISTS (SELECT F.q_id FROM FIXED_QUESTIONS F WHERE F.q_id=Q.q_id ) THEN 0 "+
@@ -1686,7 +1686,6 @@ class DBHandler{
 			closeResultSet(rs);
 			closeStatement(pstmt);
 		}
-		return questionType;
-
+		return questionType == 0 ? QuestionType.Fixed : QuestionType.Parameterized;
 	}
 }
