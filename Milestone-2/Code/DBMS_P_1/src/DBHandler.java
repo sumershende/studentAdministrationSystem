@@ -603,7 +603,6 @@ class DBHandler{
 		      }
 		}catch(SQLException s){
 			// Failure, constraint violation.
-			s.printStackTrace();
 			return false;
 		}finally {
 			closeStatement(pstmt);
@@ -659,7 +658,7 @@ class DBHandler{
  						" WHERE st_id=?";	
  				PreparedStatement ps1 = conn.prepareStatement(query);
  				ps1.setString(1, courseId);
- 				ResultSet rs1 = ps.executeQuery();
+ 				ResultSet rs1 = ps1.executeQuery();
  				Integer[] arr= new Integer[2];
  				List<Integer[]> list=new ArrayList<Integer[]>();
  				while(rs1.next()){
@@ -1134,16 +1133,17 @@ class DBHandler{
 				Date start_date, end_date;
 				List<String> exercise_list = new ArrayList<String>();
 				try {
-					sql = "select st_id from Students where userid = ?;";
+					student_id =getId(loggedInUserId, loggedInUserType);
+/*					sql = "select st_id from Students where userid = ?";
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, user_id);
 					rs = ps.executeQuery();
 					while(rs.next()) {
 						student_id = rs.getInt(1);
 					}
-					if(student_id == -1) 
+*/					if(student_id == -1) 
 						return null;
-					sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?;";
+					sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?";
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, courseId);
 					ps.setInt(2, student_id);
@@ -1154,7 +1154,7 @@ class DBHandler{
 					if(!courseId.equals(c_id))
 						return null;
 					sql = "select ex_id, ex_start_date, ex_end_date from Exercises E, Topics T where T.c_id = ?"
-							+ "and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?;);";
+							+ " and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?)";
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, courseId);
 					ps.setInt(2, student_id);

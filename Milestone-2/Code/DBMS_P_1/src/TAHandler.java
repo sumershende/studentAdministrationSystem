@@ -113,6 +113,12 @@ class TAHandler {
 						viewReport(courseId);
 						choice = 1;
 						break;
+					case 5:
+						if(addTopic(courseId)){
+							course = dbHandler.getCourseInfo(courseId);
+						}
+						choice = 1;
+						break;
 					default:
 						consoleManager.showInvalidChoiceError();
 						break;
@@ -128,6 +134,22 @@ class TAHandler {
 		List<Exercise> exercisesInThisCourse = dbHandler.getExercisesForCourse(courseId);
 		consoleManager.showExercisesDetailsForCourse(courseId, exercisesInThisCourse);
 		consoleManager.showMessageAndWaitForUserToGoBack("Please enter 0 to go back.");
+	}
+	private static boolean addTopic(String courseId){
+		int topicId = consoleManager.askForIntInput("Please enter the topic ID or press 0 to cancel: ");
+		if(topicId == 0) return false;
+		Boolean result = dbHandler.addTopicToCourse(topicId, courseId);
+		if(result == null){
+			consoleManager.showMessageAndWaitForUserToGoBack("Topic already present in the course!");
+			return false;
+		}
+		else if(result){
+			consoleManager.showMessageAndWaitForUserToGoBack("Topic successfully added to the course.");
+			return true;
+		}else{
+			consoleManager.showMessageAndWaitForUserToGoBack("Error while adding topic to the course. Please check if the topic ID is valid or if it is already added.");
+			return false;
+		}
 	}
 	
 	protected static void enrollOrDropStudent(boolean isEnroll, String courseId){
