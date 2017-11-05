@@ -63,6 +63,16 @@ SHOW ERRORS TRIGGER TA_NOT_STUDENT
 
 SELECT * FROM QUESTIONS_IN_EX qe, QUESTIONS q WHERE qe.q_id=q.q_id and ex_id=? and qe.q_id=?
 
+SELECT *
+FROM QUESTIONS q, MASTER_TOPICS t
+WHERE q.tp_id=t.tp_id and q.tp_id = 4
 
+select * from parameterized_questions
+
+select CASE
+           WHEN EXISTS (SELECT F.q_id FROM FIXED_QUESTIONS F WHERE F.q_id=Q.q_id ) THEN 0
+           ELSE 1
+        END AS question_type, q_id
+FROM Questions Q where q_id=4
 --- Professor and TA is able to view any course
 --To edit an exercise, please enter its ID or press 0 to go back: 

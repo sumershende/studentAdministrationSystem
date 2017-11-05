@@ -1,1 +1,1 @@
-select * from Exercises;
+select * from courses;
