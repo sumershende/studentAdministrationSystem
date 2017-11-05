@@ -133,7 +133,26 @@ BEGIN
 	from Students
 	where isgrad=0 and st_id = :new.st_id;	
     IF ret > 0 THEN
-    	raise_application_error(-20010,'ERROR: Not a grad student. So, cannot become a TA');
+    	raise_application_error(-20011,'ERROR: Not a grad student. So, cannot become a TA');
+  	END IF;      
+END;
+
+DROP TRIGGER MaxStudentInClass;
+CREATE OR REPLACE TRIGGER MaxStudentInClass
+BEFORE INSERT OR UPDATE
+   ON Enrolled_In
+   FOR EACH ROW
+DECLARE
+   StudentsTotal NUMBER;
+   max NUMBER;
+BEGIN
+	select count(st_id) into StudentsTotal from Enrolled_In e inner join courses c on e.c_id=c.c_id
+	group by e.c_id having e.c_id= :new.c_id;
+	
+	select max_students into max from courses where c_id=:new.c_id;
+		
+    IF StudentsTotal >= max THEN
+    	raise_application_error(-20010,'ERROR: Class Max Size limit reached');
   	END IF;      
 END;
 
