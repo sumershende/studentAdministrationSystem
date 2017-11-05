@@ -1317,7 +1317,6 @@ class DBHandler{
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		String sql;
-		List<String> exercise_list = new ArrayList<String>();
 		try {
 			sql = "select st_id from Students where userid = ?;";
 			ps = conn.prepareStatement(sql);
@@ -1477,7 +1476,7 @@ class DBHandler{
 	
 	public boolean exercise_open(Date end_date) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		String start_date_string, end_date_string;
+		String  end_date_string;
 		end_date_string = df.format(end_date);
 		LocalDate today = LocalDate.now();
 		LocalDate end = LocalDate.parse(end_date_string);
