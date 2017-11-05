@@ -273,7 +273,7 @@ class ProfessorHandler extends TAHandler{
 			consoleManager.showMessageAndWaitForUserToGoBack("Topic successfully added to the course.");
 			return true;
 		}else{
-			consoleManager.showMessageAndWaitForUserToGoBack("Error while adding topic to the course. Please check if the topic ID is valid.");
+			consoleManager.showMessageAndWaitForUserToGoBack("Error while adding topic to the course. Please check if the topic ID is valid or if it already added.");
 			return false;
 		}
 	}

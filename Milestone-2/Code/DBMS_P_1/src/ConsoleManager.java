@@ -245,7 +245,7 @@ class ConsoleManager {
         }
 	}
 	
-	private java.sql.Date getDate(String date){
+	public java.sql.Date getDate(String date){
 		DateFormat df = new SimpleDateFormat(DATE_FORMAT);
         df.setLenient(false);
         try {
