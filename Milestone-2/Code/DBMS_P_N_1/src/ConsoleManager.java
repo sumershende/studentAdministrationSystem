@@ -635,7 +635,7 @@ class ConsoleManager {
 		}
 		String[][] parameterValues = null;
 		int totalValuesForOneParameter = 1;
-		if(type.equals("Parameterized")){
+		if(type.toLowerCase().equals("param")){
 			int totalQuestionPlaceholders = getTotalParametersFromQuestionText(text, "___");
 			if(totalQuestionPlaceholders == 0){
 				System.out.println("No placeholder for parameters found! Converting to Fixed type.");
@@ -661,7 +661,8 @@ class ConsoleManager {
 				System.out.println("At least 1 correct answer is required!");
 			}
 		}
-		
+
+		String[] incorrectAnswers = null;
 		String[][] correctAnswers = new String[totalValuesForOneParameter][totalCorrectAnswers];
 		// Get the correct answer(s)
 		for(int ansNum = 0 ; ansNum < totalCorrectAnswers ; ++ansNum){
@@ -683,18 +684,37 @@ class ConsoleManager {
 		
 		// Get the incorrect answer(s)
 		int totalIncorrectAnswers = 0;
+		if(!type.toLowerCase().equals("param")) {
 		while(totalIncorrectAnswers <= 0){
 			totalIncorrectAnswers = askForIntInput("How many incorrect answer options will you enter?");
 			if(totalIncorrectAnswers <= 0){
 				System.out.println("At least 1 incorrect answer is required!");
 			}
 		}
-		String[] incorrectAnswers = new String[totalIncorrectAnswers];
+		incorrectAnswers = new String[totalIncorrectAnswers];
 		System.out.println("Note: None of the incorrect answer can be same as any correct answer.");
 		for(int incAns = 0 ; incAns < totalIncorrectAnswers ; ++incAns){
 			incorrectAnswers[incAns] = askForStringInput("Please enter incorrect answer #" + (incAns+1) + ": ");
 		}
-		
+		}
+		//for parameterized
+		else {
+			int totalIncorrectAnswers1 = 0;
+			if(type.toLowerCase().equals("param")) {
+			while(totalIncorrectAnswers1 <= 0){
+				totalIncorrectAnswers1 = askForIntInput("How many incorrect answer options will you enter?");
+				if(totalIncorrectAnswers1 <= 0){
+					System.out.println("At least 1 incorrect answer is required!");
+				}
+			}
+			incorrectAnswers = new String[totalIncorrectAnswers1*totalValuesForOneParameter];
+			System.out.println("Note: None of the incorrect answer can be same as any correct answer.");
+			for(int parno=0;parno<totalValuesForOneParameter;parno++)
+				for(int incAns = 0 ; incAns < totalIncorrectAnswers1 ; ++incAns){
+				incorrectAnswers[parno*totalIncorrectAnswers1+incAns] = askForStringInput("Please enter incorrect answer #" + (incAns+1) + " for combination "+(parno+1)+": ");
+			}
+			}
+		}	//end parameter
 		String hintChoice, hint = null;
 		while(true){
 			hintChoice = askForStringInput("Do you want to give a hint for this question (y or n or 0 to cancel)?");

@@ -33,7 +33,7 @@ public class PushDataIntoDb {
 //			insertParam_Inc_Questions("Param_Inc_Questions","Param_Inc_Questions",con); //insert Param_inc_questions
 //			insertParam_Inc_Questions("Param_Answers","Param_Answers",con);	//insert param_answers
 //			insertAssign_Attempt("Assign_Attempt","Assign_Attempt",con);	//insert assign_attempt
-			insertHas_Solved("Has_Solved","Has_Solved",con);
+//			insertHas_Solved("Has_Solved","Has_Solved",con);
 //			insertFixedQuestions("Fixed_Questions","Fixed_Questions",con); // Insert fixed_questions
 //			insertFixedQuestions("Fixed_Inc_Answers","Fixed_Inc_Answers",con); // Insert Incorrect answers for fixed questions
 //			insertFixedQuestions("Fixed_Inc_Answers2","Fixed_Inc_Answers",con); // Insert Incorrect answers for fixed questions2
