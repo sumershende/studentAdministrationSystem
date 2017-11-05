@@ -17,7 +17,7 @@ class ConsoleManager {
 	
 	private Scanner sc;
 	
-	private DBHandler dbHandler;
+	private static DBHandler dbHandler;
 	final String DATE_FORMAT = "MM/dd/yyyy";
 	
 	private ConsoleManager(){
@@ -28,6 +28,7 @@ class ConsoleManager {
 	
 	public static ConsoleManager getConsoleManager(){
 		if(consoleManager == null) consoleManager = new ConsoleManager();
+		if(dbHandler == null) dbHandler = DBHandler.getDBHandler();
 		return consoleManager;
 	}
 	
@@ -284,7 +285,7 @@ class ConsoleManager {
 			startDateStr =  askForStringInput("3. Enter start date (mm/dd/yyyy): ");
 			if (startDateStr.equals("0")){
 				return null;
-			}else if(getDate(startDateStr)!=null){
+			}else if(isDateValid(startDateStr)){
 				startDate=getDate(startDateStr);
 				break;
 			}
@@ -351,7 +352,7 @@ class ConsoleManager {
 							if(TAId.equals("0")){
 								TAs = null;
 								break;
-							}else if(dbHandler.isTAIdValidForCourse(TAId, courseId)){
+							}else if(dbHandler.isTAIdValidForCourse(TAId, courseId) == 2){
 								// Valid
 								if(TAs == null) TAs = new ArrayList<>();
 								// Check if professor already mentioned him.
@@ -465,11 +466,23 @@ class ConsoleManager {
 		showMessageToGoToPreviousMenu();
 		String studentId = askForStringInput("1. Enter Student Id: ");
 		if(studentId.equals("0")) return null;
-		if(courseId == null){
-			courseId = askForStringInput("2. Enter Course Id: ");
-			if(courseId.equals("0")) return null;
+		else if(dbHandler.isStudentIdValid(studentId)){
+			if(courseId == null){
+				courseId = askForStringInput("2. Enter Course Id: ");
+				if(courseId.equals("0")) return null;
+				else if(dbHandler.isCourseIdValid(courseId)){
+					return new String[]{studentId, courseId};
+				}else{
+					showInvalidChoiceError("Please enter a valid course ID!");
+					return askForNewStudentDetails(courseId);
+				}
+			}else{
+				return new String[]{studentId, courseId};
+			}
+		}else{
+			showInvalidChoiceError("Please enter a valid student ID!");
+			return askForNewStudentDetails(courseId);
 		}
-		return new String[]{studentId, courseId};
 	}
 	
 	public void showReportForCourse(List<StudentReport> studentReports, String courseId){
@@ -488,9 +501,10 @@ class ConsoleManager {
 		if(exercisesInThisCourse == null){
 			showMessageAndWaitForUserToGoBack("There are no exercised added currently.");
 		}else{
-			System.out.println("Details of Exercises in the course: " + courseId);
+			System.out.println("> Details of Exercises in the course: " + courseId);
 			
 			for(Exercise exercise : exercisesInThisCourse){
+				System.out.println("--------------------------EXERCISE DETAILS BEGIN--------------------------");
 				System.out.println("> Name: " + exercise.getName());
 				System.out.println("> ID: " + exercise.getId());
 				System.out.println("> Mode: " + exercise.getExerciseMode());
@@ -502,6 +516,7 @@ class ConsoleManager {
 				
 				List<Question> questionsInThisExercise = dbHandler.getQuestionsInExercise(exercise.getId());
 				showQuestions(questionsInThisExercise, "Questions in this exercise:");
+				System.out.println("--------------------------EXERCISE DETAILS END----------------------------");
 			}
 		}
 	}
@@ -527,15 +542,12 @@ class ConsoleManager {
 			// Cancel operation. Go back.
 			return null;
 		}
-		Boolean isTAIdValid = dbHandler.isTAIdValidForCourse(TAId, courseId);
-		if(isTAIdValid == null){
-			showInvalidChoiceError("This student is already assigned assigned as the TA for the class!");
-			return null;
-		}else if(isTAIdValid){
-			return TAId;
-		}else{
+		int isTAIdValid = dbHandler.isTAIdValidForCourse(TAId, courseId);
+		if(isTAIdValid == -1){
 			showInvalidChoiceError("Please enter a valid TA ID!");
 			return askTAId(courseId);
+		}else{
+			return TAId;
 		}
 	}
 	
@@ -548,22 +560,23 @@ class ConsoleManager {
 			System.out.println("\t> None!");
 		}else{
 			for(Question question : questions){
-				System.out.println("::Question " + questionNum++ + "::");
+				System.out.println("------------------ QUESTION " + questionNum + " BEGINS -----------------");
 				System.out.println("> ID: " + question.getId());
 				System.out.println("> Text: " + question.getText());
 				if(question.getQuestionType() != null){
 					System.out.println("> Type: " + question.getQuestionType());
-					System.out.println("> Difficulty level: " + question.getDifficultyLevel());
-					System.out.println("> Topic Details: ");
-					System.out.print("> Hint: " );
-					if(question.hasHint()){
-						System.out.println(question.getHint() + "\n");
-					}else{
-						System.out.println("None\n");
-					}
-					System.out.println("> Topic ID: " + question.getTopicId());
-					System.out.println("> Topic Name: " + question.getTopicName());
 				}
+				System.out.println("> Difficulty level: " + question.getDifficultyLevel());
+				System.out.println("> Topic Details: ");
+				System.out.println("\t> Topic ID: " + question.getTopicId());
+				System.out.println("\t> Topic Name: " + question.getTopicName());
+				System.out.print("> Hint: " );
+				if(question.hasHint()){
+					System.out.println(question.getHint() + "\n");
+				}else{
+					System.out.println("None\n");
+				}
+				System.out.println("------------------ QUESTION " + questionNum++ + " ENDS -------------------");
 			}
 			// Can display detailed solution too here. StudentHandler does not uses this function.
 			
@@ -739,24 +752,60 @@ class ConsoleManager {
 			return null;
 		}
 		showCourseTopics(topics);
-		int topicId = askForIntInput("Please enter Id of the associated topic: ");
-		if(topicId == 0) return null;
+		int topicId;
+		while(true){
+			topicId = askForIntInput("Please enter Id of the associated topic: ");
+			if(topicId == 0) return null;
+			else if(dbHandler.isTopicIdValid(topicId)){
+				break;
+			}else{
+				showInvalidChoiceError("Please enter a valid topic ID.");
+			}
+		}
 		
 		// Ask the exercise Id.
-		int exerciseId = askForIntInput("Please enter Id for exercise: ");
-		if(exerciseId == 0) return null;
+		int exerciseId;
+		while(true){
+			exerciseId = askForIntInput("Please enter Id for exercise: ");
+			if(exerciseId == 0) return null;
+			else if(dbHandler.isExerciseIdValid(exerciseId)){
+				break;
+			}else{
+				showInvalidChoiceError("An exercise with this ID already exists. Please enter a new exercise ID!");
+			}
+		}	
 		
 		// Ask exercise name.
 		String name = askForStringInput("Please enter exercise name: ");
 		if(name.equals("0")) return null;
 		
 		// Ask start date.
-		String startDate = askForStringInput("Please enter exercise start date: ");
-		if(startDate.equals("0")) return null;
+		String startDate;
+		while(true){
+			startDate =  askForStringInput("Please enter exercise start date (" + DATE_FORMAT + "): ");
+			if (startDate.equals("0")){
+				return null;
+			}else if(isDateValid(startDate)){
+				break;
+			}
+			else{
+				showInvalidChoiceError("Please enter a valid date!");
+			}
+		}
 		
 		// Ask end date.
-		String endDate = askForStringInput("Please enter exercise end date: ");
-		if(endDate.equals("0")) return null;
+		String endDate;
+		while(true){
+			endDate =  askForStringInput("Please enter exercise end date (" + DATE_FORMAT + "): ");
+			if (endDate.equals("0")){
+				return null;
+			}else if(isDateValid(endDate)){
+				break;
+			}
+			else{
+				showInvalidChoiceError("Please enter a valid date!");
+			}
+		}
 		
 		// Ask scoring policy
 		System.out.println("Please select the scoring policy: ");
@@ -764,7 +813,7 @@ class ConsoleManager {
 		System.out.println("1. Average");
 		System.out.println("2. Latest");
 		System.out.println("3. Maximum");
-		int sP = askForIntInput("Please enter your choice: ");
+		int sP = askForIntInputBetweenRange("Please enter your choice: ", 0, 3);
 		
 		ScroingPolicy scroingPolicy;
 		
@@ -774,7 +823,7 @@ class ConsoleManager {
 		else scroingPolicy = ScroingPolicy.Maximum;
 		
 		// Ask number of retries allowed.
-		int numRetries = askForIntInput("Please enter number of allowed retires (Enter -1 for unlimited retries.): ");
+		int numRetries = askForIntInputBetweenRange("Please enter number of allowed retires (Enter -1 for unlimited retries.): ", -1, Integer.MAX_VALUE);
 		
 		// Ask the number of questions in the exercise.
 		int numQuestions = askForIntInput("Please enter the number of questions in the exercise: "); 
@@ -810,10 +859,10 @@ class ConsoleManager {
 				int choice = -1;
 				while (choice != 0 && qIds.size() != numQuestions){
 					showQuestions(courseQuestions, "Questions in the course: ");
-					System.out.println("Press 0 to cancel and continue.");
-					System.out.println("Press 1 to enter ID of a question to be added to the exercise.");
-					System.out.println("Press 2 to enter ID of a question to be removed from the exercise.");
-					choice = sc.nextInt();
+					System.out.println("0. Cancel and continue.");
+					System.out.println("1. Enter ID of a question to be added to the exercise.");
+					System.out.println("2. Enter ID of a question to be removed from the exercise.");
+					choice = askForIntInputBetweenRange("Please enter your choice: ", 0, 2);
 					switch (choice) {
 					case 0:
 						break;
@@ -919,7 +968,7 @@ class ConsoleManager {
 				while(true){
 					exerciseId = askForIntInput("Please enter the ID of exercise you'd like to see or 0 to cancel: ");
 					if(exerciseId == 0) break;
-					else if(exercises.contains(exerciseId)){
+					else if(exercises.contains(""+exerciseId)){
 						// Valid choice
 						return exerciseId;
 					}else{

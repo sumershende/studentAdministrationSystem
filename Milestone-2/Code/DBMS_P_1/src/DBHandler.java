@@ -3,13 +3,12 @@ import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +45,10 @@ class DBHandler{
 		}
 		return dbHandler;
 	}
+	
+	public ConsoleManager getConsoleManager(){
+		return ConsoleManager.getConsoleManager();
+	} 
 
 	public Connection createConnection() throws SQLException{
 		if (jdbcUrl == null){
@@ -324,7 +327,7 @@ class DBHandler{
 	}
 	
 	// Approved by GV.
-	private List<Person> getStudentsEnrolledInCourse(String courseId){
+	public List<Person> getStudentsEnrolledInCourse(String courseId){
 		List<Person> enrolledStudents = new ArrayList<>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -359,7 +362,7 @@ class DBHandler{
 	}
 	
 	// Approved by GV.
-	private List<Person> getTAsInCourse(String courseId){
+	public List<Person> getTAsInCourse(String courseId){
 		List<Person> TAs = new ArrayList<>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -483,7 +486,91 @@ class DBHandler{
  	}
  	
  	// Approved by GV
- 	public Boolean isTAIdValidForCourse(String TAId, String courseId){
+ 	public boolean isCourseIdValid(String courseId){
+ 		String query = "SELECT C.c_id "
+				+ "FROM Courses C "
+				+ "WHERE C.c_id = ?";
+		
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, courseId);
+			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				return true;
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+ 		return false;
+ 	}
+ 	
+ 	// Approved by GV
+ 	public boolean isTopicIdValid(int TAId){
+ 		String query = "SELECT T.tp_id "
+				+ "FROM Master_Topics T "
+				+ "WHERE T.tp_id= ?";
+		
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, TAId);
+			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				return true;
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+ 		return false;
+ 	}
+ 	
+ 	// Approved by GV
+ 	public boolean isExerciseIdValid(int exerciseId){
+ 		String query = "SELECT E.ex_id "
+				+ "FROM Exercises E "
+				+ "WHERE E.ex_id= ?";
+		
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+		
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setInt(1, exerciseId);
+			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				return false;
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+ 		return true;
+ 	}
+ 	
+ 	// Approved by GV
+ 	public int isTAIdValidForCourse(String TAId, String courseId){	
+ 		// Check if TAId is even valid.
+ 		int TANumericalId = getId(TAId, UserType.TA);
+ 		if(TANumericalId == -1){
+ 			// Invalid ID given by the professor.
+ 			return -1;
+ 		}
  		
  		// Student should be graduate level and not enrolled in the course.
  		String query = "SELECT EI.st_id "
@@ -504,7 +591,8 @@ class DBHandler{
 			rs = pstmt.executeQuery();
 			
 			if(rs.next()){
-				return false;
+				// He is enrolled in the course. Cannot be set as the TA.
+				return 0;
 			}
 		}catch(SQLException e){
 			e.printStackTrace();
@@ -532,7 +620,8 @@ class DBHandler{
 			rs = pstmt.executeQuery();
 			
 			if(rs.next()){
-				return null;
+				// Already a TA.
+				return 1;
 			}
 		}catch(SQLException e){
 			e.printStackTrace();
@@ -541,14 +630,15 @@ class DBHandler{
 			closeStatement(pstmt);
 		}
 		
- 		return true;
+		// Valid ID.
+ 		return 2;
  	}
  	
  	// Approved AS
  	public Boolean addNewCourse(Course course){
 		// Returns true if the course was successfully added.
  		String query = " INSERT INTO Courses "
-		        + "VALUES (?, ?, ?, ?,?,?,?)";
+		        + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 		PreparedStatement pstmt = null;
 		
 		try{
@@ -576,31 +666,37 @@ class DBHandler{
 		}
 	}
 	
- 	// Approved AS
-	public boolean addNewStudentToCourse(String studentId, String courseId){
+ 	// Approved by GV
+ 	public boolean isStudentIdValid(String studentId){
+ 		return getId(studentId, UserType.Student) == -1 ? false : true;
+ 	}
+ 	
+ 	// Approved GV
+	public Boolean addNewStudentToCourse(String studentId, String courseId){
 		// Returns true if the student was successfully added to the course.
-/*		int studentNumericalId = getId(studentId, UserType.Student);
+		int studentNumericalId = getId(studentId, UserType.Student);
 		
 		if(studentNumericalId == -1){
 			// Invalid student id
 			return false;
 		}
-		
-*/		String query = "INSERT INTO Enrolled_In (C_ID, ST_ID)"
+
+		String query = "INSERT INTO Enrolled_In (C_ID, ST_ID) "
 		        + "VALUES (?, ?)";
 		PreparedStatement pstmt = null;
 		
 		try{
+			
 		      pstmt = conn.prepareStatement(query);
 		      pstmt.setString(1, courseId);
-		      pstmt.setInt(2, Integer.parseInt(studentId));
+		      pstmt.setInt(2, studentNumericalId);
 
 		      if(pstmt.executeUpdate() == 1){
 		    	  // Successfully added.
 		    	  return true;
 		      }else{
 		    	  // Already present in the course.
-		    	  return false;
+		    	  return null;
 		      }
 		}catch(SQLException s){
 			// Failure, constraint violation.
@@ -610,15 +706,22 @@ class DBHandler{
 		}
 	}
 	
-	// Approved AS
+	// Approved GV
 	public Boolean dropStudentFromCourse(String studentId, String courseId){
 		// Returns true if the student was successfully dropped from the course.
 		// or null if was already not in the course.
+		int studentNumericalId = getId(studentId, UserType.Student);
+		
+		if(studentNumericalId == -1){
+			// Invalid student id
+			return false;
+		}
 		PreparedStatement pstmt = null;
 		try{ 			
- 			String query = "DELETE FROM Enrolled_in WHERE st_id=? and c_id=?";
+ 			String query = "DELETE FROM Enrolled_in "
+ 					+ "WHERE st_id=? and c_id=?";
  			pstmt = conn.prepareStatement(query);
- 			pstmt.setString(1, studentId);
+ 			pstmt.setInt(1, studentNumericalId);
  			pstmt.setString(2, courseId);
  			
  			if(pstmt.executeUpdate() == 0){
@@ -635,7 +738,7 @@ class DBHandler{
  		}
 	}	
 	
-	//Akanksha
+	// Akanksha
 	public List<StudentReport> getStudentReports(String courseId){
 		// Returns the report of all students in the course.
 		// Fields required in StudentReport:
@@ -677,6 +780,7 @@ class DBHandler{
 	}
 	
 	// Sumer
+	// Also tested by: GV
 	public List<Exercise> getExercisesForCourse(String courseId){
 		// Returns a list of all the exercises in the course.
 				// Fields required in Exercise:
@@ -764,42 +868,34 @@ class DBHandler{
 	}
 	
 	// Approved by GV
-	// !!!!!!!!!!!!!!!!!Please correct the HasTA Table!!!!!!!!!!!!!!!!!!!!!!!!
-	public Boolean assignTAToCourse(String TAId, String courseId){
+	public int assignTAToCourse(String TAId, String courseId){
 		// Returns true if the TA was successfully assigned to the course.
 		PreparedStatement pstmt = null;
-		/*int TANumericalId = getId(TAId, UserType.TA);
-		if(TANumericalId == -1){
-			// Invalid TA Id!
-			return false;
-		}*/
+		int TANumericalId = getId(TAId, UserType.TA);
  		try{ 			
  			// Now, insert into HasTA
  			String query = "INSERT INTO HasTA "
  					+ "VALUES(?, ?)";
  			pstmt = conn.prepareStatement(query);
  			pstmt.setString(1, courseId);
- 			pstmt.setInt(2, Integer.parseInt(TAId));
+ 			pstmt.setInt(2, TANumericalId);
  			
  			if(pstmt.executeUpdate() == 0){
  				// Failure, already added.
- 				return null;
+ 				return 0;
  			}else{
  				// Added.
- 				return true;
+ 				return 1;
  			}
  		}catch(SQLException e){
  			// Failure, constraint violation.
- 			if(e.getErrorCode()==-20010) {
- 				System.out.println("This person is already enrolled or is not a grad student");
- 			}
+ 			return e.getErrorCode();
  		}finally{
  			closeStatement(pstmt);
  		}
- 		return true;
 	}
 	
-	//Akanksha & Sumer
+	// Akanksha & Sumer
 	public List<Question> getQuestionsForCourse(String courseId){
 		// Returns a list containing all the questions in the course.
 		// Fields required in a Question:
@@ -830,8 +926,8 @@ class DBHandler{
 		return qs;
 	}
 	
-		//Sumer
-		public List<Question> getQuestionsForCourseAndTopic(String courseId,int topicId){
+	// Sumer
+	public List<Question> getQuestionsForCourseAndTopic(String courseId,int topicId){
 			// Returns a list containing all the questions in the course.
 			// Fields required in a Question:
 			// All.
@@ -1005,11 +1101,10 @@ class DBHandler{
 	}
 	
 	public java.sql.Date getDate(String date){
-		SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT);
+		DateFormat df = new SimpleDateFormat(DATE_FORMAT);
         df.setLenient(false);
         try {
-			java.sql.Date parsed = (Date) df.parse(date);
-			return (new java.sql.Date(parsed.getTime()));			
+			return (new java.sql.Date(df.parse(date).getTime()));			
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -1018,7 +1113,7 @@ class DBHandler{
 	}
 	
 	
-	//Sumer
+	// Sumer
 	public boolean addExerciseToCourse(Exercise ex, String courseId){
 		PreparedStatement pstmt = null;
  		try{ 			
@@ -1049,12 +1144,7 @@ class DBHandler{
  		}
 		return true;
 	}
-	
-//	public HashSet<String> getQIdsInExercise(int exerciseId){
-//		
-//		return new HashSet<>();
-//	}
-	
+		
 	//Akanksha & Sumer
 	public boolean addQuestionToExercise(int qId, int eId){
 		// Returns true if the question was successfully added to the exercise.
@@ -1209,6 +1299,7 @@ class DBHandler{
 					}
 */					if(student_id == -1) 
 						return null;
+/*
 					sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?";
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, courseId);
@@ -1219,6 +1310,7 @@ class DBHandler{
 					}
 					if(!courseId.equals(c_id))
 						return null;
+*/
 
 					sql = "select ex_id, ex_start_date, ex_end_date from Exercises E, Topics T where T.c_id = ?"
 							+ " and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?)";
@@ -1243,7 +1335,7 @@ class DBHandler{
 				return null;
 	}
 	
-	
+	//Have to check again after data is added to Assign_Attempt : Udit
 	public List<String> getAttemptedHWs(String courseId){
 		// Returns the IDs of the exercises that are:
 				// 1. attempted by the student.
@@ -1251,20 +1343,16 @@ class DBHandler{
 				String user_id = loggedInUserId;
 				int student_id = -1;
 				PreparedStatement ps = null;
+				Statement s = null;
 				ResultSet rs = null;
 				String sql;
 				List<String> exercise_list = new ArrayList<String>();
 				try {
-					sql = "select st_id from Students where userid = ?;";
-					ps = conn.prepareStatement(sql);
-					ps.setString(1, user_id);
-					rs = ps.executeQuery();
-					while(rs.next()) {
-						student_id = rs.getInt(1);
-					}
+					student_id =getId(loggedInUserId, loggedInUserType);
 					if(student_id == -1) 
 						return null;
-					sql = "select ex_id form Assign_Attempt where st_id = ?;";
+					//System.out.println(student_id);
+					sql = "select ex_id from Assign_Attempt where st_id = ?";
 					ps = conn.prepareStatement(sql);
 					ps.setInt(1, student_id);
 					rs = ps.executeQuery();
@@ -1274,8 +1362,12 @@ class DBHandler{
 					
 					return exercise_list;
 				}
-				catch(Throwable oops){
-					oops.printStackTrace();
+				catch(SQLException e){
+					e.printStackTrace();
+				}
+				finally {
+					closeStatement(ps);
+					closeResultSet(rs);
 				}
 				
 				return null;
@@ -1297,14 +1389,9 @@ class DBHandler{
 				boolean is_submission_done;
 				List<StudentHWAttempt> hw_attempt = new ArrayList<StudentHWAttempt>();
 				try {
-					sql = "select st_id from Students where userid = ?;";
-					ps = conn.prepareStatement(sql);
-					ps.setString(1, user_id);
-					rs = ps.executeQuery();
+				
 					DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-					while(rs.next()) {
-						student_id = rs.getInt(1);
-					}
+					student_id =getId(loggedInUserId, loggedInUserType);
 					if(student_id == -1) 
 						return null;
 					sql = "select with_score, submit_time, ex_end_date, pt_correct, pt_incorrect from "
@@ -1384,21 +1471,10 @@ class DBHandler{
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		String sql;
-		List<String> exercise_list = new ArrayList<String>();
-		try {
-			sql = "select st_id from Students where userid = ?;";
-			ps = conn.prepareStatement(sql);
-			ps.setString(1, user_id);
-			rs = ps.executeQuery();
-			while(rs.next()) {
-				student_id = rs.getInt(1);
-			}
-			if(student_id == -1) 
-				return false;
-		}
-		catch(SQLException e) {
-			e.printStackTrace();
-		}
+		student_id =getId(loggedInUserId, loggedInUserType);
+		if(student_id == -1) 
+			return false;
+	
 		
 		int attempt_number = -1;
 		try {
@@ -1544,7 +1620,7 @@ class DBHandler{
 	
 	public boolean exercise_open(Date end_date) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		String start_date_string, end_date_string;
+		String  end_date_string;
 		end_date_string = df.format(end_date);
 		LocalDate today = LocalDate.now();
 		LocalDate end = LocalDate.parse(end_date_string);

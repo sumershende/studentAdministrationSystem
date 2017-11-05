@@ -30,10 +30,16 @@ class ProfessorHandler extends TAHandler{
 				while (subChoice != 0){
 					switch(consoleManager.askForIntInput(prompt)){
 					case 0:
+						// Cancel operation.
 						subChoice = 0;
 						break;
 					case 1:
-						enrollOrDropStudent(true, null);
+						// Enroll a student
+						Boolean wasEnrolled = enrollOrDropStudent(true, null);
+						if(wasEnrolled != null && wasEnrolled){
+							// New student, enrolled.
+							
+						}
 						break;
 					case 2:
 						enrollOrDropStudent(false, null);
@@ -101,17 +107,27 @@ class ProfessorHandler extends TAHandler{
 						break;
 					case 3:
 						// Add TA
-						addTA(courseId);
+						Boolean wasTAAdded = addTA(courseId);
+						if(wasTAAdded != null && wasTAAdded){
+							course.setTAs(dbHandler.getTAsInCourse(courseId));
+						}
 						choice = 1;
 						break;
 					case 4:
 						// Enroll a student
-						enrollOrDropStudent(true, courseId);
+						Boolean wasEnrolled = enrollOrDropStudent(true, courseId);
+						if(wasEnrolled != null && wasEnrolled){
+							// New student, enrolled.
+							course.setEnrolledStudents(dbHandler.getStudentsEnrolledInCourse(courseId));
+						}
 						choice = 1;
 						break;
 					case 5:
 						// Drop a student
-						enrollOrDropStudent(false, courseId);
+						Boolean wasDropped = enrollOrDropStudent(false, courseId);
+						if(wasDropped != null && wasDropped){
+							course.setEnrolledStudents(dbHandler.getStudentsEnrolledInCourse(courseId));
+						}
 						choice = 1;
 						break;
 					case 6:
@@ -247,17 +263,32 @@ class ProfessorHandler extends TAHandler{
 		consoleManager.showCourses(taughtCourses, "Courses taught by you:");
 	}
 	
-	private static void addTA(String courseId){
+	private static Boolean addTA(String courseId){
 		String newTAId = consoleManager.askTAId(courseId);
 		if (newTAId != null){
 			// Try to assign this TA
-			if(dbHandler.assignTAToCourse(newTAId, courseId)){
-				// Successfully assigned as TA.
-				consoleManager.showMessageAndWaitForUserToGoBack("Successfully added " + newTAId + " as TA for course " + courseId);
-			}else{
-				// Error while assigning as TA.
-				consoleManager.showMessageAndWaitForUserToGoBack("Error while assigning " + newTAId + " as TA for course " + courseId);
+			int wasAssigned = dbHandler.assignTAToCourse(newTAId, courseId);
+			
+			switch(wasAssigned){
+			case 0:
+				consoleManager.showMessageAndWaitForUserToGoBack("TA already added to the course.");
+				return false;
+			case 1:
+				consoleManager.showMessageAndWaitForUserToGoBack("TA successfully added to the course.");
+				return true;
+			// Constraint Violations
+			case 20010:
+				consoleManager.showMessageAndWaitForUserToGoBack("ERROR: Student already enrolled in the course.");
+				return false;
+			case 20011:
+				consoleManager.showMessageAndWaitForUserToGoBack("ERROR: Student does not possess a Grad level standing.");
+				return false;
+			default:
+				
+				return false;
 			}
+		}else{
+			return null;
 		}
 	}
 	
@@ -314,7 +345,7 @@ class ProfessorHandler extends TAHandler{
 		List<String[]> courses = dbHandler.getTaughtCoursesByProfessor();
 		for(String[] course : courses){
 			List<Question> questions = dbHandler.getQuestionsForCourse(course[1]);
-			consoleManager.showQuestions(questions, "course: " + course[0]);
+			consoleManager.showQuestions(questions, "> Questions in Course: " + course[0]);
 		}
 		int choice = -1;
 		while(choice != 0){
@@ -336,14 +367,14 @@ class ProfessorHandler extends TAHandler{
 					int qId = consoleManager.askForIntInput("Please enter the question ID or 0 to cancel search: ");
 					if(qId == 0) continue;
 					List<Question> questions = dbHandler.searchQuestionsWithQuestionId(qId);
-					consoleManager.showQuestions(questions, " search with ID '" + qId + "': ");
+					consoleManager.showQuestions(questions, "Your search with ID '" + qId + "' returned the following results: ");
 					break;
 				case 2:
 					// Search by topic.
 					int topicId = consoleManager.askForIntInput("Please enter the topic ID or 0 to cancel search: ");
 					if(topicId == 0) continue;
 					questions = dbHandler.searchQuestionsWithTopicId(topicId);
-					consoleManager.showQuestions(questions, " search with topic ID '" + topicId + "': ");
+					consoleManager.showQuestions(questions, "Your search with topic ID '" + topicId + "' returned the following results: ");
 					break;
 				default:
 					break;
