@@ -1025,12 +1025,7 @@ class DBHandler{
  		}
 		return true;
 	}
-	
-//	public HashSet<String> getQIdsInExercise(int exerciseId){
-//		
-//		return new HashSet<>();
-//	}
-	
+		
 	//Akanksha & Sumer
 	public boolean addQuestionToExercise(int qId, int eId){
 		// Returns true if the question was successfully added to the exercise.
