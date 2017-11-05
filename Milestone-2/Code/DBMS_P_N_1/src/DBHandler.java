@@ -1298,18 +1298,6 @@ class DBHandler{
 						while(rs.next()) {
 							qIds.add(rs.getInt(1));
 						}
-						System.out.println(e_mode);
-						System.out.println(sp);
-						System.out.println(name);
-						System.out.println(s_date);
-						System.out.println(e_date);
-						System.out.println(num_questions);
-						System.out.println(num_retries);
-						System.out.println(id);
-						System.out.println(qIds);
-						System.out.println(pt_correct);
-						System.out.println(pt_incorrect);
-						System.out.println(topic_id);
 						return new Exercise(e_mode, sp, name, s_date, e_date, num_questions, num_retries, id, qIds, pt_correct,
 								pt_incorrect, topic_id );
 						
