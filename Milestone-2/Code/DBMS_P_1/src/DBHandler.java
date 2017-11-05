@@ -1203,6 +1203,7 @@ class DBHandler{
 					}
 */					if(student_id == -1) 
 						return null;
+/*
 					sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?";
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, courseId);
@@ -1213,6 +1214,7 @@ class DBHandler{
 					}
 					if(!courseId.equals(c_id))
 						return null;
+*/
 
 					sql = "select ex_id, ex_start_date, ex_end_date from Exercises E, Topics T where T.c_id = ?"
 							+ " and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?)";
@@ -1237,7 +1239,7 @@ class DBHandler{
 				return null;
 	}
 	
-	
+	//Have to check again after data is added to Assign_Attempt : Udit
 	public List<String> getAttemptedHWs(String courseId){
 		// Returns the IDs of the exercises that are:
 				// 1. attempted by the student.
@@ -1245,20 +1247,16 @@ class DBHandler{
 				String user_id = loggedInUserId;
 				int student_id = -1;
 				PreparedStatement ps = null;
+				Statement s = null;
 				ResultSet rs = null;
 				String sql;
 				List<String> exercise_list = new ArrayList<String>();
 				try {
-					sql = "select st_id from Students where userid = ?;";
-					ps = conn.prepareStatement(sql);
-					ps.setString(1, user_id);
-					rs = ps.executeQuery();
-					while(rs.next()) {
-						student_id = rs.getInt(1);
-					}
+					student_id =getId(loggedInUserId, loggedInUserType);
 					if(student_id == -1) 
 						return null;
-					sql = "select ex_id form Assign_Attempt where st_id = ?;";
+					//System.out.println(student_id);
+					sql = "select ex_id from Assign_Attempt where st_id = ?";
 					ps = conn.prepareStatement(sql);
 					ps.setInt(1, student_id);
 					rs = ps.executeQuery();
@@ -1268,8 +1266,12 @@ class DBHandler{
 					
 					return exercise_list;
 				}
-				catch(Throwable oops){
-					oops.printStackTrace();
+				catch(SQLException e){
+					e.printStackTrace();
+				}
+				finally {
+					closeStatement(ps);
+					closeResultSet(rs);
 				}
 				
 				return null;
@@ -1291,14 +1293,9 @@ class DBHandler{
 				boolean is_submission_done;
 				List<StudentHWAttempt> hw_attempt = new ArrayList<StudentHWAttempt>();
 				try {
-					sql = "select st_id from Students where userid = ?;";
-					ps = conn.prepareStatement(sql);
-					ps.setString(1, user_id);
-					rs = ps.executeQuery();
+				
 					DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-					while(rs.next()) {
-						student_id = rs.getInt(1);
-					}
+					student_id =getId(loggedInUserId, loggedInUserType);
 					if(student_id == -1) 
 						return null;
 					sql = "select with_score, submit_time, ex_end_date, pt_correct, pt_incorrect from "
@@ -1378,21 +1375,10 @@ class DBHandler{
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		String sql;
-		List<String> exercise_list = new ArrayList<String>();
-		try {
-			sql = "select st_id from Students where userid = ?;";
-			ps = conn.prepareStatement(sql);
-			ps.setString(1, user_id);
-			rs = ps.executeQuery();
-			while(rs.next()) {
-				student_id = rs.getInt(1);
-			}
-			if(student_id == -1) 
-				return false;
-		}
-		catch(SQLException e) {
-			e.printStackTrace();
-		}
+		student_id =getId(loggedInUserId, loggedInUserType);
+		if(student_id == -1) 
+			return false;
+	
 		
 		int attempt_number = -1;
 		try {
@@ -1538,7 +1524,7 @@ class DBHandler{
 	
 	public boolean exercise_open(Date end_date) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-		String start_date_string, end_date_string;
+		String  end_date_string;
 		end_date_string = df.format(end_date);
 		LocalDate today = LocalDate.now();
 		LocalDate end = LocalDate.parse(end_date_string);
