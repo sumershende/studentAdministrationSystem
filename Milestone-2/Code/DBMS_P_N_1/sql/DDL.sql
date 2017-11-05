@@ -137,3 +137,21 @@ BEGIN
   	END IF;      
 END;
 
+DROP TRIGGER MaxStudentInClass;
+CREATE OR REPLACE TRIGGER MaxStudentInClass
+BEFORE INSERT OR UPDATE
+   ON Enrolled_In
+   FOR EACH ROW
+DECLARE
+   StudentsTotal NUMBER;
+   max NUMBER;
+BEGIN
+	select count(st_id) into StudentsTotal from Enrolled_In e inner join courses c on e.c_id=c.c_id
+	group by e.c_id having e.c_id= :new.c_id;
+	
+	select max_students into max from courses where c_id=:new.c_id;
+		
+    IF StudentsTotal >= max THEN
+    	raise_application_error(-20010,'ERROR: Class Max Size limit reached');
+  	END IF;      
+END;
