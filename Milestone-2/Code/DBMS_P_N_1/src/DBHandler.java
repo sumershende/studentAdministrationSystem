@@ -267,11 +267,63 @@ class DBHandler{
 	public boolean isUserLoggedIn() {
 		return isUserLoggedIn;
 	}
+	
+	public boolean checkAccessForCourse(String courseId){
+			if(loggedInUserType==UserType.Professor){
+				PreparedStatement pstmt = null;
+				ResultSet rs = null;
+				String query = "SELECT c_id "
+						+ "FROM Courses "
+						+ "WHERE c_id = ? AND prof_id = ?";
+				try{
+					pstmt = conn.prepareStatement(query);
+					pstmt.clearParameters();
+					pstmt.setString(1, courseId);
+					pstmt.setInt(2, getId(loggedInUserId, UserType.Professor));
+					rs = pstmt.executeQuery();
+					if(rs.next()){
+						return true;
+					}
+				}catch(SQLException e){
+					e.printStackTrace();
+				}finally{
+					closeResultSet(rs);
+					closeStatement(pstmt);
+				}
+			}
+		if(loggedInUserType==UserType.TA){
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+
+			String query = "SELECT c_id "
+					+ "FROM HASTA "
+					+ "WHERE c_id = ? AND st_id = ?";
+			try{
+				pstmt = conn.prepareStatement(query);
+				pstmt.clearParameters();
+				pstmt.setString(1, courseId);
+				pstmt.setInt(2, getId(loggedInUserId, UserType.TA));
+				rs = pstmt.executeQuery();
+				if(rs.next()){
+					return true;
+				}
+			}catch(SQLException e){
+				e.printStackTrace();
+			}finally{
+				closeResultSet(rs);
+				closeStatement(pstmt);
+			}
+		}
+		return false;
+	}
 
 	// Approved by GV.
 	public Course getCourseInfo(String courseId){
 		//Returns complete course object.
-		
+		boolean access = checkAccessForCourse(courseId);
+		if(access == false){
+			return null;
+		}
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		String query;

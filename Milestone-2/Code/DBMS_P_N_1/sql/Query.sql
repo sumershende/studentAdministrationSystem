@@ -86,9 +86,11 @@ IF StudentsTotal > max THEN
 	select * from courses where c_id='CSC440'
 	Select * from Enrolled_in where c_id='CSC440'
 	select * from students where st_id =10002
-	select * from HASTA where c_id ='CSC440'
+	select * from HASTA where c_id ='CSC541' and st_id=10002
 	INSERT INTO Enrolled_In (C_ID, ST_ID) VALUES ('CSC440', 10005)
 	delete from Enrolled_In where c_id='CSC440' and st_id=10001
+	
+	select * from courses
 	
 	
 	
