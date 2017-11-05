@@ -968,7 +968,7 @@ class ConsoleManager {
 				while(true){
 					exerciseId = askForIntInput("Please enter the ID of exercise you'd like to see or 0 to cancel: ");
 					if(exerciseId == 0) break;
-					else if(exercises.contains(exerciseId)){
+					else if(exercises.contains(""+exerciseId)){
 						// Valid choice
 						return exerciseId;
 					}else{

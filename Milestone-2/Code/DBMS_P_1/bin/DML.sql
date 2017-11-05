@@ -1,4 +1,7 @@
-SELECT  q_text, q_hint, q_del_soln, difficulty, q_id FROM QUESTIONS q, TOPICS t  WHERE q.tp_id=t.tp_id and t.c_id='CSC540' and t.tp_id=2
- 
- 
- 
+<<<<<<< HEAD
+select * from courses;
+=======
+select * from courses;
+select * from Exercises;
+
+>>>>>>> 03e72bfe05ef630b37c0eb8df651476a1365327f
