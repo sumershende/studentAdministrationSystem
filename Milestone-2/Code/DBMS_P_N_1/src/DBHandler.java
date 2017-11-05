@@ -1070,12 +1070,12 @@ class DBHandler{
 		return questions;
 	}
 	
-	// Akanksha
+	//Sumer tested
 	public boolean addQuestionToQuestionBank(Question question){
 		// Returns true if the question was successfully added to the DB.
 		PreparedStatement pstmt = null;
 		try{ 			
- 			// Now, insert into Questions
+ 			// Now, insert into HasTA
  			String query = "INSERT INTO QUESTIONS "
  					+ "VALUES(?, ?, ?, ?, ?, ?)";
  			pstmt = conn.prepareStatement(query);
@@ -1090,6 +1090,104 @@ class DBHandler{
  				// Failure, already added.
  				return false;
  			}
+ 			
+ 			if(question.getQuestionType().toString().equals("Fixed")) {
+ 				System.out.println("Inside Fixed part");
+ 				try {
+ 				query = "Insert into fixed_questions values(?,?)";
+ 				PreparedStatement ps = conn.prepareStatement(query);
+ 				ps.setInt(1,question.getId());
+ 				String t[][]=question.getCorrectAnswers();
+ 				ps.setString(2,t[0][0]);
+ 			if(ps.executeUpdate() == 0){
+ 	 				// Failure, already added.
+ 	 				return false;
+ 	 			}
+ 			else {
+ 				System.out.println("Fix part 1 worked");
+ 			}
+ 			query = "Insert into fixed_inc_answers values(?,?)";
+				String t1[]=question.getIncorrectAnswers();
+				for(int i=0;i<t1.length;i++) {
+					PreparedStatement ps1 = conn.prepareStatement(query);
+					ps1.setInt(1,question.getId());
+					ps1.setString(2, t1[i]);
+					if(ps1.executeUpdate() == 0){
+	 	 				// Failure, already added.
+	 	 				return false;
+	 	 			}
+	 			else {
+	 				System.out.println("Incorrect insert no." +(i+1));
+	 			}
+				}
+ 			}
+ 			catch(SQLException e){
+ 	 			// Failure, constraint violation.
+ 	 			e.printStackTrace();
+ 	 			return false;
+ 	 		}} //end of fixed part
+ 			
+ 			else {
+ 				System.out.println("Inside Param part");
+ 				String t[][]=question.getParameterValues();
+ 				int noOfCombs=t[0].length;
+ 				for(int i=0;i<noOfCombs;i++) {
+ 					for(int j=0;j<t.length;j++)
+ 				try {
+ 				query = "Insert into param_questions values(?,?,?,?)";
+ 				PreparedStatement ps = conn.prepareStatement(query);
+ 				ps.setInt(1,question.getId());
+ 				ps.setInt(2, (j+1));
+ 				ps.setInt(3, (i+1));
+ 				ps.setString(4,t[j][i]);
+ 			if(ps.executeUpdate() == 0){
+ 	 				// Failure, already added.
+ 	 				return false;
+ 	 			}
+ 			
+ 			}
+ 			catch(SQLException e){
+ 	 			// Failure, constraint violation.
+ 	 			e.printStackTrace();
+ 	 			return false;
+ 	 		}
+ 					try {
+ 						query = "Insert into param_answers values(?,?,?)";
+ 		 				PreparedStatement ps = conn.prepareStatement(query);
+ 		 				ps.setInt(1,question.getId());
+ 		 				ps.setInt(2,(i+1));
+ 		 				ps.setString(3,question.getCorrectAnswers()[i][0]);
+ 		 			if(ps.executeUpdate() == 0){
+ 		 	 				// Failure, already added.
+ 		 	 				return false;
+ 		 	 			}
+ 					}catch(SQLException e){
+ 		 	 			// Failure, constraint violation.
+ 		 	 			e.printStackTrace();
+ 		 	 			return false;
+ 		 	 		}
+ 					int l=question.getIncorrectAnswers().length;
+ 					for(int k=0;k<l/noOfCombs;k++)
+ 					try {
+ 						query = "Insert into param_inc_questions values(?,?,?)";
+ 		 				PreparedStatement ps = conn.prepareStatement(query);
+ 		 				ps.setInt(1,question.getId());
+ 		 				ps.setInt(2,(i+1));
+ 		 				ps.setString(3,question.getIncorrectAnswers()[i*noOfCombs+k]);
+ 		 			if(ps.executeUpdate() == 0){
+ 		 	 				// Failure, already added.
+ 		 	 				return false;
+ 		 	 			}
+ 					}catch(SQLException e){
+ 		 	 			// Failure, constraint violation.
+ 		 	 			e.printStackTrace();
+ 		 	 			return false;
+ 		 	 		}
+ 		} //end for
+ 					
+ 		}
+ 			
+ 			
  		}catch(SQLException e){
  			// Failure, constraint violation.
  			e.printStackTrace();
