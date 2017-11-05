@@ -980,9 +980,47 @@ class DBHandler{
 		
 	}
 	
-	
-	public boolean addExerciseToCourse(Exercise exercise, String courseId){
-		
+	//Sumer
+	public boolean addExerciseToCourse(Exercise ex, String courseId){
+		PreparedStatement pstmt = null;
+ 		try{ 			
+ 			// Now, insert into topics
+ 			String query = "Insert into Exercises Values(?,?,?,?,?,?,?,?,?,?,?)";
+ 			pstmt = conn.prepareStatement(query);
+ 			pstmt.setInt(1, ex.getId());
+ 			pstmt.setString(2,ex.getName());
+ 			pstmt.setString(3,ex.getExerciseMode().toString());
+ 			pstmt.setDate(4,ex.getStartDate());
+ 			pstmt.setDate(5,ex.getEndDate());
+ 			pstmt.setInt(6, ex.getNumQuestions());
+ 			pstmt.set
+ 			
+ 			
+ 					exerciseMode, ScroingPolicy scroingPolicy, String name, 
+			String startDate, String endDate, int numQuestions, int numRetries, int id, 
+			HashSet<Integer> qIds, int pointsAwardedPerCorrectAnswer, 
+			int pointsDeductedPerIncorrectAnswer, int topicId
+ 			pstmt.setInt(1, eId);
+ 			pstmt.setInt(2, qId);
+ 			
+ 			if(pstmt.executeUpdate() == 0){
+ 				// Failure
+ 				return false;
+ 			}
+ 			String query1 = " UPDATE Exercises SET NUM_QUESTIONS = (Select Count(*) from QUESTIONS_IN_EX where ex_id = ?) where ex_id = ?";
+ 			PreparedStatement pstmt1 = conn.prepareStatement(query1);
+ 			pstmt1.setInt(1, eId);
+ 			pstmt1.setInt(2, eId);
+ 			pstmt1.executeQuery();
+ 			if(pstmt1.executeUpdate() == 0){
+ 				// Failure
+ 				return false;
+ 			}
+ 		}catch(SQLException e){
+ 			return false;
+ 		}finally{
+ 			closeStatement(pstmt);
+ 		}
 		return true;
 	}
 	
@@ -1134,7 +1172,7 @@ class DBHandler{
 				Date start_date, end_date;
 				List<String> exercise_list = new ArrayList<String>();
 				try {
-					sql = "select st_id from Students where userid = ?;";
+					sql = "select st_id from Students where userid = ?";
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, user_id);
 					rs = ps.executeQuery();
@@ -1143,7 +1181,7 @@ class DBHandler{
 					}
 					if(student_id == -1) 
 						return null;
-					sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?;";
+					sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?";
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, courseId);
 					ps.setInt(2, student_id);
@@ -1153,8 +1191,8 @@ class DBHandler{
 					}
 					if(!courseId.equals(c_id))
 						return null;
-					sql = "select ex_id, ex_start_date, ex_end_date from Exercises E, Topics T where T.c_id = ?"
-							+ "and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?;);";
+					sql = "select ex_id, ex_start_date, ex_end_date from Exercises E, Topics T where T.c_id = ? "
+							+ "and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?)";
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, courseId);
 					ps.setInt(2, student_id);
