@@ -698,13 +698,13 @@ class DBHandler{
  	}
  	
  	// Approved GV
-	public Boolean addNewStudentToCourse(String studentId, String courseId){
+	public int addNewStudentToCourse(String studentId, String courseId){
 		// Returns true if the student was successfully added to the course.
 		int studentNumericalId = getId(studentId, UserType.Student);
 		
 		if(studentNumericalId == -1){
 			// Invalid student id
-			return false;
+			return 0;
 		}
 
 		String query = "INSERT INTO Enrolled_In (C_ID, ST_ID) "
@@ -719,14 +719,15 @@ class DBHandler{
 
 		      if(pstmt.executeUpdate() == 1){
 		    	  // Successfully added.
-		    	  return true;
+		    	  return 1;
 		      }else{
 		    	  // Already present in the course.
-		    	  return null;
+		    	  return 0;
 		      }
 		}catch(SQLException s){
 			// Failure, constraint violation.
-			return false;
+			
+			return s.getErrorCode();
 		}finally {
 			closeStatement(pstmt);
 		}

@@ -121,6 +121,22 @@ BEGIN
   	END IF;      
 END;
 
+DROP TRIGGER ta_not_student_reverse;
+CREATE OR REPLACE TRIGGER ta_not_student_reverse
+BEFORE INSERT OR UPDATE
+   ON Enrolled_In
+   FOR EACH ROW
+DECLARE
+   ret NUMBER;
+BEGIN
+	select count(*) into ret
+	from HASTA
+	where c_id = :new.c_id and st_id = :new.st_id;	
+    IF ret > 0 THEN
+    	raise_application_error(-20010,'ERROR: Student cannot be enrolled in class as Student is a TA');
+  	END IF;      
+END;
+
 DROP TRIGGER ta_grad_student;
 CREATE OR REPLACE TRIGGER ta_grad_student
 BEFORE INSERT OR UPDATE
@@ -133,7 +149,7 @@ BEGIN
 	from Students
 	where isgrad=0 and st_id = :new.st_id;	
     IF ret > 0 THEN
-    	raise_application_error(-20010,'ERROR: Not a grad student. So, cannot become a TA');
+    	raise_application_error(-20000,'ERROR: Not a grad student. So, cannot become a TA');
   	END IF;      
 END;
 
@@ -144,14 +160,14 @@ BEFORE INSERT OR UPDATE
    FOR EACH ROW
 DECLARE
    StudentsTotal NUMBER;
-   max NUMBER;
+   maxStudent NUMBER;
 BEGIN
-	select count(st_id) into StudentsTotal from Enrolled_In e inner join courses c on e.c_id=c.c_id
-	group by e.c_id having e.c_id= :new.c_id;
+	select count(st_id) into StudentsTotal from Enrolled_In e , courses c
+	where e.c_id=c.c_id
+	group by e.c_id having e.c_id = :new.c_id;
 	
-	select max_students into max from courses where c_id=:new.c_id;
-		
-    IF StudentsTotal >= max THEN
+	select max_students into maxStudent from courses where c_id= :new.c_id;
+	IF StudentsTotal >= maxStudent THEN
     	raise_application_error(-20010,'ERROR: Class Max Size limit reached');
   	END IF;      
 END;
