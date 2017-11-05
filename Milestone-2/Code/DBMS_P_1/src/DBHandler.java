@@ -576,7 +576,7 @@ class DBHandler{
 	}
 	
  	// Approved AS
-	public Boolean addNewStudentToCourse(String studentId, String courseId){
+	public boolean addNewStudentToCourse(String studentId, String courseId){
 		// Returns true if the student was successfully added to the course.
 /*		int studentNumericalId = getId(studentId, UserType.Student);
 		
@@ -599,7 +599,7 @@ class DBHandler{
 		    	  return true;
 		      }else{
 		    	  // Already present in the course.
-		    	  return null;
+		    	  return false;
 		      }
 		}catch(SQLException s){
 			// Failure, constraint violation.
@@ -635,32 +635,45 @@ class DBHandler{
  		}
 	}	
 	
+	//Akanksha
 	public List<StudentReport> getStudentReports(String courseId){
 		// Returns the report of all students in the course.
 		// Fields required in StudentReport:
 		// All.
-
-		// *******TODO Aggregate records for every student*****
-//		List<StudentReport> stReport = new ArrayList<StudentReport>();
-//		String sql = 'select st_id, st_name, with_score, ex_id from Has_Solved H, Grad_Students G
-//		where H.st_id = G.st_id and H.ex_id in (select ex_id from Exercises E, Topics T 
-//		where T.c_id = ? and E.tp_id = T.tp_id )';
-//		PreparedStatement ps = conn.prepareStatement(sql);
-//		ps.setInt(1, Integer.parseInt(courseId));
-//		ResultSet rs = ps.executeQuery();
-//		while(rs.next()){
-//			String st_id = Integetr.toString(rs.getInt(1));
-//			String st_name = rs.getString(2);
-//			String lName = '';
-//			String with_score = Integer.toString(rs.getInt(3));
-//			String e_id = Integer.toString(rs.getInt(4));
-//			String[][] scores = {{e_id, with_score}};
-//			stReport.add(new StudentReport(st_name, lName, scores));
-//		}
-//
-//		
-//		return stReport;
-		return null;
+		List<StudentReport> reportList = new ArrayList<StudentReport>();
+ 		String queryStudentId = "SELECT DISTINCT E.st_id, U.name FROM Enrolled_In E, Students S, Users U"
+ 				+ " WHERE E.st_id=S.st_id and S.userid=U.userid and c_id=?";
+ 		try{
+ 			PreparedStatement ps = conn.prepareStatement(queryStudentId);
+ 			ps.setString(1, courseId);
+ 			ResultSet rs = ps.executeQuery();
+ 			while(rs.next()){
+ 				StudentReport report = new StudentReport();
+ 				report.setStudentId(rs.getInt(1));
+ 				report.setName(rs.getString(2));
+ 				reportList.add(report);
+ 			}
+ 			for(StudentReport report :reportList){
+ 				String query="SELECT ex_id, with_score"+
+ 						" FROM HAS_SOLVED "+
+ 						" WHERE st_id=?";	
+ 				PreparedStatement ps1 = conn.prepareStatement(query);
+ 				ps1.setString(1, courseId);
+ 				ResultSet rs1 = ps.executeQuery();
+ 				Integer[] arr= new Integer[2];
+ 				List<Integer[]> list=new ArrayList<Integer[]>();
+ 				while(rs1.next()){
+ 					arr[0]=rs1.getInt(1);
+ 					arr[1]=rs1.getInt(2);
+ 					list.add(arr);
+ 				}
+ 				report.setScoresPerHW(list);
+ 			}	
+ 		}catch(SQLException e){
+ 			System.out.println(e);
+ 			return null;
+ 		}
+ 		return reportList;
 	}
 	
 	// Sumer
@@ -755,18 +768,18 @@ class DBHandler{
 	public Boolean assignTAToCourse(String TAId, String courseId){
 		// Returns true if the TA was successfully assigned to the course.
 		PreparedStatement pstmt = null;
-		int TANumericalId = getId(TAId, UserType.TA);
+		/*int TANumericalId = getId(TAId, UserType.TA);
 		if(TANumericalId == -1){
 			// Invalid TA Id!
 			return false;
-		}
+		}*/
  		try{ 			
  			// Now, insert into HasTA
  			String query = "INSERT INTO HasTA "
  					+ "VALUES(?, ?)";
  			pstmt = conn.prepareStatement(query);
  			pstmt.setString(1, courseId);
- 			pstmt.setInt(2, TANumericalId);
+ 			pstmt.setInt(2, Integer.parseInt(TAId));
  			
  			if(pstmt.executeUpdate() == 0){
  				// Failure, already added.
@@ -777,30 +790,27 @@ class DBHandler{
  			}
  		}catch(SQLException e){
  			// Failure, constraint violation.
- 			e.printStackTrace();
- 			return false;
+ 			if(e.getErrorCode()==-20010) {
+ 				System.out.println("This person is already enrolled or is not a grad student");
+ 			}
  		}finally{
  			closeStatement(pstmt);
  		}
+ 		return true;
 	}
 	
-	//Akanksha
+	//Akanksha & Sumer
 	public List<Question> getQuestionsForCourse(String courseId){
 		// Returns a list containing all the questions in the course.
 		// Fields required in a Question:
 		// All.
 		
-		List<Question> questions = new ArrayList<>();
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		List<Question> qs = new ArrayList<Question>();
 		String sql;
 		try {
-			sql = "SELECT  q_text, q_hint, q_del_soln, difficulty, m.tp_name"+
-					"FROM QUESTIONS q, TOPICS t, MASTER_TOPICS m"+
-					"WHERE q.tp_id=t.tp_id"+
-					"and t.tp_id=m.tp_id" +
-					"and t.c_id=?";
+			sql = "SELECT  q_text, q_hint, q_del_soln, difficulty, q_id FROM QUESTIONS q, TOPICS t  WHERE q.tp_id=t.tp_id and t.c_id=?";
 			ps=conn.prepareStatement(sql);
 			ps.setString(1, courseId);
 			rs = ps.executeQuery();
@@ -810,24 +820,56 @@ class DBHandler{
 				q.setHint(rs.getString(2));
 				q.setDetailedSolution(rs.getString(3)); 
 				q.setDifficultyLevel(rs.getInt(4));
-				q.setTopicName(rs.getString(5));
+				q.setId(rs.getInt(5));
 				qs.add(q);
 			}
 		}
 		catch(Throwable oops){
 			oops.printStackTrace();
 		}
-		return questions;
+		return qs;
 	}
+	
+		//Sumer
+		public List<Question> getQuestionsForCourseAndTopic(String courseId,int topicId){
+			// Returns a list containing all the questions in the course.
+			// Fields required in a Question:
+			// All.
+			
+			PreparedStatement ps = null;
+			ResultSet rs = null;
+			List<Question> qs = new ArrayList<Question>();
+			String sql;
+			try {
+				sql = "SELECT  q_text, q_hint, q_del_soln, difficulty, q_id FROM QUESTIONS q, TOPICS t  WHERE q.tp_id=t.tp_id and t.c_id=? and t.tp_id=?";
+				ps=conn.prepareStatement(sql);
+				ps.setString(1, courseId);
+				ps.setInt(2, topicId);
+				rs = ps.executeQuery();
+				while(rs.next()) {
+					Question q = new Question();
+					q.setText(rs.getString(1));
+					q.setHint(rs.getString(2));
+					q.setDetailedSolution(rs.getString(3)); 
+					q.setDifficultyLevel(rs.getInt(4));
+					q.setId(rs.getInt(5));
+					qs.add(q);
+				}
+			}
+			catch(Throwable oops){
+				oops.printStackTrace();
+			}
+			return qs;
+		}
 	
 	//Akanksha
 	public List<Question> searchQuestionsWithTopicId(int topicId){
 		// Returns a list of questions in topic with id = topicId.
 		
 		List<Question> questions = new ArrayList<>();
- 		String query = "SELECT q_text "
-				+ "FROM QUESTIONS"
-				+ "WHERE tp_id = ?";
+ 		String query = "SELECT tp_id, q_id, q_text,q_del_soln, difficulty"
+				+ " FROM QUESTIONS"
+				+ " WHERE tp_id = ?";
 		
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -856,8 +898,8 @@ class DBHandler{
 		// Returns a list of questions based on search by question ID.
 		
 		List<Question> questions = new ArrayList<>();
-		String query = "SELECT q_text "
-				+ "FROM QUESTIONS"
+		String query = "SELECT tp_id, q_id, q_text,q_del_soln, difficulty "
+				+ "FROM QUESTIONS "
 				+ "WHERE q_id = ?";
 		
 		ResultSet rs = null;
@@ -949,7 +991,7 @@ class DBHandler{
 //		return new HashSet<>();
 //	}
 	
-	//Akanksha
+	//Akanksha & Sumer
 	public boolean addQuestionToExercise(int qId, int eId){
 		// Returns true if the question was successfully added to the exercise.
 		PreparedStatement pstmt = null;
@@ -964,7 +1006,16 @@ class DBHandler{
  			if(pstmt.executeUpdate() == 0){
  				// Failure
  				return false;
- 			} 			
+ 			}
+ 			String query1 = " UPDATE Exercises SET NUM_QUESTIONS = (Select Count(*) from QUESTIONS_IN_EX where ex_id = ?) where ex_id = ?";
+ 			PreparedStatement pstmt1 = conn.prepareStatement(query1);
+ 			pstmt1.setInt(1, eId);
+ 			pstmt1.setInt(2, eId);
+ 			pstmt1.executeQuery();
+ 			if(pstmt1.executeUpdate() == 0){
+ 				// Failure
+ 				return false;
+ 			}
  		}catch(SQLException e){
  			return false;
  		}finally{
@@ -1369,7 +1420,7 @@ class DBHandler{
 		// Returns the questions in the exercise created by the professor.
 		List<Question> questions = new ArrayList<Question>();
 		String query = "SELECT q_text FROM QUESTIONS_IN_EX qe, QUESTIONS q "+
-						"WHERE qe.q_id=q.q_id and ex_id=? and qe.q_id=?";
+						"WHERE qe.q_id=q.q_id and ex_id=?";
 		
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -1377,7 +1428,6 @@ class DBHandler{
 		try{
 			pstmt = conn.prepareStatement(query);
 			pstmt.setInt(1, exerciseId);
-			pstmt.setString(2, courseId);
 			
 			rs = pstmt.executeQuery();
 			while(rs.next()){

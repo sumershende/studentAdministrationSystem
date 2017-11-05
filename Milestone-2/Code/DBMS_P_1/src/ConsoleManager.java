@@ -542,7 +542,7 @@ class ConsoleManager {
 	public void showQuestions(List<Question> questions, String message){
 		int questionNum = 1;
 		if(message != null){
-			System.out.println("Questions for " + message);
+			System.out.println(message);
 		}
 		if(questions == null || questions.size() == 0){
 			System.out.println("\t> None!");
@@ -805,7 +805,7 @@ class ConsoleManager {
 				// Get the questions from the professor.
 				// Get the valid questions for course from DB:
 				qIds = new HashSet<>();
-				List<Question> courseQuestions = dbHandler.getQuestionsForCourse(courseId);
+				List<Question> courseQuestions = dbHandler.getQuestionsForCourseAndTopic(courseId,topicId);
 				// Show the questions and wait for user to select one:
 				int choice = -1;
 				while (choice != 0 && qIds.size() != numQuestions){
@@ -813,6 +813,7 @@ class ConsoleManager {
 					System.out.println("Press 0 to cancel and continue.");
 					System.out.println("Press 1 to enter ID of a question to be added to the exercise.");
 					System.out.println("Press 2 to enter ID of a question to be removed from the exercise.");
+					choice = sc.nextInt();
 					switch (choice) {
 					case 0:
 						break;

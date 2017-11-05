@@ -1,4 +1,4 @@
-
+drop table param_inc_questions;
 drop table Has_Solved;
 drop table Assign_Attempt;
 drop table Param_Answers;
@@ -23,10 +23,10 @@ create table Users(userid varchar2(30) primary key, password varchar(100), name 
 create table Master_Topics(tp_id int primary key , tp_name varchar2(100));
 create table Professor(prof_id int primary key, userid varchar2(30), FOREIGN KEY (userid) REFERENCES Users(userid));
 create table Courses(c_id varchar2(10) primary key, c_name varchar2(30)NOT NULL, c_start_date date, c_end_date date, prof_id int, levelGrad NUMBER(1,0), max_students int, FOREIGN KEY (prof_id) REFERENCES Professor (prof_id));
-create table Topics(c_id varchar2(10), tp_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (tp_id) REFERENCES Master_Topics (tp_id));
+create table Topics(c_id varchar2(10), tp_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (tp_id) REFERENCES Master_Topics (tp_id), UNIQUE(c_id, tp_id));
 create table Students(st_id int primary key, userid varchar2(30), isGrad NUMBER(1,0) NOT NULL, FOREIGN KEY (userid) REFERENCES Users(userid));
-create table Enrolled_In(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (st_id) REFERENCES Students(st_id));
-create table HasTA(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (st_id) REFERENCES Students(st_id));
+create table Enrolled_In(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (st_id) REFERENCES Students(st_id), UNIQUE(c_id, st_id));
+create table HasTA(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES Courses (c_id), FOREIGN KEY (st_id) REFERENCES Students(st_id), UNIQUE(c_id, st_id));
 create table Questions(tp_id int,q_id int primary key, q_text varchar2(200) NOT NULL, q_hint varchar2(100), q_del_soln varchar(200), difficulty int, FOREIGN KEY (tp_id) REFERENCES Master_Topics (tp_id));
 create table Fixed_Questions(q_id int,q_ans varchar(100)NOT NULL, FOREIGN KEY (q_id) REFERENCES Questions(q_id));
 create table Fixed_Inc_Answers(q_id int, q_inc_answers varchar(100),FOREIGN KEY (q_id) REFERENCES Questions(q_id));
@@ -36,7 +36,7 @@ create table Exercises(ex_id int primary key, ex_name varchar2(30)NOT NULL,ex_mo
 create table Questions_In_Ex(ex_id int,q_id int, FOREIGN KEY (q_id) REFERENCES Questions(q_id),FOREIGN KEY (ex_id) REFERENCES Exercises(ex_id));
 create table Assign_Attempt(attempt_num int NOT NULL, ex_id int, q_id int, st_id int, is_correct NUMBER(1,0), q_comb_num int, FOREIGN KEY (ex_id) REFERENCES Exercises(ex_id), FOREIGN KEY (q_id) REFERENCES Questions(q_id), FOREIGN KEY (st_id) REFERENCES Students(st_id));
 create table Has_Solved(st_id int, ex_id int, with_score int, submit_time date NOT NULL, FOREIGN KEY (st_id) REFERENCES Students(st_id), FOREIGN KEY (ex_id) REFERENCES Exercises(ex_id));
-
+create table param_inc_questions(q_id int, q_comb_num int, q_inc_ans varchar2(200), FOREIGN KEY (q_id) REFERENCES Questions(q_id));
 --------####### Constraints ######------------------------
 ALTER TABLE Courses
 DROP CONSTRAINT CheckEndLaterThanStart;
@@ -98,4 +98,35 @@ CHECK (c_end_date >= c_start_date);
 --CHECK (taStudent=0);
 
 --- topics table, make primary key - both
+DROP TRIGGER ta_not_student;
+CREATE OR REPLACE TRIGGER ta_not_student
+BEFORE INSERT OR UPDATE
+   ON HASTA
+   FOR EACH ROW
+DECLARE
+   ret NUMBER;
+BEGIN
+	select count(*) into ret
+	from Enrolled_In
+	where c_id = :new.c_id and st_id = :new.st_id;	
+    IF ret > 0 THEN
+    	raise_application_error(-20010,'ERROR: Enrolled in class. So, cannot become a TA');
+  	END IF;      
+END;
+
+DROP TRIGGER ta_grad_student;
+CREATE OR REPLACE TRIGGER ta_grad_student
+BEFORE INSERT OR UPDATE
+   ON HASTA
+   FOR EACH ROW
+DECLARE
+   ret NUMBER;
+BEGIN
+	select count(*) into ret
+	from Students
+	where isgrad=0 and st_id = :new.st_id;	
+    IF ret > 0 THEN
+    	raise_application_error(-20010,'ERROR: Not a grad student. So, cannot become a TA');
+  	END IF;      
+END;
 
