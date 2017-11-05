@@ -31,12 +31,16 @@ class DBHandler{
 	private boolean isUserLoggedIn;
 	
 	private static DBHandler dbHandler;
+	private int last_question_difficulty;
 	
 	private DBHandler(){
 		// Singleton
 		dbUserName = "gverma";
 		dbPassword = "200158973";
 		isUserLoggedIn = false;
+		last_question_difficulty = 3;
+		
+		
 	}
 	
 	public static DBHandler getDBHandler(){
@@ -698,13 +702,13 @@ class DBHandler{
  	}
  	
  	// Approved GV
-	public Boolean addNewStudentToCourse(String studentId, String courseId){
+	public int addNewStudentToCourse(String studentId, String courseId){
 		// Returns true if the student was successfully added to the course.
 		int studentNumericalId = getId(studentId, UserType.Student);
 		
 		if(studentNumericalId == -1){
 			// Invalid student id
-			return false;
+			return 0;
 		}
 
 		String query = "INSERT INTO Enrolled_In (C_ID, ST_ID) "
@@ -719,14 +723,15 @@ class DBHandler{
 
 		      if(pstmt.executeUpdate() == 1){
 		    	  // Successfully added.
-		    	  return true;
+		    	  return 1;
 		      }else{
 		    	  // Already present in the course.
-		    	  return null;
+		    	  return 0;
 		      }
 		}catch(SQLException s){
 			// Failure, constraint violation.
-			return false;
+			
+			return s.getErrorCode();
 		}finally {
 			closeStatement(pstmt);
 		}
@@ -989,7 +994,8 @@ class DBHandler{
 			return qs;
 		}
 	
-	//Akanksha
+	// Akanksha
+	// Tested by GV
 	public List<Question> searchQuestionsWithTopicId(int topicId){
 		// Returns a list of questions in topic with id = topicId.
 		
@@ -1012,13 +1018,7 @@ class DBHandler{
 				q.setTopicName(rs.getString(2));
 				q.setId(rs.getInt(3));
 				q.setText(rs.getString(4));
-				int qtype=getQuestionType(q.getId());
-				if(qtype==0){
-					q.setQuestionType(QuestionType.Fixed);
-				}else{
-					q.setQuestionType(QuestionType.Parameterized);
-				}				
-				//q.setHint(rs.getString(2));
+				q.setQuestionType(getQuestionType(q.getId()));
 				q.setDetailedSolution(rs.getString(5)); 
 				q.setDifficultyLevel(rs.getInt(6));
 				questions.add(q);
@@ -1032,7 +1032,8 @@ class DBHandler{
 		return questions;
 	}
 	
-	//Akanksha
+	// Akanksha
+	// Tested by GV
 	public List<Question> searchQuestionsWithQuestionId(int qId){
 		// Returns a list of questions based on search by question ID.
 		
@@ -1055,13 +1056,7 @@ class DBHandler{
 				q.setTopicName(rs.getString(2));
 				q.setId(rs.getInt(3));
 				q.setText(rs.getString(4));
-				int qtype=getQuestionType(q.getId());
-				if(qtype==0){
-					q.setQuestionType(QuestionType.Fixed);
-				}else{
-					q.setQuestionType(QuestionType.Parameterized);
-				}				
-				//q.setHint(rs.getString(2));
+				q.setQuestionType(getQuestionType(q.getId()));
 				q.setDetailedSolution(rs.getString(5)); 
 				q.setDifficultyLevel(rs.getInt(6));
 				questions.add(q);
@@ -1075,12 +1070,12 @@ class DBHandler{
 		return questions;
 	}
 	
-	//Akanksha
+	// Akanksha
 	public boolean addQuestionToQuestionBank(Question question){
 		// Returns true if the question was successfully added to the DB.
 		PreparedStatement pstmt = null;
 		try{ 			
- 			// Now, insert into HasTA
+ 			// Now, insert into Questions
  			String query = "INSERT INTO QUESTIONS "
  					+ "VALUES(?, ?, ?, ?, ?, ?)";
  			pstmt = conn.prepareStatement(query);
@@ -1106,13 +1101,16 @@ class DBHandler{
 	}
 	
 	// Checked :Sumer
+	// Done
 	public List<Question> getQuestionsInExercise(int exerciseId){
 		PreparedStatement ps = null;
 		ResultSet rs = null;
 		List<Question> qs = new ArrayList<Question>();
 		String sql;
 		try {
-			sql = "select q_text, q_hint, Q.q_id from Questions Q, Questions_In_Ex E where E.q_id=Q.q_id and E.ex_id=? ";
+			sql = "SELECT q_text, q_hint, Q.q_id "
+					+ "FROM Questions Q, Questions_In_Ex E "
+					+ "WHERE E.q_id=Q.q_id and E.ex_id=? ";
 			ps=conn.prepareStatement(sql);
 			ps.setInt(1, exerciseId);
 			rs = ps.executeQuery();
@@ -1143,8 +1141,8 @@ class DBHandler{
 		}
 	}
 	
-	
 	// Sumer
+	// Done
 	public boolean addExerciseToCourse(Exercise ex, String courseId){
 		PreparedStatement pstmt = null;
  		try{ 			
@@ -1233,76 +1231,77 @@ class DBHandler{
 	}
 	
 	
-	public Exercise getExercise(int exerciseId){
-		// Returns the exercise associated with the exerciseId
-				PreparedStatement ps = null;
-				ResultSet rs = null;
-				String sql;
-				int id=-1, num_questions=-1, num_retries=-1, topic_id=-1, pt_correct=-1, pt_incorrect=-1;
-				Date start_date = null, end_date = null;
-				String name="", mode="", policy="", s_date="", e_date="";
-				ExerciseMode e_mode = null;
-				ScroingPolicy sp = null;
-				DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
-				HashSet<Integer> qIds = new HashSet<Integer>();
-				
-				try {
-					sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions, num_retires, policy"
-							+ ", tp_id, pt_correct, pt_incorrect from Exercises where ex_id=?";
-					ps=conn.prepareStatement(sql);
-					ps.setInt(1, exerciseId);
-					rs = ps.executeQuery();
-					while(rs.next()) {
-						id = rs.getInt(1);
-						name = rs.getString(2);
-						mode = rs.getString(3);
-						start_date = rs.getDate(4);
-						end_date = rs.getDate(5);
-						num_questions = rs.getInt(6);
-						num_retries = rs.getInt(7);
-						policy = rs.getString(8);
-						topic_id = rs.getInt(9);
-						pt_correct = rs.getInt(10);
-						pt_incorrect = rs.getInt(11);
+	//Verified - Udit
+		public Exercise getExercise(int exerciseId){
+			// Returns the exercise associated with the exerciseId
+					PreparedStatement ps = null;
+					ResultSet rs = null;
+					String sql;
+					int id=-1, num_questions=-1, num_retries=-1, topic_id=-1, pt_correct=-1, pt_incorrect=-1;
+					Date start_date = null, end_date = null;
+					String name="", mode="", policy="", s_date="", e_date="";
+					ExerciseMode e_mode = null;
+					ScroingPolicy sp = null;
+					DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+					HashSet<Integer> qIds = new HashSet<Integer>();
+					
+					try {
+						sql = "select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions, num_retries, policy"
+								+ ", tp_id, pt_correct, pt_incorrect from Exercises where ex_id=?";
+						ps=conn.prepareStatement(sql);
+						ps.setInt(1, exerciseId);
+						rs = ps.executeQuery();
+						while(rs.next()) {
+							id = rs.getInt(1);
+							name = rs.getString(2);
+							mode = rs.getString(3);
+							start_date = rs.getDate(4);
+							end_date = rs.getDate(5);
+							num_questions = rs.getInt(6);
+							num_retries = rs.getInt(7);
+							policy = rs.getString(8);
+							topic_id = rs.getInt(9);
+							pt_correct = rs.getInt(10);
+							pt_incorrect = rs.getInt(11);
+							
+						}
+						mode = mode.toLowerCase();
+						policy = policy.toLowerCase();
+						s_date = df.format(start_date);
+						e_date = df.format(end_date);
+						if(mode != null) {
+							if(mode.equals("adaptive"))
+								e_mode = ExerciseMode.Adaptive;
+							else
+								e_mode = ExerciseMode.Random;
+						}
+						if(policy != null) {
+							if(policy.equals("latest"))
+								sp = ScroingPolicy.Latest;
+							else {
+								if(policy.equals("maximum"))
+									sp = ScroingPolicy.Maximum;
+								else
+									sp = ScroingPolicy.Average;
+							}
+						}
+						sql = "select q_id from Questions_In_Ex where ex_id = ?";
+						ps = conn.prepareStatement(sql);
+						ps.setInt(1, exerciseId);
+						rs = ps.executeQuery();
+						while(rs.next()) {
+							qIds.add(rs.getInt(1));
+						}
+						return new Exercise(e_mode, sp, name, s_date, e_date, num_questions, num_retries, id, qIds, pt_correct,
+								pt_incorrect, topic_id );
 						
 					}
-					mode = mode.toLowerCase();
-					policy = policy.toLowerCase();
-					s_date = df.format(start_date);
-					e_date = df.format(end_date);
-					if(mode != null) {
-						if(mode.equals("adaptive"))
-							e_mode = ExerciseMode.Adaptive;
-						else
-							e_mode = ExerciseMode.Random;
+					catch(Throwable oops){
+						oops.printStackTrace();
 					}
-					if(policy != null) {
-						if(policy.equals("latest"))
-							sp = ScroingPolicy.Latest;
-						else {
-							if(policy.equals("maximum"))
-								sp = ScroingPolicy.Maximum;
-							else
-								sp = ScroingPolicy.Average;
-						}
-					}
-					sql = "select q_id from Questions_In_Ex where ex_id = ?;";
-					ps = conn.prepareStatement(sql);
-					ps.setInt(1, exerciseId);
-					rs = ps.executeQuery();
-					while(rs.next()) {
-						qIds.add(rs.getInt(1));
-					}
-					return new Exercise(e_mode, sp, name, s_date, e_date, num_questions, num_retries, id, qIds, pt_correct,
-							pt_incorrect, topic_id );
 					
-				}
-				catch(Throwable oops){
-					oops.printStackTrace();
-				}
-				
-				return null;
-	}
+					return null;
+		}
 	
 	
 	public List<String> getCurrentOpenUnattemptedHWs(String courseId){
@@ -1367,42 +1366,42 @@ class DBHandler{
 	}
 	
 	//Have to check again after data is added to Assign_Attempt : Udit
-	public List<String> getAttemptedHWs(String courseId){
-		// Returns the IDs of the exercises that are:
-				// 1. attempted by the student.
-				// Returns null if there are none.
-				String user_id = loggedInUserId;
-				int student_id = -1;
-				PreparedStatement ps = null;
-				Statement s = null;
-				ResultSet rs = null;
-				String sql;
-				List<String> exercise_list = new ArrayList<String>();
-				try {
-					student_id =getId(loggedInUserId, loggedInUserType);
-					if(student_id == -1) 
-						return null;
-					//System.out.println(student_id);
-					sql = "select ex_id from Assign_Attempt where st_id = ?";
-					ps = conn.prepareStatement(sql);
-					ps.setInt(1, student_id);
-					rs = ps.executeQuery();
-					while(rs.next()) {
-						exercise_list.add(Integer.toString(rs.getInt(1)));
+		public List<String> getAttemptedHWs(String courseId){
+			// Returns the IDs of the exercises that are:
+					// 1. attempted by the student.
+					// Returns null if there are none.
+					String user_id = loggedInUserId;
+					int student_id = -1;
+					PreparedStatement ps = null;
+					Statement s = null;
+					ResultSet rs = null;
+					String sql;
+					List<String> exercise_list = new ArrayList<String>();
+					try {
+						student_id =getId(loggedInUserId, loggedInUserType);
+						if(student_id == -1) 
+							return null;
+						//System.out.println(student_id);
+						sql = "select ex_id from Assign_Attempt where st_id = ?";
+						ps = conn.prepareStatement(sql);
+						ps.setInt(1, student_id);
+						rs = ps.executeQuery();
+						while(rs.next()) {
+							exercise_list.add(Integer.toString(rs.getInt(1)));
+						}
+						
+						return exercise_list;
+					}
+					catch(SQLException e){
+						e.printStackTrace();
+					}
+					finally {
+						closeStatement(ps);
+						closeResultSet(rs);
 					}
 					
-					return exercise_list;
-				}
-				catch(SQLException e){
-					e.printStackTrace();
-				}
-				finally {
-					closeStatement(ps);
-					closeResultSet(rs);
-				}
-				
-				return null;
-	}
+					return null;
+		}
 	
 	
 	public List<StudentHWAttempt> getAttamptedHWsOverView(String courseId, int exerciseId){
@@ -1581,10 +1580,25 @@ class DBHandler{
 	}
 	
 	
+	public int get_question_difficulty() {
+		return last_question_difficulty;
+	}
+	
+	public void set_question_difficulty(int difficulty) {
+		this.last_question_difficulty = difficulty;
+	}
+	
 	public Question getNextQuestionInAdaptiveExercise(int exerciseId, String courseId, Boolean wasLastAnsweredCorrectly){
 		// Get next question based on the user's answer.
 		// wasLastAnsweredCorrectly = null for first question or if the last question
 		// was skipped.
+		int question_difficulty = get_question_difficulty();
+		if(wasLastAnsweredCorrectly)
+			question_difficulty++;
+		else
+			question_difficulty--;
+		
+		
 		
 		return null;
 	}
@@ -1592,9 +1606,14 @@ class DBHandler{
 	//Akanksha
 	public List<Question> getQuestionsInRandomExercise(int exerciseId, String courseId){
 		// Returns the questions in the exercise created by the professor.
+		// Fields required:
+		// 1. Text
+		// 2. Incorrect Answers.
+		// 3. Correct Answer
+		
 		List<Question> questions = new ArrayList<Question>();
-		String query = "SELECT q_text FROM QUESTIONS_IN_EX qe, QUESTIONS q "+
-						"WHERE qe.q_id=q.q_id and ex_id=?";
+		String query = "SELECT q_text FROM QUESTIONS_IN_EX qe, QUESTIONS q "
+				+ "WHERE qe.q_id=q.q_id and ex_id=?";
 		
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
@@ -1649,6 +1668,7 @@ class DBHandler{
 		return -1;
 	}
 	
+	
 	public boolean exercise_open(Date end_date) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		String  end_date_string;
@@ -1661,8 +1681,9 @@ class DBHandler{
 		
 	}
 	
-	//Akanksha
-	public int getQuestionType(int questionId){
+	// Akanksha
+	// Verified: GV
+	private QuestionType getQuestionType(int questionId){
 		int questionType = -1;
 		String query = "select CASE "+
 						"WHEN EXISTS (SELECT F.q_id FROM FIXED_QUESTIONS F WHERE F.q_id=Q.q_id ) THEN 0 "+
@@ -1686,7 +1707,6 @@ class DBHandler{
 			closeResultSet(rs);
 			closeStatement(pstmt);
 		}
-		return questionType;
-
+		return questionType == 0 ? QuestionType.Fixed : QuestionType.Parameterized;
 	}
 }

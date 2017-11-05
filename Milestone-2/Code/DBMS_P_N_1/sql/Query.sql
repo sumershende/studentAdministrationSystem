@@ -76,3 +76,19 @@ select CASE
 FROM Questions Q where q_id=4
 --- Professor and TA is able to view any course
 --To edit an exercise, please enter its ID or press 0 to go back: 
+SHOW ERRORS TRIGGER MaxStudentInClass
+IF StudentsTotal > max THEN
+    	raise_application_error(-20010,'ERROR: Class Max Size limit reached');
+  	END IF;   
+	select count(st_id) from Enrolled_In e inner join courses c on e.c_id=c.c_id
+	group by e.c_id having e.c_id= 'CSC440';
+	
+	select * from courses where c_id='CSC440'
+	Select * from Enrolled_in where c_id='CSC440'
+	select * from students where st_id =10002
+	select * from HASTA where c_id ='CSC440'
+	INSERT INTO Enrolled_In (C_ID, ST_ID) VALUES ('CSC440', 10005)
+	delete from Enrolled_In where c_id='CSC440' and st_id=10001
+	
+	
+	
