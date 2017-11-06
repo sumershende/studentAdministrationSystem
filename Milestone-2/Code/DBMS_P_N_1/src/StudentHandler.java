@@ -143,6 +143,8 @@ class StudentHandler {
 		if(exercise.getExerciseMode() == ExerciseMode.Random){
 			// Random exercise
 			questions = dbHandler.getQuestionsInRandomExercise(exerciseId);
+		}else{
+			questions = new ArrayList<>();
 		}
 		
 		for(int questionNum = 0 ; questionNum < questions.size() ; ++questionNum){
