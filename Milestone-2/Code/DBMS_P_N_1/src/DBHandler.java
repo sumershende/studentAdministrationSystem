@@ -1480,7 +1480,7 @@ class DBHandler{
 					return null;
 		}
 	
-	
+	//Akanksha
 	public List<String> getCurrentOpenUnattemptedHWs(String courseId){
 		// Returns the IDs of the exercises that are:
 				// 1. currently open and;
