@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Collections;
 
 enum UserType{
 	TA, Professor, Student, InvalidUser;
@@ -32,6 +33,7 @@ class DBHandler{
 	
 	private static DBHandler dbHandler;
 	private int last_question_difficulty;
+	private HashSet<Integer> questions_done;
 	
 	private DBHandler(){
 		// Singleton
@@ -39,6 +41,7 @@ class DBHandler{
 		dbPassword = "200158973";
 		isUserLoggedIn = false;
 		last_question_difficulty = 3;
+		questions_done = new HashSet<Integer>();
 		
 		
 	}
@@ -313,6 +316,30 @@ class DBHandler{
 				closeResultSet(rs);
 				closeStatement(pstmt);
 			}
+		}
+		if(loggedInUserType == UserType.Student) {
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+
+			String query = "SELECT c_id "
+					+ "FROM Enrolled_In "
+					+ "WHERE c_id = ? AND st_id = ?";
+			try{
+				pstmt = conn.prepareStatement(query);
+				pstmt.clearParameters();
+				pstmt.setString(1, courseId);
+				pstmt.setInt(2, getId(loggedInUserId, UserType.TA));
+				rs = pstmt.executeQuery();
+				if(rs.next()){
+					return true;
+				}
+			}catch(SQLException e){
+				e.printStackTrace();
+			}finally{
+				closeResultSet(rs);
+				closeStatement(pstmt);
+			}
+
 		}
 		return false;
 	}
@@ -1554,7 +1581,7 @@ class DBHandler{
 		}
 	
 	
-	public List<StudentHWAttempt> getAttamptedHWsOverView(String courseId, int exerciseId){
+	public List<StudentHWAttempt> getAttamptedHWs(String courseId, int exerciseId){
 		// Returns the attempts of the student for the exercise with Id exerciseId
 				// in course with course ID courseId.
 				// Fields required: score and submission date and time.
@@ -1730,27 +1757,269 @@ class DBHandler{
 	}
 	
 	
-	public int get_question_difficulty() {
+	public void add_question_to_hash_set(int q_id) {
+		questions_done.add(q_id);
+	}
+	
+	public boolean question_already_done(int q_id) {
+		return questions_done.contains(new Integer(q_id));
+	}
+	
+	public int get_last_question_difficulty() {
 		return last_question_difficulty;
 	}
 	
-	public void set_question_difficulty(int difficulty) {
-		this.last_question_difficulty = difficulty;
+	public void set_question_difficulty(int question_difficulty) {
+		this.last_question_difficulty = question_difficulty;
 	}
-	
-	public Question getNextQuestionInAdaptiveExercise(int exerciseId, String courseId, Boolean wasLastAnsweredCorrectly){
+
+    public Question getNextQuestionInAdaptiveExercise(int exerciseId, String courseId, Boolean wasLastAnsweredCorrectly){
 		// Get next question based on the user's answer.
 		// wasLastAnsweredCorrectly = null for first question or if the last question
 		// was skipped.
-		int question_difficulty = get_question_difficulty();
-		if(wasLastAnsweredCorrectly)
-			question_difficulty++;
-		else
-			question_difficulty--;
+		int question_difficulty = get_last_question_difficulty();
+		//System.out.println(wasLastAnsweredCorrectly);
+		if(wasLastAnsweredCorrectly == null)
+			question_difficulty = 3;
+		else {
+			if(wasLastAnsweredCorrectly)
+				question_difficulty++;
+			else
+				question_difficulty--;
+		}
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String sql;
+		try {
+			sql = "select Q.q_id from Questions Q, Questions_In_Ex QE where "
+					+ "Q.q_id = QE.q_id and QE.ex_id = ? and Q.difficulty = ?";
+			ps = conn.prepareStatement(sql);
+			//ps.setString(1, courseId);
+			ps.setInt(1, exerciseId);
+			ps.setInt(2, question_difficulty);
+			rs = ps.executeQuery();
+			int q_id = -1;
+			while(rs.next()) {
+				q_id = rs.getInt(1);
+				System.out.println("Question Fetched");
+				if(question_already_done(q_id))
+					continue;
+				else
+					break;
+			}
+			Question q;
+			if(is_fixed_question(q_id))
+				q = getFixedQuestion(q_id);
+			else
+				q = get_parameterized_question(q_id);
+			set_question_difficulty(question_difficulty);
+			add_question_to_hash_set(q_id);
+			return q;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	private Question getFixedQuestion(int qId){
+		String correctAnswer, incorrectAnswer;
+		List<String> options = new ArrayList<>();
 		
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 		
+		String queryTofindCorrectAnswerForFixedQuestion = "SELECT J.q_ans "
+				+ "FROM ("
+				+ "SELECT * "
+				+ "FROM Fixed_Questions FQ "
+				+ "WHERE FQ.q_id = ? "
+				+ "ORDER BY dbms_random.value"
+				+ ") J "
+				+ "WHERE rownum <= 1";
+		String queryTofindIncorrectAnswerForFixedQuestion = "SELECT J.q_inc_answers "
+				+ "FROM ("
+				+ "SELECT * "
+				+ "FROM Fixed_Inc_Answers FIQ "
+				+ "WHERE FIQ.q_id = ? "
+				+ "ORDER BY dbms_random.value"
+				+ ") J "
+				+ "WHERE rownum <= 3";
+		
+		try{
+			// Randomly choose 1 correct answer.
+			pstmt = conn.prepareStatement(queryTofindCorrectAnswerForFixedQuestion);
+			pstmt.setInt(1, qId);
+			
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()){
+				correctAnswer = rs.getString(1);
+				options.add(correctAnswer);
+			}else{
+				
+				return null;
+			}
+
+			closeResultSet(rs);
+			closeStatement(pstmt);
+			
+			// Randomly choose at max 3 incorrect answers.
+			pstmt = conn.prepareStatement(queryTofindIncorrectAnswerForFixedQuestion);
+			pstmt.setInt(1, qId);
+			
+			rs = pstmt.executeQuery();
+			while(rs.next()){
+				incorrectAnswer = rs.getString(1);
+				options.add(incorrectAnswer);
+			}
+			
+			// Shuffle the options.
+			Collections.shuffle(options);
+			
+			String sql = "select q_text, q_hint from Questions where q_id = ?";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, qId);
+			rs = ps.executeQuery();
+			String text = null, hint = null;
+			while(rs.next()) {
+				text = rs.getString(1);
+				hint = rs.getString(2);
+			}
+			Question q = new Question(hint, options, (short)(options.indexOf(correctAnswer) + 2));
+			q.setText(text);
+			
+			return q;
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally {
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
 		
 		return null;
+	}
+	
+	
+	public Question get_parameterized_question(int question_id) {
+		try {
+			String sql = "SELECT q_comb_num FROM (SELECT * FROM Param_Questions PQ WHERE PQ.q_id = ? "
+					+ "ORDER BY dbms_random.value) where rownum <= 1";
+			PreparedStatement ps = conn.prepareStatement(sql);
+			ps.setInt(1, question_id);
+			ResultSet rs = ps.executeQuery();
+			int comb_num=-1, max_parameters=-1;
+			while(rs.next()) {
+				comb_num = rs.getInt(1);
+			}
+			sql = "SELECT MAX(q_par_num) from Param_Questions PQ where q_id = ? and q_comb_num = ?";
+			ps = conn.prepareStatement(sql);
+			ps.setInt(1, question_id);
+			ps.setInt(2, comb_num);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				max_parameters = rs.getInt(1);
+			}
+			ArrayList<String> parameter_values = new ArrayList<String>();
+			for(int i = 1; i<=max_parameters; i++) {
+				sql = "select q_param_value from Param_Questions where q_id = ? and q_par_num = ? and q_comb_num = ?";
+				ps = conn.prepareStatement(sql);
+				ps.setInt(1, question_id);
+				ps.setInt(2, i);
+				ps.setInt(3, comb_num);
+				rs = ps.executeQuery();
+				while(rs.next()) {
+					parameter_values.add(rs.getString(1));
+				}
+			}
+			sql = "select q_text, q_hint from Questions where q_id = ?";
+			ps = conn.prepareStatement(sql);
+			ps.setInt(1, question_id);
+			rs = ps.executeQuery();
+			String text = null, hint = null;
+			while(rs.next()) {
+				text = rs.getString(1);
+				hint = rs.getString(2);
+			}
+			String refined_text = refine_parameterized_text(text, parameter_values);
+			sql = "SELECT q_ans FROM (SELECT * FROM Param_Answers PA WHERE PA.q_id = ? "
+					+ "and PA.q_comb_num = ? ORDER BY dbms_random.value) where rownum <= 1";
+			ps = conn.prepareStatement(sql);
+			ps.setInt(1, question_id);
+			ps.setInt(2, comb_num);
+			rs = ps.executeQuery();
+			String correct_answer=null;
+			ArrayList<String> options = new ArrayList<String>();
+			while(rs.next()) {
+				correct_answer = rs.getString(1);
+				options.add(correct_answer);
+			}
+			sql = "SELECT q_inc_ans FROM (SELECT * FROM Param_Inc_Questions PI WHERE PI.q_id = ? "
+					+ "and PI.q_comb_num = ? ORDER BY dbms_random.value) where rownum <= 3";
+			ps = conn.prepareStatement(sql);
+			ps.setInt(1, question_id);
+			ps.setInt(2, comb_num);
+			rs = ps.executeQuery();
+			while(rs.next()) {
+				options.add(rs.getString(1));
+			}
+			
+			Collections.shuffle(options);
+			short index_correct_answer = (short)(options.indexOf(correct_answer)+2);
+			
+			Question q = new Question(hint, options, index_correct_answer, comb_num);
+			q.setText(refined_text);
+			return q;
+			
+		}
+		catch(SQLException e){
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public String refine_parameterized_text(String text, ArrayList<String> parameter_values) {
+		for(int i=0; i<parameter_values.size(); i++) {
+			text = text.replaceFirst("___", parameter_values.get(i));
+		}
+		return text;
+	}
+	
+	public boolean is_fixed_question(int q_id) {
+		String sql = "select q_id from Fixed_Questions";
+		try {
+			Statement s = conn.createStatement();
+			ResultSet rs = s.executeQuery(sql);
+			while(rs.next()) {
+				int id = rs.getInt(1);
+				if(id==q_id)
+					return true;
+			}
+			return false;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
+	public boolean is_parameterized_question(int q_id) {
+		String sql = "select q_id from Param_Questions";
+		try {
+			Statement s = conn.createStatement();
+			ResultSet rs = s.executeQuery(sql);
+			while(rs.next()) {
+				int id = rs.getInt(1);
+				if(id==q_id)
+					return true;
+			}
+			return false;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	//Akanksha
