@@ -19,7 +19,7 @@ class Question {
 	
 	// Fields not shown to student:
 	private String topicName;
-	private int difficultyLevel, topicId, id;
+	private int difficultyLevel, topicId, id, combNumber;
 	
 	private QuestionType questionType;
 	
@@ -29,17 +29,22 @@ class Question {
 	
 	public Question(String text, String hint, int id){
 		this(text, hint, null, -1, -1, id, null, null, null, null, null, null, 
-				-1);
+				-1, -1);
 	}
 	
 	public Question(String text, String hint, String detailedSolution){
 		this(text, hint, null, -1, -1, -1, null, detailedSolution, null, null, 
-				null, null, -1);
+				null, null, -1, -1);
 	}
 	
-	public Question(String text, String hint, List<String> options, short correctChoice){
-		this(text, hint, null, -1, -1, -1, null, null, null, null, null, options, 
-				correctChoice);
+	public Question(String hint, List<String> options, short correctChoice){
+		this(null, hint, null, -1, -1, -1, null, null, null, null, null, options, 
+				correctChoice, -1);
+	}
+	
+	public Question(String hint, List<String> options, short correctChoice, int combNumber){
+		this(null, hint, null, -1, -1, -1, null, null, null, null, null, options, 
+				correctChoice, combNumber);
 	}
 	
 	public Question(String text, String hint, String topicName, int difficultyLevel, 
@@ -48,13 +53,13 @@ class Question {
 			String[] incorrectAnswers){
 		this(text, hint, topicName, difficultyLevel, topicId, 
 				id, questionType, detailedSolution, parameterValues, 
-				correctAnswers, incorrectAnswers, null, -1);
+				correctAnswers, incorrectAnswers, null, -1, -1);
 	}
 	
 	public Question(String text, String hint, String topicName, int difficultyLevel, 
 			int topicId, int id, QuestionType questionType, String detailedSolution, 
 			String[][] parameterValues, String[][] correctAnswers, 
-			String[] incorrectAnswers, List<String> options, int correctChoice) {
+			String[] incorrectAnswers, List<String> options, int correctChoice, int combNumber) {
 		// TODO Auto-generated constructor stub
 		this.text = text;
 		this.difficultyLevel = difficultyLevel;
@@ -69,6 +74,7 @@ class Question {
 		this.incorrectAnswers = incorrectAnswers;
 		this.options = options;
 		this.correctChoice = correctChoice;
+		this.combNumber = combNumber;
 	}
 	
 	public Question() {
@@ -112,6 +118,10 @@ class Question {
 	public void setId(int id) {
 		this.id = id;
 	}
+	
+	public void setCombNumber(int combNumber) {
+		this.combNumber = combNumber;
+	}
 
 	public void setQuestionType(QuestionType questionType) {
 		this.questionType = questionType;
@@ -151,6 +161,10 @@ class Question {
 
 	public int getId() {
 		return id;
+	}
+	
+	public int getCombNumber() {
+		return combNumber;
 	}
 	
 	public QuestionType getQuestionType() {
