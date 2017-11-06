@@ -190,7 +190,7 @@ class StudentHandler {
 	}
 	
 	private static void viewAttemptsOfExercise(String courseId, int exerciseId){
-		List<StudentHWAttempt> studentHWAttempts = dbHandler.getAttamptedHWsOverView(courseId, exerciseId);
+		List<StudentHWAttempt> studentHWAttempts = dbHandler.getAttamptedHWs(courseId, exerciseId);
 		
 		while(true){
 			consoleManager.showStudentAttemptsOverview(studentHWAttempts, exerciseId);
