@@ -90,7 +90,58 @@ IF StudentsTotal > max THEN
 	INSERT INTO Enrolled_In (C_ID, ST_ID) VALUES ('CSC440', 10005)
 	delete from Enrolled_In where c_id='CSC440' and st_id=10001
 	
-	select * from courses
+	select * from questions where q_id=32
 	
+	insert into assign_attempt  values (1, 3, 32, 10007, null, null)
+	truncate table assign_attempt
+	select * from assign_attempt
+	select * from has_solved wher
+	select * from students
 	
+	select CASE WHEN EXISTS (SELECT F.q_id FROM FIXED_QUESTIONS F WHERE F.q_id=Q.q_id ) THEN 0
+	ELSE 1 
+						END AS question_type 
+						FROM Questions Q where q_id=32
+						
+	select *
+	from Exercises E, Topics T
+	where T.c_id = 'CSC540' and E.tp_id = T.tp_id and 
+	E.ex_id not in (select ex_id from Assign_Attempt where st_id = 10007)
 	
+	Select * from enrolled_In where st_id=10007
+	
+	SELECT H.with_score, H.submit_time, H.ex_id, J.pt_correct, J.pt_incorrect, J.num_questions
+					FROM Has_Solved H ,(
+					SELECT E.ex_id, pt_correct, pt_incorrect, num_questions 
+					FROM Exercises E, Topics T 
+					WHERE E.tp_id = T.tp_id and T.c_id = 'CSC540'
+					)J WHERE H.st_id = 10007 AND H.ex_id = J.ex_id
+	
+			
+					SELECT H.st_id, H.with_score, H.submit_time, J.ex_end_date, H.ex_id, J.pt_correct, J.pt_incorrect 
+				FROM Has_Solved H inner join
+				(SELECT E.ex_id, E.pt_correct, E.pt_incorrect, E.num_questions, E.ex_end_date 
+				FROM Exercises E, Topics T
+				WHERE E.tp_id = T.tp_id and T.c_id = 'CSC540'
+				) J On H.ex_id = J.ex_id
+				WHERE H.st_id = 10007  
+	
+				select * from Has_Solved where st_id=10007
+				
+				
+				SELECT Q.q_text, Q.q_hint, A.is_correct, Q.q_del_soln, Q.q_id 
+						FROM Questions Q, Questions_In_Ex QE, Assign_Attempt A 
+						WHERE QE.ex_id=3 and Q.q_id = QE.q_id 
+						and A.ex_id = 3 and A.st_id = 10007 and A.q_id = QE.q_ids
+						
+						
+						select Q.q_text, Q.q_hint, is_correct, Q.q_del_soln, Q.q_id from Questions Q, Ouestions_In_Ex QE, Assign_Attempt A
+								where QE.ex_id=3
+								and Q.q_id = QE.q_id 
+								and A.ex_id = 3 and A.st_id = 10007 and A.q_id = QE.q_id
+								
+								SELECT q_comb_num FROM (SELECT * FROM Param_Questions PQ WHERE PQ.q_id = 1
+					ORDER BY dbms_random.value) where rownum <= 1
+					
+					SELECT q_inc_ans FROM (SELECT * FROM Param_Inc_Questions PI WHERE PI.q_id = 1
+					and PI.q_comb_num = 1 ORDER BY dbms_random.value) where rownum <= 3
