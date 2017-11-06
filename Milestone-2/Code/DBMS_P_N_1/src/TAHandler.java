@@ -168,18 +168,25 @@ class TAHandler {
 		}else{
 			if(isEnroll){
 				// Try to add the student to the course.
-				Boolean wasEnrolled = dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
-				if(wasEnrolled == false){
+				int wasEnrolled = dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
+				if(wasEnrolled == 20010){
+					consoleManager.showMessageAndWaitForUserToGoBack("ERROR: Student cannot be enrolled in class as Student is a TA.");
+				}
+				if(wasEnrolled==20000){
+					consoleManager.showMessageAndWaitForUserToGoBack("ERROR: Max Class size limit reached.");
+				}
+				if(wasEnrolled == 0){
 					// Already in the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("The student is already enrolled in the course.");
-				}else if(wasEnrolled){
+				}else if(wasEnrolled==1){
 					// Successfully added the student to the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("The new student was successfully added.");
+					return true;
 				}else{
 					// Error while adding the student to the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("Sorry, there was an error while adding the new student. Please try again.");
 				}
-				return wasEnrolled;
+				return false;
 			}else{
 				// Try to drop the student from the course.
 				Boolean wasDropped = dbHandler.dropStudentFromCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);

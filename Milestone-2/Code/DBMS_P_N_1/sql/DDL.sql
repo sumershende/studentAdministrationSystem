@@ -30,7 +30,7 @@ create table HasTA(c_id varchar2(10), st_id int, FOREIGN KEY (c_id) REFERENCES C
 create table Questions(tp_id int, q_id int primary key, q_text varchar2(200) NOT NULL, q_hint varchar2(100), q_del_soln varchar(200), difficulty int, FOREIGN KEY (tp_id) REFERENCES Master_Topics (tp_id) ON DELETE CASCADE);
 create table Fixed_Questions(q_id int,q_ans varchar(100)NOT NULL, FOREIGN KEY (q_id) REFERENCES Questions(q_id) ON DELETE CASCADE);
 create table Fixed_Inc_Answers(q_id int, q_inc_answers varchar(100),FOREIGN KEY (q_id) REFERENCES Questions(q_id) ON DELETE CASCADE);
-create table Param_Questions(q_id int, q_par_num int NOT NULL, q_comb_num int NOT NULL, q_param_value varchar2(50), FOREIGN KEY (q_id) REFERENCES Questions(q_id) ON DELETE CASCADE);
+create table Param_Questions(q_id int, q_par_num int NOT NULL, q_comb_num int NOT NULL, q_param_value varchar2(50), FOREIGN KEY (q_id) REFERENCES Questions(q_id) ON DELETE CASCADE, UNIQUE(q_id, q_par_num, q_comb_num, q_param_value));
 create table Param_Answers(q_id int, q_comb_num int, q_ans varchar2(100));
 create table Exercises(ex_id int primary key, ex_name varchar2(30)NOT NULL,ex_mode varchar2(20)NOT NULL, ex_start_date date NOT NULL, ex_end_date date NOT NULL, num_questions int NOT NULL, num_retries int NOT NULL, policy varchar2(20) NOT NULL, tp_id int, pt_correct int, pt_incorrect int, FOREIGN KEY (tp_id) REFERENCES Master_Topics(tp_id) ON DELETE CASCADE);
 create table Questions_In_Ex(ex_id int,q_id int, FOREIGN KEY (q_id) REFERENCES Questions(q_id),FOREIGN KEY (ex_id) REFERENCES Exercises(ex_id));
@@ -104,7 +104,6 @@ CHECK (ex_end_date >= ex_start_date);
 --ADD CONSTRAINT TAnotStudent
 --CHECK (taStudent=0);
 
---- topics table, make primary key - both
 DROP TRIGGER ta_not_student;
 CREATE OR REPLACE TRIGGER ta_not_student
 BEFORE INSERT OR UPDATE
@@ -121,6 +120,22 @@ BEGIN
   	END IF;      
 END;
 
+DROP TRIGGER ta_not_student_reverse;
+CREATE OR REPLACE TRIGGER ta_not_student_reverse
+BEFORE INSERT OR UPDATE
+   ON Enrolled_In
+   FOR EACH ROW
+DECLARE
+   ret NUMBER;
+BEGIN
+	select count(*) into ret
+	from HASTA
+	where c_id = :new.c_id and st_id = :new.st_id;	
+    IF ret > 0 THEN
+    	raise_application_error(-20010,'ERROR: Student cannot be enrolled in class as Student is a TA');
+  	END IF;      
+END;
+
 DROP TRIGGER ta_grad_student;
 CREATE OR REPLACE TRIGGER ta_grad_student
 BEFORE INSERT OR UPDATE
@@ -133,7 +148,7 @@ BEGIN
 	from Students
 	where isgrad=0 and st_id = :new.st_id;	
     IF ret > 0 THEN
-    	raise_application_error(-20010,'ERROR: Not a grad student. So, cannot become a TA');
+    	raise_application_error(-20000,'ERROR: Not a grad student. So, cannot become a TA');
   	END IF;      
 END;
 
@@ -144,14 +159,14 @@ BEFORE INSERT OR UPDATE
    FOR EACH ROW
 DECLARE
    StudentsTotal NUMBER;
-   max NUMBER;
+   maxStudent NUMBER;
 BEGIN
-	select count(st_id) into StudentsTotal from Enrolled_In e inner join courses c on e.c_id=c.c_id
-	group by e.c_id having e.c_id= :new.c_id;
+	select count(st_id) into StudentsTotal from Enrolled_In e , courses c
+	where e.c_id=c.c_id
+	group by e.c_id having e.c_id = :new.c_id;
 	
-	select max_students into max from courses where c_id=:new.c_id;
-		
-    IF StudentsTotal >= max THEN
+	select max_students into maxStudent from courses where c_id= :new.c_id;
+	IF StudentsTotal >= maxStudent THEN
     	raise_application_error(-20010,'ERROR: Class Max Size limit reached');
   	END IF;      
 END;

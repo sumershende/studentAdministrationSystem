@@ -19,6 +19,7 @@ class Question {
 	
 	// Fields not shown to student:
 	private String topicName;
+
 	private int difficultyLevel, topicId, id, combinationNumber;
 	
 	private QuestionType questionType;
@@ -37,9 +38,21 @@ class Question {
 				null, null, -1, -1);
 	}
 	
+
 	public Question(List<String> options, short correctChoice){
 		this(null, null, null, -1, -1, -1, null, null, null, null, null, options, 
 				correctChoice, -1);
+	}
+
+	public Question(String hint, List<String> options, short correctChoice){
+		this(null, hint, null, -1, -1, -1, null, null, null, null, null, options, 
+				correctChoice, -1);
+	}
+	
+	public Question(String hint, List<String> options, short correctChoice, int combNumber){
+		this(null, hint, null, -1, -1, -1, null, null, null, null, null, options, 
+				correctChoice, combNumber);
+
 	}
 	
 	public Question(String text, String hint, String topicName, int difficultyLevel, 
@@ -54,6 +67,7 @@ class Question {
 	public Question(String text, String hint, String topicName, int difficultyLevel, 
 			int topicId, int id, QuestionType questionType, String detailedSolution, 
 			String[][] parameterValues, String[][] correctAnswers, 
+
 			String[] incorrectAnswers, List<String> options, int correctChoice, int combinationNumber) {
 		// TODO Auto-generated constructor stub
 		this.text = text;
@@ -69,6 +83,7 @@ class Question {
 		this.incorrectAnswers = incorrectAnswers;
 		this.options = options;
 		this.correctChoice = correctChoice;
+
 		this.combinationNumber = combinationNumber;
 	}
 	
