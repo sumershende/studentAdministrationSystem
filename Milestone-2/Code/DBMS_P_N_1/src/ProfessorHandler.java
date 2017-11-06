@@ -190,6 +190,7 @@ class ProfessorHandler extends TAHandler{
 			}else if(exercisesId.contains(exerciseToEditId)){
 				// Edit the exercise.
 				Exercise exerciseToEdit = dbHandler.getExercise(exerciseToEditId);
+				consoleManager.showExerciseDetailsToProfessor(exerciseToEdit);
 				List<Question> questionsInExercise = dbHandler.getQuestionsInExercise(exerciseToEditId);
 				HashSet<Integer> qIdsInExercise = exerciseToEdit.getQIds();
 				while(true){

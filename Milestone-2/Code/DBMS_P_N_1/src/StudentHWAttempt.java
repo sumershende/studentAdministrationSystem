@@ -2,7 +2,7 @@ import java.util.List;
 
 class StudentHWAttempt {
 	// Fields required for overview: 
-	private final int score, maxScore;
+	private final double score, maxScore;
 	private final String submissionDateTime;
 	
 	// Fields required for details:
@@ -11,11 +11,17 @@ class StudentHWAttempt {
 	private final int pointsPerCorrectAnswer, pointsPerIncorrectAnswer; 
 	private final boolean hasDeadlinePassed;
 	
-	public StudentHWAttempt(int score, String submissionDateTime, int maxScore, int pointsPerCorrectAnswer, int pointsPerIncorrectAnswer, boolean isDeadlinePassed){
-		this(score, submissionDateTime, null, null, maxScore, pointsPerCorrectAnswer, pointsPerIncorrectAnswer, isDeadlinePassed);
+	private int exerciseId;
+	
+	public StudentHWAttempt(double score, String submissionDateTime, int exerciseId, double maxScore){
+		this(score, submissionDateTime, null, null, maxScore, -1, -1, false, exerciseId);
 	}
 	
-	public StudentHWAttempt(int score, String submissionDateTime, List<Question> questions, List<Boolean> wasCorrectlyAnswered, int maxScore, int pointsPerCorrectAnswer, int pointsPerIncorrectAnswer, boolean isDeadlinePassed){
+	public StudentHWAttempt(double score, String submissionDateTime, double maxScore, int pointsPerCorrectAnswer, int pointsPerIncorrectAnswer, boolean isDeadlinePassed, int exerciseId){
+		this(score, submissionDateTime, null, null, maxScore, pointsPerCorrectAnswer, pointsPerIncorrectAnswer, isDeadlinePassed, exerciseId);
+	}
+	
+	public StudentHWAttempt(double score, String submissionDateTime, List<Question> questions, List<Boolean> wasCorrectlyAnswered, double maxScore, int pointsPerCorrectAnswer, int pointsPerIncorrectAnswer, boolean isDeadlinePassed, int exerciseId){
 		this.score = score;
 		this.submissionDateTime = submissionDateTime;
 		this.questions = questions;
@@ -24,6 +30,7 @@ class StudentHWAttempt {
 		this.pointsPerCorrectAnswer = pointsPerCorrectAnswer;
 		this.pointsPerIncorrectAnswer = pointsPerIncorrectAnswer;
 		this.hasDeadlinePassed = isDeadlinePassed;
+		this.exerciseId = exerciseId;
 	}
 
 	public double getScore() {
@@ -44,6 +51,10 @@ class StudentHWAttempt {
 
 	public int getPointsPerCorrectAnswer() {
 		return pointsPerCorrectAnswer;
+	}
+
+	public int getExerciseId() {
+		return exerciseId;
 	}
 
 	public boolean hasDeadlinePassed() {

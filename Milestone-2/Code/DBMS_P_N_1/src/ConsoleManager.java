@@ -503,17 +503,7 @@ class ConsoleManager {
 			int exerciseNum = 1;
 			for(Exercise exercise : exercisesInThisCourse){
 				System.out.println("--------------------------EXERCISE #" + exerciseNum + " DETAILS BEGIN--------------------------");
-				System.out.println("> Name: " + exercise.getName());
-				System.out.println("> ID: " + exercise.getId());
-				System.out.println("> Mode: " + exercise.getExerciseMode());
-				System.out.println("> Start Date: " + exercise.getStartDate());
-				System.out.println("> End Date: " + exercise.getEndDate());
-				System.out.println("> Number of questions: " + exercise.getNumQuestions());
-				System.out.println("> Number of retries: " + exercise.getNumRetries());
-				System.out.println("> Scoring Policy: " + exercise.getScroingPolicy());
-				
-				List<Question> questionsInThisExercise = dbHandler.getQuestionsInExercise(exercise.getId());
-				showQuestions(questionsInThisExercise, "Questions in this exercise:");
+				showExerciseDetails(exercise);
 				System.out.println("--------------------------EXERCISE #" + exerciseNum++ + " DETAILS END----------------------------");
 			}
 		}
@@ -986,8 +976,19 @@ class ConsoleManager {
 		}
 	}
 
-	public void showStudentAttemptDetails(StudentHWAttempt attempt, int exerciseId){
-		System.out.println("Details of attempt for exercise " + exerciseId);
+	public int showAttemptedHWsOverviewtAndAskChoice(List<StudentHWAttempt> attempts){
+		System.out.println("0. Go back.");
+		for(int i = 0 ; i < attempts.size() ; ++i){
+			StudentHWAttempt attempt = attempts.get(i);
+			System.out.println((i+1) + ". Attempt for HW #" + attempt.getExerciseId() + "; Score: " + attempt.getScore() + "/" + attempt.getMaxScore() + "; Attempt Date: " + attempt.getSubmissionDateTime());
+		}
+		
+		return askForIntInputBetweenRange("Please enter your choice ", 0, attempts.size());
+	}
+	
+	
+	public void showStudentAttemptDetails(StudentHWAttempt attempt){
+		System.out.println("--------- Details of attempt for exercise " + attempt.getExerciseId() + " ------------");
 		
 		System.out.printf("> Score: %.2f/%.2f\n", attempt.getScore(), attempt.getMaxScore());
 		System.out.println("> Attempt Date/Time: ");
@@ -1003,11 +1004,11 @@ class ConsoleManager {
 			question = questions.get(i);
 			System.out.println("> Q" + (i+1) + ". " + question.getText());
 			if(wasCorrectlyAttempted.get(i) == null){
-				System.out.println("> You did not attempt this question.");
+				System.out.println("\t> You did not attempt this question.");
 			}else if(wasCorrectlyAttempted.get(i) == false){
-				System.out.println("> You answered this question incorrectly.");
+				System.out.println("\t> You answered this question incorrectly.");
 			}else{
-				System.out.println("> You answered this question correctly.");
+				System.out.println("\t> You answered this question correctly.");
 				showHint = false;
 			}
 			
@@ -1047,16 +1048,35 @@ class ConsoleManager {
 		List<String> options = question.getOptions();
 		System.out.println("0. Cancel attempt and go back.");
 		System.out.println("1. Skip the question.");
-		for(int option = 1 ; option <= options.size() ; ++option){
-			System.out.println((option + 1) + options.get(option));
+		for(int option = 0 ; option < options.size() ; ++option){
+			System.out.println((option + 2) + ". " + options.get(option));
 		}
 		
 		return options.size();
 	}
 	
-	public int askForStudentAnswerChoice(int totalOptions){
-		return askForIntInputBetweenRange("Please enter your choice: ", 0, totalOptions);
+	public void showExerciseDetailsToProfessor(Exercise exercise){
+		System.out.println("------------- BEGIN DETAILS OF EXERCISE WITH ID " + exercise.getId() + " ------------");
+		showExerciseDetails(exercise);
+		System.out.println("------------- END DETAILS OF EXERCISE WITH ID " + exercise.getId() + " ------------");
 	}
+	
+	private void showExerciseDetails(Exercise exercise){
+		
+		System.out.println("> Name: " + exercise.getName());
+		System.out.println("> ID: " + exercise.getId());
+		System.out.println("> Mode: " + exercise.getExerciseMode());
+		System.out.println("> Start Date: " + exercise.getStartDate());
+		System.out.println("> End Date: " + exercise.getEndDate());
+		System.out.println("> Number of questions: " + exercise.getNumQuestions());
+		System.out.println("> Number of retries: " + exercise.getNumRetries());
+		System.out.println("> Scoring Policy: " + exercise.getScroingPolicy());
+		
+		List<Question> questionsInThisExercise = dbHandler.getQuestionsInExercise(exercise.getId());
+		showQuestions(questionsInThisExercise, "Questions in this exercise:");
+		
+	}
+	
 	
 	public UserType askTAHowHeWantsToLogin(){
 		System.out.println("0. Logout.");

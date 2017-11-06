@@ -1,4 +1,5 @@
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,7 +44,7 @@ class StudentHandler {
 					// View Profile
 					viewProfile();
 				}else if(choice == 2){
-					// View courses of which the person is TA.
+					// View courses in which the student is enrolled.
 					displayStudentCourses();
 				}else if(choice == 3){
 					// Logout
@@ -97,7 +98,7 @@ class StudentHandler {
 		
 		while(true){
 			choice = consoleManager.asForChoiceAtStudentViewSelectedCourse();
-			
+			int exerciseId;
 			if(choice == 0) return;
 			else if(choice == 1){
 				// View/Attempt current open HWs
@@ -106,26 +107,24 @@ class StudentHandler {
 					// No available exercises.
 					consoleManager.showMessageAndWaitForUserToGoBack("No open exercises available.");
 					continue;
+				}else{
+					exerciseId = consoleManager.showExerciseListToStudentAndAskChoice(exercises);
+					if(exerciseId == 0) return;
+					attemptExercise(courseId, exerciseId);
 				}
+				
 			}else{
 				// See past HW submissions.
-				exercises = dbHandler.getAttemptedHWs(courseId);
-				if(exercises == null){
-					// No available exercises.
+				List<StudentHWAttempt> attempts = dbHandler.getAttamptedHWs(courseId);
+				if(attempts == null){
+					// No available attempts.
 					consoleManager.showMessageAndWaitForUserToGoBack("No past submissions for this course.");
-					continue;
-				}
-			}
-			
-			int exerciseId = consoleManager.showExerciseListToStudentAndAskChoice(exercises);
-			
-			if(exerciseId != 0){
-				if(choice == 1){
-					attemptExercise(courseId, exerciseId);
 				}else{
-					viewAttemptsOfExercise(courseId, exerciseId);
+					int attemptNum = consoleManager.showAttemptedHWsOverviewtAndAskChoice(attempts);
+					if(attemptNum == 0) return;
+					consoleManager.showStudentAttemptDetails(attempts.get(attemptNum-1));
 				}
-			}
+			}			
 		}
 	}
 	
@@ -144,19 +143,20 @@ class StudentHandler {
 		
 		if(exercise.getExerciseMode() == ExerciseMode.Random){
 			// Random exercise
-			questions = dbHandler.getQuestionsInRandomExercise(exerciseId, courseId);
+			questions = dbHandler.getQuestionsInRandomExercise(exerciseId);
 		}
 		
-		for(int questionNum = 1 ; questionNum <= exercise.getNumQuestions() ; ++questionNum){
+		for(int questionNum = 0 ; questionNum < questions.size() ; ++questionNum){
+			
 			if(exercise.getExerciseMode() == ExerciseMode.Random){
-				question = questions.get(questionNum - 1);
+				question = questions.get(questionNum);
 			}else{
 				question = dbHandler.getNextQuestionInAdaptiveExercise(exerciseId, courseId, wasLastQuestionAnsweredCorrectly);
+				questions.add(question);
 			}
-			questions.add(question);
 			
-			totalOptions = consoleManager.showQuestionToAttempt(question, questionNum);
-			choice = consoleManager.askForStudentAnswerChoice(totalOptions);
+			totalOptions = consoleManager.showQuestionToAttempt(question, questionNum + 1);
+			choice = consoleManager.askForIntInputBetweenRange("Please enter your choice: ", 0, totalOptions + 1);
 			
 			if(choice == question.getCorrectChoice()){
 				// Correct answer
@@ -177,31 +177,31 @@ class StudentHandler {
 			wasCorrectlyAnswered.add(wasLastQuestionAnsweredCorrectly);
 		}
 		
-		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 		Date date = new Date();
 		submissionDateTime = dateFormat.format(date);
 		
-		// Show the summary of attempt.
+//		try {
+//			if(new Date().compareTo(dateFormat.parse(exercise.getEndDate() + " 0:0:0")) > 0){
+//				// Show the summary of attempt.
+//				StudentHWAttempt attempt = new StudentHWAttempt(score, submissionDateTime, 
+//						questions, wasCorrectlyAnswered, maxScore, pointsPerCorrectAnswer, 
+//						pointsPerIncorrectAnswer, false);
+//				
+//				consoleManager.showStudentAttemptDetails(attempt, exerciseId);
+//			}else{
+//				consoleManager.showMessageAndWaitForUserToGoBack("Sorry, the deadline for this HW has passed!");
+//				return;
+//			}
+//		} catch (ParseException e) {
+//			e.printStackTrace();
+//		}
 		StudentHWAttempt attempt = new StudentHWAttempt(score, submissionDateTime, 
 				questions, wasCorrectlyAnswered, maxScore, pointsPerCorrectAnswer, 
-				pointsPerIncorrectAnswer, false);
+				pointsPerIncorrectAnswer, false, exerciseId);
 		
-		consoleManager.showStudentAttemptDetails(attempt, exerciseId);
+		consoleManager.showStudentAttemptDetails(attempt);
+		dbHandler.addHWAttempt(attempt, courseId, exerciseId);
 	}
 	
-	private static void viewAttemptsOfExercise(String courseId, int exerciseId){
-		List<StudentHWAttempt> studentHWAttempts = dbHandler.getAttamptedHWsOverView(courseId, exerciseId);
-		
-		while(true){
-			consoleManager.showStudentAttemptsOverview(studentHWAttempts, exerciseId);
-			
-			int chosenAttemptToView = consoleManager.askWhichAttemptToView(studentHWAttempts.size());
-			
-			if(chosenAttemptToView == 0) return;
-			else{
-				// View detailed attempt.
-				consoleManager.showStudentAttemptDetails(studentHWAttempts.get(chosenAttemptToView-1), exerciseId);
-			}
-		}
-	}
 }
