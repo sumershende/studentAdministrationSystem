@@ -1,3 +1,4 @@
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -1554,7 +1555,12 @@ class DBHandler{
 				+ "WHERE E.tp_id = T.tp_id and T.c_id = ?"
 				+ ") J "
 				+ "WHERE H.st_id = ? AND H.ex_id = J.ex_id";
-		String query2 = "";
+		
+		String query2 = "SELECT Q.q_text, Q.q_hint, A.is_correct, Q.q_del_soln, Q.q_id "
+				+ "FROM Questions Q, Questions_In_Ex QE, Assign_Attempt A "
+				+ "WHERE QE.ex_id=? and Q.q_id = QE.q_id "
+				+ "and A.ex_id = ? and A.st_id = ? and A.q_id = QE.q_id";
+		
 		int pt_correct, pt_incorrect, exerciseId;
 		double score;
 		Date submit, ex_end_date;
@@ -1578,35 +1584,32 @@ class DBHandler{
 				pt_incorrect = rs.getInt(6);
 				hasDeadlinePassed = (!isExerciseOpen(ex_end_date));
 
-				query2 = "SELECT Q.q_text, Q.q_hint, A.is_correct, Q.q_del_soln, Q.q_id "
-						+ "FROM Questions Q, Questions_In_Ex QE, Assign_Attempt A "
-						+ "WHERE QE.ex_id=? and Q.q_id = QE.q_id "
-						+ "and A.ex_id = ? and A.st_id = ? and A.q_id = QE.q_id";
 				try{
 					ps2 = conn.prepareStatement(query2);
 					ps2.setInt(1, exerciseId);
 					ps2.setInt(2, exerciseId);
 					ps2.setInt(3, loggedInUserNumericalId);
 					rs2 = ps2.executeQuery();
+					
 					String q_text, q_hint, q_del_soln;
 					List<Question> questions = new ArrayList<Question>();
 					List<Boolean> wasCorrectlyAnswered = new ArrayList<Boolean>();
+					
 					while(rs2.next()) {
-						q_text = rs2.getString(1);
-						q_hint = rs2.getString(2);
-
-						Integer is_correct = (Integer)rs2.getObject(3);
+						q_text = rs2.getString("q_text");
+						q_hint = rs2.getString("q_hint");
+						BigDecimal is_correct = (BigDecimal)rs2.getObject("is_correct");
 
 						if(is_correct == null) {
 							wasCorrectlyAnswered.add(null);
-						}else if(is_correct == 1){
+						}else if(is_correct == BigDecimal.ONE){
 							wasCorrectlyAnswered.add(true);
 						}else{
 							wasCorrectlyAnswered.add(false);
 						}
 						q_del_soln = null;
 						if(hasDeadlinePassed) {
-							q_del_soln = rs2.getString(4);
+							q_del_soln = rs2.getString("q_del_soln");
 						}
 						questions.add(new Question(q_text, q_hint, q_del_soln));
 					}
@@ -2016,9 +2019,7 @@ class DBHandler{
 				if(getQuestionType(qId) == QuestionType.Fixed){
 					question = getFixedQuestion(qId);
 				}else{
-					question = new Question();
-					question.setOptions(new ArrayList<>());
-					question.setCorrectChoice(0);
+					question = get_parameterized_question(qId);
 				}
 				question.setId(qId);
 				question.setText(qText);
