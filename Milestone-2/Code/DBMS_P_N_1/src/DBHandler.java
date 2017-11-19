@@ -2189,7 +2189,6 @@ class DBHandler{
 				rs = pstmt.executeQuery();
 				while (rs.next()) {
 				    scores[counter++]=rs.getInt(3);
-				    System.out.println(rs.getInt(3));
 				}
 			}catch(SQLException e){
 				e.printStackTrace();
