@@ -861,7 +861,7 @@ class DBHandler{
 		// All.
 		List<StudentReport> reportList = new ArrayList<StudentReport>();
 		String queryStudentId = "SELECT DISTINCT E.st_id, U.name FROM Enrolled_In E, Students S, Users U"
-				+ " WHERE E.st_id=S.st_id and S.userid=U.userid and c_id=?";
+				+ " WHERE E.st_id=S.st_id and S.userid=U.userid and E.c_id=?";
 		try{
 			PreparedStatement ps = conn.prepareStatement(queryStudentId);
 			ps.setString(1, courseId);
@@ -874,10 +874,11 @@ class DBHandler{
 			}
 			for(StudentReport report :reportList){
 				String query="SELECT ex_id, with_score"+
-						" FROM HAS_SOLVED "+
-						" WHERE st_id=?";	
+						" FROM HAS_SOLVED H, TOPICS T, EXERCISES E "+
+						" WHERE H.st_id=? and H.ex_id=E.ex_id and E.tp_id=T.tp_id and T.c_id=?";	
 				PreparedStatement ps1 = conn.prepareStatement(query);
-				ps1.setString(1, courseId);
+				ps1.setInt(1, report.getStudentId());
+				ps1.setString(2, courseId);
 				ResultSet rs1 = ps1.executeQuery();
 				Integer[] arr= new Integer[2];
 				List<Integer[]> list=new ArrayList<Integer[]>();
