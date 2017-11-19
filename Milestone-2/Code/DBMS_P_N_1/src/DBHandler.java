@@ -1494,6 +1494,7 @@ class DBHandler{
 		String sql;
 		int exercise_id;
 		Date end_date;
+		int numRetries=0;
 		List<String> exercise_list = new ArrayList<String>();
 		try {
 
@@ -1519,9 +1520,30 @@ class DBHandler{
 					if(!courseId.equals(c_id))
 						return null;
 			  */
+	/*		 int max_attempted=0;
+			 String sql1 ="SELECT COUNT(*) AS ATTEMPTS FROM HAS_SOLVED WHERE EX_ID=? AND ST_ID=?";
+			 PreparedStatement ps1 = conn.prepareStatement(sql1);
+			 ps1.setString(1, courseId);
+			 ps1.setInt(2, student_id);
+			 ResultSet rs1 = ps1.executeQuery();
+			 while(rs1.next()) {
+				 max_attempted=rs.getInt(1);
+			 }
+			 String sql2 ="SELECT NUM_RETRIES FROM EXERCISES E WHERE EX_ID=?";
 
-			 sql = "select ex_id, ex_end_date from Exercises E, Topics T where T.c_id = ?"
-					 + " and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?)";
+			 int maxRetriesPossible=0;
+			 PreparedStatement ps2 = conn.prepareStatement(sql2);
+			 ps2.setString(1, courseId);
+			 ps2.setInt(2, student_id);
+			 ResultSet rs2 = ps2.executeQuery();
+			 while(rs2.next()) {
+				 maxRetriesPossible=rs2.getInt(1);
+			 }
+			 if(max_attempted>=maxRetriesPossible){
+				 return null;
+			 }
+*/			 sql = "select ex_id, ex_end_date, num_retries from Exercises E, Topics T where T.c_id = ?"
+					 + " and E.tp_id = T.tp_id";
 			 ps = conn.prepareStatement(sql);
 			 ps.setString(1, courseId);
 			 ps.setInt(2, student_id);
@@ -1529,7 +1551,8 @@ class DBHandler{
 			 while(rs.next()) {
 				 exercise_id = rs.getInt(1);
 				 end_date = rs.getDate(2);
-				 if(isExerciseOpen(end_date)) {
+				 numRetries = rs.getInt(3);
+				 if(isExerciseOpen(end_date) && !isMaxAttemptReached(exercise_id, numRetries)) {
 					 exercise_list.add(Integer.toString(exercise_id));
 				 }
 
@@ -1540,6 +1563,23 @@ class DBHandler{
 			oops.printStackTrace();
 		}
 		return null;
+	}
+
+	private boolean isMaxAttemptReached(int exercise_id, int numRetries) throws SQLException {
+		// TODO Auto-generated method stub
+		 int max_attempted=0;
+		 String sql1 ="SELECT COUNT(*) AS ATTEMPTS FROM HAS_SOLVED WHERE EX_ID=? AND ST_ID=?";
+		 PreparedStatement ps1 = conn.prepareStatement(sql1);
+		 ps1.setInt(1, exercise_id);
+		 ps1.setInt(2, loggedInUserNumericalId);
+		 ResultSet rs1 = ps1.executeQuery();
+		 while(rs1.next()) {
+			 max_attempted=rs1.getInt(1);
+		 }
+		 if(numRetries <= max_attempted){
+			 return true;
+		 }
+		return false;
 	}
 
 	// Approved by GV
@@ -1597,6 +1637,7 @@ class DBHandler{
 					List<Boolean> wasCorrectlyAnswered = new ArrayList<Boolean>();
 					
 					while(rs2.next()) {
+
 						q_text = rs2.getString("q_text");
 						q_hint = rs2.getString("q_hint");
 						BigDecimal is_correct = (BigDecimal)rs2.getObject("is_correct");

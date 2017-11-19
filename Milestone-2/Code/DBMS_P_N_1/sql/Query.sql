@@ -1,12 +1,27 @@
 SELECT q_text,  FROM QUESTIONS_IN_EX qe, QUESTIONS q 
 where qe.q_id=q.q_id and ex_id='' and qe.q_id=''
 
+select * from Students S inner join HASTA h on S.st_id=h.st_id
+
+delete from Students S where st_id=10002
+select * from HASTA where st_id=10002
+Select * from ENROLLED_IN where st_id=1002
 SELECT S.st_id, U.name, with_score, H.ex_id
 					FROM Has_Solved H
 					WHERE H.st_id = S.st_id and S.isGrad=1 and U.userid=S.userid and H.ex_id in 
 								(select E.ex_id from Exercises E, Topics T
-								where T.c_id = 'CSC540' and E.tp_id = T.tp_id )
-
+		
+								
+								
+						where T.c_id = 'CSC540' and E.tp_id = T.tp_id )
+						
+						
+						
+						SELECT Q.q_text, Q.q_hint, A.is_correct, Q.q_del_soln, Q.q_id 
+						FROM Questions Q, Questions_In_Ex QE, Assign_Attempt A
+						WHERE QE.ex_id=1 and Q.q_id = QE.q_id 
+						and A.ex_id = 1 and A.st_id = 10007 and A.q_id = QE.q_id
+						
 SELECT  q_text, q_hint, q_del_soln, difficulty, m.tp_name
 FROM QUESTIONS q, TOPICS t, MASTER_TOPICS m
 WHERE q.tp_id=t.tp_id
