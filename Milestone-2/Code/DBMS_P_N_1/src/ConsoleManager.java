@@ -487,16 +487,20 @@ class ConsoleManager {
 		System.out.println("Report for course: " + courseId);
 		for(StudentReport studentReport : studentReports){
 			System.out.println("> Name: " + studentReport.getName());
-			System.out.println("> Scores for each exercise: ");
-			for(Integer[] scorePerHW : studentReport.getScoresPerHW()){
-				System.out.println();
-				System.out.print("\t" + scorePerHW[0] + ": " + scorePerHW[1]);
-				for(int i=2;i<scorePerHW.length;i++)
-					System.out.print(",\t"+scorePerHW[i]);
-			}
-			System.out.println("\nScores per policy are :");
-			for(int score: studentReport.getScoresPerPolicy())
-				System.out.println(score);
+			List<Integer> scoreAccToPolicy = studentReport.getScoresPerPolicy();
+			if(studentReport.getScoresPerHW() != null){
+				System.out.println("> Scores for each exercise: ");
+				int j = 0;
+				for(Integer[] scorePerHW : studentReport.getScoresPerHW()){
+					System.out.print("\t Exercise #" + scorePerHW[0] + ": ");
+					for(int i=1;i<scorePerHW.length;i++){
+						System.out.print(", " + scorePerHW[i]);
+					}
+					System.out.println("\nFor Exercise #" + scorePerHW[0] + ", score according to the HW policy is: " + scoreAccToPolicy.get(j++));
+				}
+			}else{
+				System.out.println("> The student has not yet attempted any HW.");
+			}			
 		}
 		showMessageAndWaitForUserToGoBack("Please enter 0 to go back.");
 	}
