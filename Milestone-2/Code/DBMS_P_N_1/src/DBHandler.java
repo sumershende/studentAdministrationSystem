@@ -879,35 +879,74 @@ class DBHandler{
 		// Fields required in StudentReport:
 		// All.
 		List<StudentReport> reportList = new ArrayList<StudentReport>();
-		String queryStudentId = "SELECT DISTINCT E.st_id, U.name FROM Enrolled_In E, Students S, Users U"
-				+ " WHERE E.st_id=S.st_id and S.userid=U.userid and E.c_id=?";
+		String queryStudentId = "SELECT DISTINCT E.st_id, U.name FROM Enrolled_In E, Students S, Users U WHERE E.st_id=S.st_id and S.userid=U.userid and E.c_id=?";
 		try{
 			PreparedStatement ps = conn.prepareStatement(queryStudentId);
 			ps.setString(1, courseId);
 			ResultSet rs = ps.executeQuery();
 			while(rs.next()){
 				StudentReport report = new StudentReport();
-				report.setStudentId(rs.getInt(1));
+				int studentId=rs.getInt(1);
+				report.setStudentId(studentId);
 				report.setName(rs.getString(2));
+				List<Integer[]> scoresPerHW = new ArrayList<Integer[]>();
+				List<Integer> scorePerPolicy = new ArrayList<Integer>();
+				String query="SELECT Distinct E.EX_ID FROM HAS_SOLVED H, TOPICS T, EXERCISES E WHERE H.st_id=? and H.ex_id=E.ex_id and E.tp_id=T.tp_id and T.c_id=?";
+				try{
+					PreparedStatement ps1= conn.prepareStatement(query);
+					ps1.setInt(1, studentId);
+					ps1.setString(2, courseId);
+					ResultSet rs1=ps1.executeQuery();
+					while(rs1.next()) {
+						String query3 = "Select * from Has_Solved where ex_id=? and St_id=?";
+						PreparedStatement ps2= conn.prepareStatement(query3);
+						ResultSet rs2;
+						int exerciseId = rs1.getInt(1);
+						int counter=0;
+						int scores[]= new int[100];
+						try{
+							ps2.clearParameters();
+							ps2.setInt(1, exerciseId);
+							ps2.setInt(2, studentId);
+							rs2 = ps2.executeQuery();
+							while (rs2.next()) {
+							    scores[counter++]=rs2.getInt(3);
+							}
+						}catch(SQLException e){
+							e.printStackTrace();
+						}finally{
+							closeStatement(ps2);
+						}
+						Integer[] t = new Integer[counter+1];
+						t[0]=exerciseId;
+						for(int z=0;z<counter;z++)
+							t[z+1]=scores[z];
+						scoresPerHW.add(t);
+						report.setScoresPerHW(scoresPerHW);
+						scorePerPolicy.add((Integer)obtainedScore(exerciseId,studentId));
+					}
+				}
+				catch(Exception e) {
+					System.out.println(e);
+				}
+				report.setScorePerPolicy(scorePerPolicy);
 				reportList.add(report);
 			}
-			for(StudentReport report :reportList){
-				String query="SELECT ex_id, with_score"+
-						" FROM HAS_SOLVED H, TOPICS T, EXERCISES E "+
-						" WHERE H.st_id=? and H.ex_id=E.ex_id and E.tp_id=T.tp_id and T.c_id=?";	
-				PreparedStatement ps1 = conn.prepareStatement(query);
-				ps1.setInt(1, report.getStudentId());
-				ps1.setString(2, courseId);
-				ResultSet rs1 = ps1.executeQuery();
-				Integer[] arr= new Integer[2];
-				List<Integer[]> list=new ArrayList<Integer[]>();
-				while(rs1.next()){
-					arr[0]=rs1.getInt(1);
-					arr[1]=rs1.getInt(2);
-					list.add(arr);
-				}
-				report.setScoresPerHW(list);
-			}	
+//			for(StudentReport report :reportList){
+//				String query="SELECT Distinct E.EX_ID FROM HAS_SOLVED H, TOPICS T, EXERCISES E WHERE H.st_id=? and H.ex_id=E.ex_id and E.tp_id=T.tp_id and T.c_id=?"	
+//				PreparedStatement ps1 = conn.prepareStatement(query);
+//				ps1.setInt(1, report.getStudentId());
+//				ps1.setString(2, courseId);
+//				ResultSet rs1 = ps1.executeQuery();
+//				Integer[] arr= new Integer[2];
+//				List<Integer[]> list=new ArrayList<Integer[]>();
+//				while(rs1.next()){
+//					arr[0]=rs1.getInt(1);
+//					arr[1]=rs1.getInt(2);
+//					list.add(arr);
+//				}
+//				report.setScoresPerHW(list);
+//			}	
 		}catch(SQLException e){
 			System.out.println(e);
 			return null;
