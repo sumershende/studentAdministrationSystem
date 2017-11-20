@@ -2120,6 +2120,8 @@ class DBHandler{
 		return false;	
 
 	}
+	
+	
 
 	// Akanksha
 	// Verified: GV
@@ -2148,5 +2150,77 @@ class DBHandler{
 			closeResultSet(rs);
 			closeStatement(pstmt);
 		}
+	}
+	
+	//Sumer: tested
+
+	public int obtainedScore(int exerciseId, int Student_id){
+		/* 
+		 * Returns obtained marks by a student as per exercise policy
+		 */
+		try{
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+			String query = "Select Policy from Exercises where ex_id=?";
+			String policy=null;
+			try{
+				pstmt = conn.prepareStatement(query);
+				pstmt.clearParameters();
+				pstmt.setInt(1, exerciseId);
+				rs = pstmt.executeQuery();
+				while (rs.next()) {
+				    policy=rs.getString(1);
+				}
+			}catch(SQLException e){
+				e.printStackTrace();
+			}finally{
+				closeResultSet(rs);
+				closeStatement(pstmt);
+			}
+			query = "Select * from Has_Solved where ex_id=? and St_id=?";
+
+			int counter=0;
+			int scores[]= new int[100];
+			try{
+				pstmt = conn.prepareStatement(query);
+				pstmt.clearParameters();
+				pstmt.setInt(1, exerciseId);
+				pstmt.setInt(2, Student_id);
+				
+				rs = pstmt.executeQuery();
+				while (rs.next()) {
+				    scores[counter++]=rs.getInt(3);
+				}
+			}catch(SQLException e){
+				e.printStackTrace();
+			}finally{
+				closeResultSet(rs);
+				closeStatement(pstmt);
+			}
+			if(counter==0)
+				return 0;
+			if(policy.equals("Maximum")) {
+				int max=scores[0];
+				for(int i=1;i<counter;i++)
+					if(scores[i]>max)
+						max=scores[i];		
+				return max;
+			}
+			else if(policy.equals("Latest"))
+				return scores[counter-1];
+			else {
+				int avg=0;
+				for(int i=0;i<counter;i++)
+					avg+=scores[i];
+				avg/=counter;
+				return avg;
+			}
+		}
+		catch(Exception e) 
+		{
+			System.out.println(e);
+		}
+		
+		return 0;
 	}
 }
