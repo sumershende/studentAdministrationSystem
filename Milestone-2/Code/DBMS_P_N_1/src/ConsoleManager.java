@@ -489,8 +489,14 @@ class ConsoleManager {
 			System.out.println("> Name: " + studentReport.getName());
 			System.out.println("> Scores for each exercise: ");
 			for(Integer[] scorePerHW : studentReport.getScoresPerHW()){
-				System.out.println("\t" + scorePerHW[0] + ": " + scorePerHW[1]);
+				System.out.println();
+				System.out.print("\t" + scorePerHW[0] + ": " + scorePerHW[1]);
+				for(int i=2;i<scorePerHW.length;i++)
+					System.out.print(",\t"+scorePerHW[i]);
 			}
+			System.out.println("\nScores per policy are :");
+			for(int score: studentReport.getScoresPerPolicy())
+				System.out.println(score);
 		}
 		showMessageAndWaitForUserToGoBack("Please enter 0 to go back.");
 	}
