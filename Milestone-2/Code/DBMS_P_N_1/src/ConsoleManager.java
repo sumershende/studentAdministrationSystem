@@ -967,9 +967,9 @@ class ConsoleManager {
 		}
 	}
 	
-	public int showExerciseListToStudentAndAskChoice(List<String> exercises){
+	public int showExerciseListToStudentAndAskChoice(List<String []> exercises){
 		for(int i = 1 ; i <= exercises.size() ; ++i){
-			System.out.println(i + ". HW #" + exercises.get(i-1));
+			System.out.println(i + ". HW #" + exercises.get(i-1)[0] + " Deadline: " + exercises.get(i-1)[1]);
 		}
 		int exerciseId;
 		int choice;
@@ -983,12 +983,16 @@ class ConsoleManager {
 				while(true){
 					exerciseId = askForIntInput("Please enter the ID of exercise you'd like to see or 0 to cancel: ");
 					if(exerciseId == 0) break;
-					else if(exercises.contains(""+exerciseId)){
-						// Valid choice
-						return exerciseId;
-					}else{
-						// Invalid choice!
-						showInvalidChoiceError("Please enter a valid exercise ID!");
+					else {
+						for(String[] detail : exercises){
+							if(detail[0].equals(""+exerciseId)){
+								// Valid choice
+								return exerciseId;
+							}else{
+								// Invalid choice!
+								showInvalidChoiceError("Please enter a valid exercise ID!");
+							}
+						}
 					}
 				}
 			}
@@ -1011,7 +1015,7 @@ class ConsoleManager {
 		System.out.println("--------- Details of attempt for exercise " + attempt.getExerciseId() + " ------------");
 		
 		System.out.printf("> Score: %.2f/%.2f\n", attempt.getScore(), attempt.getMaxScore());
-		System.out.println("> Attempt Date/Time: ");
+		System.out.println("> Attempt Date/Time: " + attempt.getSubmissionDateTime());
 		System.out.println("> Points awarded per correct answer: " + attempt.getPointsPerCorrectAnswer());
 		System.out.println("> Points deducted per incorrect answer: " + attempt.getPointsPerIncorrectAnswer());
 		

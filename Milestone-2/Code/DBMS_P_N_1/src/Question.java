@@ -39,8 +39,8 @@ class Question {
 	}
 	
 
-	public Question(List<String> options, short correctChoice){
-		this(null, null, null, -1, -1, -1, null, null, null, null, null, options, 
+	public Question(List<String> options, short correctChoice, int id){
+		this(null, null, null, -1, -1, id, null, null, null, null, null, options, 
 				correctChoice, -1);
 	}
 
@@ -49,8 +49,8 @@ class Question {
 				correctChoice, -1);
 	}
 	
-	public Question(String hint, List<String> options, short correctChoice, int combNumber){
-		this(null, hint, null, -1, -1, -1, null, null, null, null, null, options, 
+	public Question(String hint, List<String> options, short correctChoice, int combNumber, int id){
+		this(null, hint, null, -1, id, -1, null, null, null, null, null, options, 
 				correctChoice, combNumber);
 
 	}

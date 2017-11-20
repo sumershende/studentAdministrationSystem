@@ -33,20 +33,14 @@ class DBHandler{
 	private boolean isUserLoggedIn;
 
 	private static DBHandler dbHandler;
-	private int last_question_difficulty;
 
-	private HashSet<Integer> questions_done;
-
+	private final int MAX_QUESTION_DIFFICULTY = 6, MIN_QUESTION_DIFFICULTY = 1;  
+	
 	private DBHandler(){
 		// Singleton
 		dbUserName = "gverma";
 		dbPassword = "200158973";
 		isUserLoggedIn = false;
-		last_question_difficulty = 3;
-
-		questions_done = new HashSet<Integer>();
-
-
 	}
 
 	public static DBHandler getDBHandler(){
@@ -1482,7 +1476,7 @@ class DBHandler{
 
 
 	//Akanksha
-	public List<String> getCurrentOpenUnattemptedHWs(String courseId){
+	public List<String[]> getCurrentOpenUnattemptedHWs(String courseId){
 		// Returns the IDs of the exercises that are:
 		// 1. currently open and;
 		// 2. Can be attempted by the student.
@@ -1493,7 +1487,7 @@ class DBHandler{
 		String sql;
 		int exercise_id;
 		Date end_date;
-		List<String> exercise_list = new ArrayList<String>();
+		List<String []> exercise_list = new ArrayList<>();
 		try {
 
 			student_id =getId(loggedInUserId, loggedInUserType);
@@ -1529,7 +1523,7 @@ class DBHandler{
 				 exercise_id = rs.getInt(1);
 				 end_date = rs.getDate(2);
 				 if(isExerciseOpen(end_date)) {
-					 exercise_list.add(Integer.toString(exercise_id));
+					 exercise_list.add(new String[]{Integer.toString(exercise_id), end_date.toString()});
 				 }
 
 			 }
@@ -1602,7 +1596,7 @@ class DBHandler{
 
 						if(is_correct == null) {
 							wasCorrectlyAnswered.add(null);
-						}else if(is_correct == BigDecimal.ONE){
+						}else if(is_correct.compareTo(BigDecimal.ONE) == 0){
 							wasCorrectlyAnswered.add(true);
 						}else{
 							wasCorrectlyAnswered.add(false);
@@ -1614,7 +1608,7 @@ class DBHandler{
 						questions.add(new Question(q_text, q_hint, q_del_soln));
 					}
 					hw_attempt.add(new StudentHWAttempt(score, df.format(submit), questions, wasCorrectlyAnswered, 
-							-1, pt_correct, pt_incorrect, hasDeadlinePassed, exerciseId));
+							pt_correct * questions.size(), pt_correct, pt_incorrect, hasDeadlinePassed, exerciseId));
 				}catch(SQLException e){
 					e.printStackTrace();
 				}finally {
@@ -1711,84 +1705,116 @@ class DBHandler{
 			}finally {
 				closeStatement(pstmt);
 			}
-
-			try {
-				pstmt = conn.prepareStatement(queryForHas_Solved);
-				pstmt.setInt(1, loggedInUserNumericalId);
-				pstmt.setInt(2, exerciseId);
-				pstmt.setDouble(3, attempt.getScore());
-				pstmt.setDate(4, getDate(attempt.getSubmissionDateTime()));
-
-				if(pstmt.executeUpdate() == 0)
-					return false;
-			}
-			catch(SQLException e) {
-				e.printStackTrace();
-			}
-
 		}
+		
+		try {
+			pstmt = conn.prepareStatement(queryForHas_Solved);
+			pstmt.setInt(1, loggedInUserNumericalId);
+			pstmt.setInt(2, exerciseId);
+			pstmt.setDouble(3, attempt.getScore());
+			pstmt.setDate(4, getDate(attempt.getSubmissionDateTime()));
+
+			if(pstmt.executeUpdate() == 0)
+				return false;
+		}
+		catch(SQLException e) {
+			e.printStackTrace();
+		}
+		
 		return true;
 	}
 
-	public boolean question_already_done(int q_id) {
-		return questions_done.contains(new Integer(q_id));
-	}
-
-	public int get_last_question_difficulty() {
-		return last_question_difficulty;
-	}
-
-	public void set_question_difficulty(int question_difficulty) {
-		this.last_question_difficulty = question_difficulty;
-	}
-
-	private void add_question_to_hash_set(int q_id){
-		questions_done.add(q_id);
-	}
-
-	public Question getNextQuestionInAdaptiveExercise(int exerciseId, String courseId, Boolean wasLastAnsweredCorrectly){
-
+	// Doing: GV
+	public Question getNextQuestionInAdaptiveExercise(int exerciseId, String courseId, Boolean wasLastAnsweredCorrectly, int lastQuestionDifficulty, int topicId, List<Integer> questionsAlreadyDone){
+		System.out.println(exerciseId + courseId + wasLastAnsweredCorrectly);
 		// Get next question based on the user's answer.
 		// wasLastAnsweredCorrectly = null for first question or if the last question
 		// was skipped.
-		int question_difficulty = get_last_question_difficulty();
 
-		if(wasLastAnsweredCorrectly == null)
-			question_difficulty = 3;
-		else {
-			if(wasLastAnsweredCorrectly)
-				question_difficulty++;
-			else
-				question_difficulty--;
-		}
+		int thisQuestionDifficulty = 3;
+		
+		if(wasLastAnsweredCorrectly != null && wasLastAnsweredCorrectly)
+			thisQuestionDifficulty = lastQuestionDifficulty + 1;
+		else if(wasLastAnsweredCorrectly != null)
+			thisQuestionDifficulty = lastQuestionDifficulty - 1;
+
+		// Since minimum difficulty is 1.
+		thisQuestionDifficulty = Math.max(lastQuestionDifficulty, MIN_QUESTION_DIFFICULTY);
+		// Since maximum difficulty is 6.
+		thisQuestionDifficulty = Math.min(lastQuestionDifficulty, MAX_QUESTION_DIFFICULTY);
+		
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		String sql;
-		try {
-			sql = "select Q.q_id from Questions Q, Questions_In_Ex QE where "
-					+ "Q.q_id = QE.q_id and QE.ex_id = ? and Q.difficulty = ?";
-			ps = conn.prepareStatement(sql);
-			//ps.setString(1, courseId);
-			ps.setInt(1, exerciseId);
-			ps.setInt(2, question_difficulty);
-			rs = ps.executeQuery();
-			int q_id = -1;
-			while(rs.next()) {
-				q_id = rs.getInt(1);
-				System.out.println("Question Fetched");
-				if(question_already_done(q_id))
-					continue;
-				else
-					break;
+		
+		StringBuilder queryToGetQIdBuilder = new StringBuilder(); 
+		
+		queryToGetQIdBuilder.append("SELECT Q.q_id, Q.q_text "
+				+ "FROM Questions Q "
+				+ "WHERE Q.tp_id = ? AND Q.difficulty = ?");
+		
+		if(questionsAlreadyDone.size() != 0){
+			queryToGetQIdBuilder.append(" AND Q.q_id NOT IN (");
+			for(int i = 0 ; i < questionsAlreadyDone.size() ; ++i){
+				if(i == questionsAlreadyDone.size() - 1){
+					queryToGetQIdBuilder.append(questionsAlreadyDone.get(i) + ")");
+				}else{
+					queryToGetQIdBuilder.append(questionsAlreadyDone.get(i) + ", ");
+				}
 			}
-			Question q;
-			if(is_fixed_question(q_id))
-				q = getFixedQuestion(q_id);
-			else
-				q = get_parameterized_question(q_id);
-			set_question_difficulty(question_difficulty);
-			add_question_to_hash_set(q_id);
-			return q;
+		}
+		
+		String queryToGetQId = queryToGetQIdBuilder.toString();
+		
+		
+		try {
+			
+			ps = conn.prepareStatement(queryToGetQId);
+			
+			boolean searchExhausted = false;
+			while(true){
+				ps.setInt(1, topicId);
+				ps.setInt(2, thisQuestionDifficulty);
+				rs = ps.executeQuery();
+				
+				if(rs.next()) {
+					// we have a valid question with this difficulty.
+					int q_id = rs.getInt(1);
+					
+					Question question;
+					// Try to find it in fixed type:
+					question = getFixedQuestion(q_id);
+					if(question == null){
+						// It is a parametric type of question.
+						question = get_parameterized_question(q_id);
+					}
+					question.setText(rs.getString("q_text"));
+					questionsAlreadyDone.add(q_id);
+					return question;
+				}else{
+					// No question with this difficulty level.
+					if(searchExhausted){
+						// No more search. Invalid exercise.
+						return null;
+					}
+					if(wasLastAnsweredCorrectly != null && wasLastAnsweredCorrectly == true){
+						// Try to increase difficulty.
+						thisQuestionDifficulty += 1;
+						if(thisQuestionDifficulty > MAX_QUESTION_DIFFICULTY){
+							// Exhausted search space.
+							thisQuestionDifficulty = lastQuestionDifficulty;
+							searchExhausted = true;
+						}
+					}else{
+						// Try to decrease difficulty.
+						thisQuestionDifficulty -= 1;
+						if(thisQuestionDifficulty < MIN_QUESTION_DIFFICULTY){
+							// Exhausted search space.
+							thisQuestionDifficulty = lastQuestionDifficulty;
+							searchExhausted = true;
+						}
+					}
+				}
+			}
 		}
 		catch(SQLException e) {
 			e.printStackTrace();
@@ -1853,7 +1879,7 @@ class DBHandler{
 			// Shuffle the options.
 			Collections.shuffle(options);
 
-			return new Question(options, (short)(options.indexOf(correctAnswer) + 2));
+			return new Question(options, (short)(options.indexOf(correctAnswer) + 2), qId);
 
 		}catch(SQLException e){
 			e.printStackTrace();
@@ -1864,7 +1890,6 @@ class DBHandler{
 
 		return null;
 	}
-
 
 	public Question get_parameterized_question(int question_id) {
 		try {
@@ -1932,7 +1957,7 @@ class DBHandler{
 			Collections.shuffle(options);
 			short index_correct_answer = (short)(options.indexOf(correct_answer)+2);
 
-			Question q = new Question(hint, options, index_correct_answer, comb_num);
+			Question q = new Question(hint, options, index_correct_answer, comb_num, question_id);
 			q.setText(refined_text);
 			return q;
 
@@ -2021,7 +2046,6 @@ class DBHandler{
 				}else{
 					question = get_parameterized_question(qId);
 				}
-				question.setId(qId);
 				question.setText(qText);
 				questions.add(question);
 			}
