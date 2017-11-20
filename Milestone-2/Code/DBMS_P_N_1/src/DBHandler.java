@@ -1546,7 +1546,7 @@ class DBHandler{
 					 + " and E.tp_id = T.tp_id";
 			 ps = conn.prepareStatement(sql);
 			 ps.setString(1, courseId);
-			 ps.setInt(2, student_id);
+	
 			 rs = ps.executeQuery();
 			 while(rs.next()) {
 				 exercise_id = rs.getInt(1);
