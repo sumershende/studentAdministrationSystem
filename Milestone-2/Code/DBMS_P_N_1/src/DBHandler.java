@@ -671,6 +671,32 @@ class DBHandler{
 		return true;
 	}
 
+	private boolean isStudentEnrolledInCourse(String studentId, String courseId){
+		String query = "SELECT c_id "
+				+ "FROM Enrolled_In "
+				+ "WHERE C_ID = ? AND ST_ID = ?";
+
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
+
+		try{
+			pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, courseId);
+			pstmt.setInt(2, getId(studentId, UserType.Student));
+			
+			rs = pstmt.executeQuery();
+			if(rs.next()){
+				return true;
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+		return false;
+	}
+	
 	// Approved by GV
 	public int isTAIdValidForCourse(String TAId, String courseId){	
 		// Check if TAId is even valid.
@@ -789,7 +815,11 @@ class DBHandler{
 			// Invalid student id
 			return 0;
 		}
-
+		
+		if(isStudentEnrolledInCourse(studentId, courseId)){
+			return 0;
+		}
+		
 		String query = "INSERT INTO Enrolled_In (C_ID, ST_ID) "
 				+ "VALUES (?, ?)";
 		PreparedStatement pstmt = null;
@@ -800,13 +830,8 @@ class DBHandler{
 			pstmt.setString(1, courseId);
 			pstmt.setInt(2, studentNumericalId);
 
-			if(pstmt.executeUpdate() == 1){
-				// Successfully added.
-				return 1;
-			}else{
-				// Already present in the course.
-				return 0;
-			}
+			pstmt.executeUpdate();
+			return 1;
 
 		}catch(SQLException s){
 			// Failure, constraint violation.
@@ -826,6 +851,10 @@ class DBHandler{
 			// Invalid student id
 			return false;
 		}
+		if(!isStudentEnrolledInCourse(studentId, courseId)){	
+			return null;
+		}
+		
 		PreparedStatement pstmt = null;
 		try{ 			
 			String query = "DELETE FROM Enrolled_in "
@@ -833,12 +862,8 @@ class DBHandler{
 			pstmt = conn.prepareStatement(query);
 			pstmt.setInt(1, studentNumericalId);
 			pstmt.setString(2, courseId);
-
-			if(pstmt.executeUpdate() == 0){
-				return null;
-			}else{
-				return true;
-			}
+			pstmt.executeUpdate();
+			return true;
 		}catch(SQLException e){
 			// Failure, constraint violation.
 			e.printStackTrace();
@@ -903,6 +928,8 @@ class DBHandler{
 		// 6. Number of questions
 		// 7. Number of retries
 		// 8. Scoring Policy
+		//
+		//
 		//				String sql = 'select ex_id, ex_name, ex_mode, ex_start_date, ex_end_date, num_questions,
 		//				num_retires, policy, pt_correct, pt_incorrect from Exercises E, Topics T where E.tp_id = T.tp_id
 		//				and T.c_id = ?';
@@ -1172,7 +1199,6 @@ class DBHandler{
 			}
 
 			if(question.getQuestionType().toString().equals("Fixed")) {
-				System.out.println("Inside Fixed part");
 				try {
 					query = "Insert into fixed_questions values(?,?)";
 					PreparedStatement ps = conn.prepareStatement(query);
@@ -1277,7 +1303,7 @@ class DBHandler{
 		List<Question> qs = new ArrayList<Question>();
 		String sql;
 		try {
-			sql = "SELECT q_text, q_hint, Q.q_id "
+			sql = "SELECT Q.q_text, Q.q_hint, Q.q_id, Q.difficulty, Q.tp_id, Q.q_del_soln "
 					+ "FROM Questions Q, Questions_In_Ex E "
 					+ "WHERE E.q_id=Q.q_id and E.ex_id=? ";
 			ps=conn.prepareStatement(sql);
@@ -1287,7 +1313,10 @@ class DBHandler{
 				String text = rs.getString(1);
 				String hint = rs.getString(2);
 				int id = rs.getInt(3);
-				qs.add(new Question(text, hint, id));
+				int difficulty = rs.getInt(4);
+				int topicId = rs.getInt(5);
+				String detailedSolution = rs.getString(6);
+				qs.add(new Question(text, hint, id, difficulty, topicId, detailedSolution));
 			}
 			return qs;
 		}
@@ -1401,7 +1430,6 @@ class DBHandler{
 		return true;
 	}
 
-
 	// Done. Verified - Udit
 	public Exercise getExercise(int exerciseId){
 		// Returns the exercise associated with the exerciseId
@@ -1474,7 +1502,6 @@ class DBHandler{
 
 		return null;
 	}
-
 
 	//Akanksha
 	public List<String[]> getCurrentOpenUnattemptedHWs(String courseId){
@@ -2021,42 +2048,6 @@ class DBHandler{
 		return text;
 	}
 
-	public boolean is_fixed_question(int q_id) {
-		String sql = "select q_id from Fixed_Questions";
-		try {
-			Statement s = conn.createStatement();
-			ResultSet rs = s.executeQuery(sql);
-			while(rs.next()) {
-				int id = rs.getInt(1);
-				if(id==q_id)
-					return true;
-			}
-			return false;
-		}
-		catch(SQLException e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	public boolean is_parameterized_question(int q_id) {
-		String sql = "select q_id from Param_Questions";
-		try {
-			Statement s = conn.createStatement();
-			ResultSet rs = s.executeQuery(sql);
-			while(rs.next()) {
-				int id = rs.getInt(1);
-				if(id==q_id)
-					return true;
-			}
-			return false;
-		}
-		catch(SQLException e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
 	// Approved by GV
 	public List<Question> getQuestionsInRandomExercise(int exerciseId){
 
@@ -2149,8 +2140,6 @@ class DBHandler{
 
 	}
 	
-	
-
 	// Akanksha
 	// Verified: GV
 	private QuestionType getQuestionType(int questionId){

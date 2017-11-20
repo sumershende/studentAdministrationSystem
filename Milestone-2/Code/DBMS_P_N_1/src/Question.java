@@ -28,8 +28,8 @@ class Question {
 	
 	private String[] incorrectAnswers;
 	
-	public Question(String text, String hint, int id){
-		this(text, hint, null, -1, -1, id, null, null, null, null, null, null, 
+	public Question(String text, String hint, int id, int difficulty, int tp_id, String detailedSolution){
+		this(text, hint, null, difficulty, tp_id, id, null, detailedSolution, null, null, null, null, 
 				-1, -1);
 	}
 	
@@ -50,7 +50,7 @@ class Question {
 	}
 	
 	public Question(String hint, List<String> options, short correctChoice, int combNumber, int id){
-		this(null, hint, null, -1, id, -1, null, null, null, null, null, options, 
+		this(null, hint, null, -1, -1, id, null, null, null, null, null, options, 
 				correctChoice, combNumber);
 
 	}
@@ -67,7 +67,6 @@ class Question {
 	public Question(String text, String hint, String topicName, int difficultyLevel, 
 			int topicId, int id, QuestionType questionType, String detailedSolution, 
 			String[][] parameterValues, String[][] correctAnswers, 
-
 			String[] incorrectAnswers, List<String> options, int correctChoice, int combinationNumber) {
 		// TODO Auto-generated constructor stub
 		this.text = text;
