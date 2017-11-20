@@ -855,7 +855,7 @@ class DBHandler{
 		// All.
 		List<StudentReport> reportList = new ArrayList<StudentReport>();
 		String queryStudentId = "SELECT DISTINCT E.st_id, U.name FROM Enrolled_In E, Students S, Users U"
-				+ " WHERE E.st_id=S.st_id and S.userid=U.userid and c_id=?";
+				+ " WHERE E.st_id=S.st_id and S.userid=U.userid and E.c_id=?";
 		try{
 			PreparedStatement ps = conn.prepareStatement(queryStudentId);
 			ps.setString(1, courseId);
@@ -868,10 +868,11 @@ class DBHandler{
 			}
 			for(StudentReport report :reportList){
 				String query="SELECT ex_id, with_score"+
-						" FROM HAS_SOLVED "+
-						" WHERE st_id=?";	
+						" FROM HAS_SOLVED H, TOPICS T, EXERCISES E "+
+						" WHERE H.st_id=? and H.ex_id=E.ex_id and E.tp_id=T.tp_id and T.c_id=?";	
 				PreparedStatement ps1 = conn.prepareStatement(query);
-				ps1.setString(1, courseId);
+				ps1.setInt(1, report.getStudentId());
+				ps1.setString(2, courseId);
 				ResultSet rs1 = ps1.executeQuery();
 				Integer[] arr= new Integer[2];
 				List<Integer[]> list=new ArrayList<Integer[]>();
@@ -1487,7 +1488,11 @@ class DBHandler{
 		String sql;
 		int exercise_id;
 		Date end_date;
+
 		List<String []> exercise_list = new ArrayList<>();
+
+		int numRetries=0;
+		
 		try {
 
 			student_id =getId(loggedInUserId, loggedInUserType);
@@ -1498,7 +1503,8 @@ class DBHandler{
 					while(rs.next()) {
 						student_id = rs.getInt(1);
 					}
-			 */					if(student_id == -1) 
+			 */
+			if(student_id == -1) 
 				 return null;
 			 /*
 					sql = "select c_id from Enrolled_In where c_id = ? and st_id = ?";
@@ -1512,20 +1518,42 @@ class DBHandler{
 					if(!courseId.equals(c_id))
 						return null;
 			  */
+	/*		 int max_attempted=0;
+			 String sql1 ="SELECT COUNT(*) AS ATTEMPTS FROM HAS_SOLVED WHERE EX_ID=? AND ST_ID=?";
+			 PreparedStatement ps1 = conn.prepareStatement(sql1);
+			 ps1.setString(1, courseId);
+			 ps1.setInt(2, student_id);
+			 ResultSet rs1 = ps1.executeQuery();
+			 while(rs1.next()) {
+				 max_attempted=rs.getInt(1);
+			 }
+			 String sql2 ="SELECT NUM_RETRIES FROM EXERCISES E WHERE EX_ID=?";
 
-			 sql = "select ex_id, ex_end_date from Exercises E, Topics T where T.c_id = ?"
-					 + " and E.tp_id = T.tp_id and E.ex_id not in (select ex_id from Assign_Attempt where st_id = ?)";
+			 int maxRetriesPossible=0;
+			 PreparedStatement ps2 = conn.prepareStatement(sql2);
+			 ps2.setString(1, courseId);
+			 ps2.setInt(2, student_id);
+			 ResultSet rs2 = ps2.executeQuery();
+			 while(rs2.next()) {
+				 maxRetriesPossible=rs2.getInt(1);
+			 }
+			 if(max_attempted>=maxRetriesPossible){
+				 return null;
+			 }
+*/			 sql = "select ex_id, ex_end_date, num_retries from Exercises E, Topics T where T.c_id = ?"
+					 + " and E.tp_id = T.tp_id";
 			 ps = conn.prepareStatement(sql);
 			 ps.setString(1, courseId);
-			 ps.setInt(2, student_id);
+	
 			 rs = ps.executeQuery();
 			 while(rs.next()) {
 				 exercise_id = rs.getInt(1);
 				 end_date = rs.getDate(2);
-				 if(isExerciseOpen(end_date)) {
+				 
+				 numRetries = rs.getInt(3);	
+				 if(isExerciseOpen(end_date) && !isMaxAttemptReached(exercise_id, numRetries)) {
 					 exercise_list.add(new String[]{Integer.toString(exercise_id), end_date.toString()});
 				 }
-
 			 }
 			 return exercise_list;	
 		}
@@ -1533,6 +1561,23 @@ class DBHandler{
 			oops.printStackTrace();
 		}
 		return null;
+	}
+
+	private boolean isMaxAttemptReached(int exercise_id, int numRetries) throws SQLException {
+		// TODO Auto-generated method stub
+		 int max_attempted=0;
+		 String sql1 ="SELECT COUNT(*) AS ATTEMPTS FROM HAS_SOLVED WHERE EX_ID=? AND ST_ID=?";
+		 PreparedStatement ps1 = conn.prepareStatement(sql1);
+		 ps1.setInt(1, exercise_id);
+		 ps1.setInt(2, loggedInUserNumericalId);
+		 ResultSet rs1 = ps1.executeQuery();
+		 while(rs1.next()) {
+			 max_attempted=rs1.getInt(1);
+		 }
+		 if(numRetries <= max_attempted){
+			 return true;
+		 }
+		return false;
 	}
 
 	// Approved by GV
@@ -1590,6 +1635,7 @@ class DBHandler{
 					List<Boolean> wasCorrectlyAnswered = new ArrayList<Boolean>();
 					
 					while(rs2.next()) {
+
 						q_text = rs2.getString("q_text");
 						q_hint = rs2.getString("q_hint");
 						BigDecimal is_correct = (BigDecimal)rs2.getObject("is_correct");
@@ -2102,6 +2148,8 @@ class DBHandler{
 		return false;	
 
 	}
+	
+	
 
 	// Akanksha
 	// Verified: GV
@@ -2130,5 +2178,77 @@ class DBHandler{
 			closeResultSet(rs);
 			closeStatement(pstmt);
 		}
+	}
+	
+	//Sumer: tested
+
+	public int obtainedScore(int exerciseId, int Student_id){
+		/* 
+		 * Returns obtained marks by a student as per exercise policy
+		 */
+		try{
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
+			String query = "Select Policy from Exercises where ex_id=?";
+			String policy=null;
+			try{
+				pstmt = conn.prepareStatement(query);
+				pstmt.clearParameters();
+				pstmt.setInt(1, exerciseId);
+				rs = pstmt.executeQuery();
+				while (rs.next()) {
+				    policy=rs.getString(1);
+				}
+			}catch(SQLException e){
+				e.printStackTrace();
+			}finally{
+				closeResultSet(rs);
+				closeStatement(pstmt);
+			}
+			query = "Select * from Has_Solved where ex_id=? and St_id=?";
+
+			int counter=0;
+			int scores[]= new int[100];
+			try{
+				pstmt = conn.prepareStatement(query);
+				pstmt.clearParameters();
+				pstmt.setInt(1, exerciseId);
+				pstmt.setInt(2, Student_id);
+				
+				rs = pstmt.executeQuery();
+				while (rs.next()) {
+				    scores[counter++]=rs.getInt(3);
+				}
+			}catch(SQLException e){
+				e.printStackTrace();
+			}finally{
+				closeResultSet(rs);
+				closeStatement(pstmt);
+			}
+			if(counter==0)
+				return 0;
+			if(policy.equals("Maximum")) {
+				int max=scores[0];
+				for(int i=1;i<counter;i++)
+					if(scores[i]>max)
+						max=scores[i];		
+				return max;
+			}
+			else if(policy.equals("Latest"))
+				return scores[counter-1];
+			else {
+				int avg=0;
+				for(int i=0;i<counter;i++)
+					avg+=scores[i];
+				avg/=counter;
+				return avg;
+			}
+		}
+		catch(Exception e) 
+		{
+			System.out.println(e);
+		}
+		
+		return 0;
 	}
 }
