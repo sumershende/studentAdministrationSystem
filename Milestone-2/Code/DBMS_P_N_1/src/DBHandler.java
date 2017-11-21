@@ -567,23 +567,26 @@ class DBHandler{
 		return true;
 	}
 
-	// Approved by GV
+	// Approved by GV, AS
 	public boolean isCourseIdValid(String courseId){
-		String query = "SELECT C.c_id "
-				+ "FROM Courses C "
-				+ "WHERE C.c_id = ?";
+		String query1 = "SELECT C.c_id FROM Courses C WHERE C.c_id = ? and prof_id= ? "+
+						"UNION select c_id from HASTA where c_id= ? and st_id= ?";
 
 		ResultSet rs = null;
 		PreparedStatement pstmt = null;
 
 		try{
-			pstmt = conn.prepareStatement(query);
+			pstmt = conn.prepareStatement(query1);
 			pstmt.setString(1, courseId);
-
+			pstmt.setInt(2, loggedInUserNumericalId);
+			pstmt.setString(3, courseId);
+			pstmt.setInt(4, loggedInUserNumericalId);
 			rs = pstmt.executeQuery();
 			if(rs.next()){
 				return true;
 			}
+		
+			
 		}catch(SQLException e){
 			e.printStackTrace();
 		}finally{
