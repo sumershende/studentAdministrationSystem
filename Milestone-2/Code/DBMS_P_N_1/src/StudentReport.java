@@ -5,6 +5,7 @@ class StudentReport {
 	private int studentId;
 	private String name;
 	private List<Integer[]> scoresPerHW;
+	private List<Integer> scorePerPolicy;
 	
 	public StudentReport(String name, List<Integer[]> scoresPerHW){
 		this.setName(name);
@@ -23,12 +24,20 @@ class StudentReport {
 		return scoresPerHW;
 	}
 
+	public void setScorePerPolicy(List<Integer> s) {
+		this.scorePerPolicy = s;
+	}
+	
 	public int getStudentId() {
 		return studentId;
 	}
 
 	public void setStudentId(int studentId) {
 		this.studentId = studentId;
+	}
+	
+	public List<Integer> getScoresPerPolicy(){
+		return this.scorePerPolicy;
 	}
 
 	public String getName() {

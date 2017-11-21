@@ -169,8 +169,9 @@ class TAHandler {
 			if(isEnroll){
 				// Try to add the student to the course.
 				int wasEnrolled = dbHandler.addNewStudentToCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
+				System.out.println(wasEnrolled);
 				if(wasEnrolled == 20010){
-					consoleManager.showMessageAndWaitForUserToGoBack("ERROR: Student cannot be enrolled in class as Student is a TA.");
+					consoleManager.showMessageAndWaitForUserToGoBack("ERROR: Student cannot be enrolled in class as the Student is the TA.");
 				}
 				if(wasEnrolled==20000){
 					consoleManager.showMessageAndWaitForUserToGoBack("ERROR: Max Class size limit reached.");
@@ -192,7 +193,7 @@ class TAHandler {
 				Boolean wasDropped = dbHandler.dropStudentFromCourse(newStudentAndCourseDetails[0], newStudentAndCourseDetails[1]);
 				if(wasDropped == null){
 					// Already not in the course.
-					consoleManager.showMessageAndWaitForUserToGoBack("Student is already not enrolled in the course!");
+					consoleManager.showMessageAndWaitForUserToGoBack("Student is not enrolled in the course!");
 				}else if(wasDropped){
 					// Successfully dropped the student from the course.
 					consoleManager.showMessageAndWaitForUserToGoBack("Student successfully dropped from the course.");

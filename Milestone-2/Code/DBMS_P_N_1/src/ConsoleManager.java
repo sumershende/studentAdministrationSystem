@@ -487,10 +487,20 @@ class ConsoleManager {
 		System.out.println("Report for course: " + courseId);
 		for(StudentReport studentReport : studentReports){
 			System.out.println("> Name: " + studentReport.getName());
-			System.out.println("> Scores for each exercise: ");
-			for(Integer[] scorePerHW : studentReport.getScoresPerHW()){
-				System.out.println("\t" + scorePerHW[0] + ": " + scorePerHW[1]);
-			}
+			List<Integer> scoreAccToPolicy = studentReport.getScoresPerPolicy();
+			if(studentReport.getScoresPerHW() != null){
+				System.out.println("> Scores for each exercise: ");
+				int j = 0;
+				for(Integer[] scorePerHW : studentReport.getScoresPerHW()){
+					System.out.print("\t Exercise #" + scorePerHW[0] + ": ");
+					for(int i=1;i<scorePerHW.length;i++){
+						System.out.print(", " + scorePerHW[i]);
+					}
+					System.out.println("\nFor Exercise #" + scorePerHW[0] + ", score according to the HW policy is: " + scoreAccToPolicy.get(j++));
+				}
+			}else{
+				System.out.println("> The student has not yet attempted any HW.");
+			}			
 		}
 		showMessageAndWaitForUserToGoBack("Please enter 0 to go back.");
 	}
@@ -555,19 +565,17 @@ class ConsoleManager {
 					System.out.println("> Type: " + question.getQuestionType());
 				}
 				System.out.println("> Difficulty level: " + question.getDifficultyLevel());
-				System.out.println("> Topic Details: ");
-				System.out.println("\t> Topic ID: " + question.getTopicId());
-				System.out.println("\t> Topic Name: " + question.getTopicName());
+				System.out.println("> Topic ID: " + question.getTopicId());
 				System.out.print("> Hint: " );
 				if(question.hasHint()){
-					System.out.println(question.getHint() + "\n");
+					System.out.println(question.getHint() + "");
 				}else{
-					System.out.println("None\n");
+					System.out.println("None");
 				}
+				// Can display detailed solution too here. StudentHandler does not uses this function.
+				System.out.println("> Detailed Solution" + question.getDetailedSolution() + "\n");
 				System.out.println("------------------ QUESTION " + questionNum++ + " ENDS -------------------");
 			}
-			// Can display detailed solution too here. StudentHandler does not uses this function.
-			
 		}
 	}
 	
@@ -1097,7 +1105,7 @@ class ConsoleManager {
 		System.out.println("> Scoring Policy: " + exercise.getScroingPolicy());
 		
 		List<Question> questionsInThisExercise = dbHandler.getQuestionsInExercise(exercise.getId());
-		showQuestions(questionsInThisExercise, "Questions in this exercise:");
+		showQuestions(questionsInThisExercise, "Questions in this exercise: ");
 		
 	}
 	
