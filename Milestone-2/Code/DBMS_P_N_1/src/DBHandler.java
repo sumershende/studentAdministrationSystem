@@ -341,6 +341,37 @@ class DBHandler{
 		return false;
 	}
 
+	// Approved by GV
+	public String getInstructorName(String courseId){
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		try{
+			String query = "SELECT U.name "
+					+ "FROM users U, ("
+					+ "SELECT P.userid "
+					+ "FROM Professor P, Courses C "
+					+ "WHERE C.c_id = ? AND P.prof_id = C.prof_id"
+					+ ") J "
+					+ "WHERE U.userid = J.userid";
+
+			pstmt = conn.prepareStatement(query);
+			pstmt.setString(1, courseId);
+
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()){
+				return rs.getString(1);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}finally{
+			closeResultSet(rs);
+			closeStatement(pstmt);
+		}
+		return null;
+	}
+	
 	// Approved by GV.
 	public Course getCourseInfo(String courseId){
 		//Returns complete course object.
@@ -354,14 +385,14 @@ class DBHandler{
 		ResultSet rs = null;
 		String query;
 
-		List<Person> TAs = new ArrayList<>();
+		List<Person> TAs;
 		List<Topic> topics;
 		List<Person> studentsEnrolled;
 
 		try{
 			// Get TAs.
 			TAs = getTAsInCourse(courseId);
-
+			
 			// Get Topics
 			topics = getCourseTopics(courseId);
 
@@ -369,12 +400,13 @@ class DBHandler{
 			studentsEnrolled = getStudentsEnrolledInCourse(courseId);
 
 			// Get course Details
-			String name = "c_name";
+			String cName = "c_name";
+			String instName = getInstructorName(courseId);
 			String startDate = "c_start_date";
 			String endDate = "c_end_date";
 			String levelGrad = "levelGrad";
 			String maxStudentsIdentifier = "max_students";
-			query = "SELECT " + name + ", " + startDate + ", " + endDate + ", " + levelGrad + ", " + maxStudentsIdentifier + " "
+			query = "SELECT " + cName + ", " + startDate + ", " + endDate + ", " + levelGrad + ", " + maxStudentsIdentifier + " " 
 					+ "FROM courses "
 					+ "WHERE c_id = ?";
 
@@ -387,8 +419,8 @@ class DBHandler{
 			Date courseStartDate, courseEndDate;
 			int isGradLevel, maxStudents;
 			CourseLevel courseLevel;
-			while(rs.next()){
-				courseName 		= rs.getString(name);
+			if(rs.next()){
+				courseName 		= rs.getString(cName);
 				courseStartDate = rs.getDate(startDate);
 				courseEndDate 	= rs.getDate(endDate);
 				isGradLevel		= rs.getInt(levelGrad);
@@ -396,7 +428,7 @@ class DBHandler{
 				else courseLevel = CourseLevel.UnderGrad;
 				maxStudents 	= rs.getInt(maxStudentsIdentifier);
 				return new Course(courseId, courseName, courseStartDate, courseEndDate, TAs, 
-						topics, studentsEnrolled, courseLevel, maxStudents);
+						topics, studentsEnrolled, courseLevel, maxStudents, instName);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
@@ -671,6 +703,7 @@ class DBHandler{
 		return true;
 	}
 
+	
 	private boolean isStudentEnrolledInCourse(String studentId, String courseId){
 		String query = "SELECT c_id "
 				+ "FROM Enrolled_In "
@@ -769,6 +802,7 @@ class DBHandler{
 	}
 
 	// Approved AS
+	
 	public Boolean addNewCourse(Course course){
 		// Returns true if the course was successfully added.
 		String query = " INSERT INTO Courses "
@@ -786,6 +820,21 @@ class DBHandler{
 			pstmt.setInt(7, course.getMaxStudentsAllowed());
 			if(pstmt.executeUpdate() == 1){
 				// Successfully added.
+				// Add TAs if there are.
+				if(course.hasTAs()){
+					for(Person TA : course.getTAs()){
+						System.out.println(TA.getId());
+						assignTAToCourse(TA.getId(), course.getCourseId());
+					}
+				}
+				
+				// Add students if given.
+				if(course.hasEnrolledStudents()){
+					for(Person student : course.getEnrolledStudents()){
+						System.out.println(student.getId());
+						System.out.println(addNewStudentToCourse(student.getId(), course.getCourseId()));
+					}
+				}
 				return true;
 			}else{
 				// Already present in the course.
@@ -806,6 +855,7 @@ class DBHandler{
 	}
 
 	// Approved GV
+
 	public int addNewStudentToCourse(String studentId, String courseId){
 
 		// Returns true if the student was successfully added to the course.
@@ -835,6 +885,7 @@ class DBHandler{
 
 		}catch(SQLException s){
 			// Failure, constraint violation.
+			s.printStackTrace();
 			return s.getErrorCode();
 		}finally {
 			closeStatement(pstmt);
@@ -842,6 +893,7 @@ class DBHandler{
 	}
 
 	// Approved GV
+
 	public Boolean dropStudentFromCourse(String studentId, String courseId){
 		// Returns true if the student was successfully dropped from the course.
 		// or null if was already not in the course.
@@ -879,11 +931,22 @@ class DBHandler{
 		// Fields required in StudentReport:
 		// All.
 		List<StudentReport> reportList = new ArrayList<StudentReport>();
-		String queryStudentId = "SELECT DISTINCT E.st_id, U.name FROM Enrolled_In E, Students S, Users U WHERE E.st_id=S.st_id and S.userid=U.userid and E.c_id=?";
+		String queryStudentId = "SELECT DISTINCT E.st_id, U.name "
+				+ "FROM Enrolled_In E, Students S, Users U "
+				+ "WHERE E.st_id=S.st_id and S.userid=U.userid and E.c_id=?";
 		try{
 			PreparedStatement ps = conn.prepareStatement(queryStudentId);
 			ps.setString(1, courseId);
 			ResultSet rs = ps.executeQuery();
+			
+			String query3 = "Select * from "
+					+ "Has_Solved "
+					+ "WHERE ex_id=? and St_id=?";
+			
+			String query="SELECT Distinct E.EX_ID "
+					+ "FROM HAS_SOLVED H, TOPICS T, EXERCISES E "
+					+ "WHERE H.st_id=? and H.ex_id=E.ex_id and E.tp_id=T.tp_id and T.c_id=?";
+			
 			while(rs.next()){
 				StudentReport report = new StudentReport();
 				int studentId=rs.getInt(1);
@@ -891,37 +954,38 @@ class DBHandler{
 				report.setName(rs.getString(2));
 				List<Integer[]> scoresPerHW = new ArrayList<Integer[]>();
 				List<Integer> scorePerPolicy = new ArrayList<Integer>();
-				String query="SELECT Distinct E.EX_ID FROM HAS_SOLVED H, TOPICS T, EXERCISES E WHERE H.st_id=? and H.ex_id=E.ex_id and E.tp_id=T.tp_id and T.c_id=?";
+				
 				try{
 					PreparedStatement ps1= conn.prepareStatement(query);
 					ps1.setInt(1, studentId);
 					ps1.setString(2, courseId);
 					ResultSet rs1=ps1.executeQuery();
+					
 					while(rs1.next()) {
-						String query3 = "Select * from Has_Solved where ex_id=? and St_id=?";
 						PreparedStatement ps2= conn.prepareStatement(query3);
 						ResultSet rs2;
 						int exerciseId = rs1.getInt(1);
-						int counter=0;
-						int scores[]= new int[100];
+						List<Integer> scores = new ArrayList<>();
+						scores.add(exerciseId);
 						try{
 							ps2.clearParameters();
 							ps2.setInt(1, exerciseId);
 							ps2.setInt(2, studentId);
 							rs2 = ps2.executeQuery();
 							while (rs2.next()) {
-							    scores[counter++]=rs2.getInt(3);
+							    scores.add(rs2.getInt(3));
 							}
 						}catch(SQLException e){
 							e.printStackTrace();
 						}finally{
 							closeStatement(ps2);
 						}
-						Integer[] t = new Integer[counter+1];
-						t[0]=exerciseId;
-						for(int z=0;z<counter;z++)
-							t[z+1]=scores[z];
-						scoresPerHW.add(t);
+						Integer [] scoreIntegers = new Integer[scores.size()];
+						for(int i = 0 ; i < scores.size() ; ++i){
+							scoreIntegers[i] = scores.get(i);
+						}
+//						scoresPerHW.add((Integer [])scores.toArray());
+						scoresPerHW.add(scoreIntegers);
 						report.setScoresPerHW(scoresPerHW);
 						scorePerPolicy.add((Integer)obtainedScore(exerciseId,studentId));
 					}
@@ -1403,6 +1467,13 @@ class DBHandler{
 				return false;
 			}
 
+			// Add questions, if present.
+			if(ex.hasQuestions()){
+				for(int qId : ex.getQIds()){
+					addQuestionToExercise(qId, ex.getId());
+				}
+			}
+			
 		}catch(SQLException e){
 			return false;
 		}finally{
@@ -1555,7 +1626,7 @@ class DBHandler{
 		int exercise_id;
 		Date end_date;
 
-		List<String []> exercise_list = new ArrayList<>();
+		List<String []> exercise_list = null;
 
 		int numRetries=0;
 		
@@ -1618,6 +1689,7 @@ class DBHandler{
 				 
 				 numRetries = rs.getInt(3);	
 				 if(isExerciseOpen(end_date) && !isMaxAttemptReached(exercise_id, numRetries)) {
+					 if(exercise_list == null) exercise_list = new ArrayList<>();
 					 exercise_list.add(new String[]{Integer.toString(exercise_id), end_date.toString()});
 				 }
 			 }
@@ -1661,7 +1733,7 @@ class DBHandler{
 				+ ") J "
 				+ "WHERE H.st_id = ? AND H.ex_id = J.ex_id";
 		
-		String query2 = "SELECT Q.q_text, Q.q_hint, A.is_correct, Q.q_del_soln, Q.q_id "
+		String query2 = "SELECT DISTINCT Q.q_text, Q.q_hint, A.is_correct, Q.q_del_soln, Q.q_id "
 				+ "FROM Questions Q, Questions_In_Ex QE, Assign_Attempt A "
 				+ "WHERE QE.ex_id=? and Q.q_id = QE.q_id "
 				+ "and A.ex_id = ? and A.st_id = ? and A.q_id = QE.q_id";
@@ -1701,9 +1773,9 @@ class DBHandler{
 					List<Boolean> wasCorrectlyAnswered = new ArrayList<Boolean>();
 					
 					while(rs2.next()) {
-
 						q_text = rs2.getString("q_text");
 						q_hint = rs2.getString("q_hint");
+						
 						BigDecimal is_correct = (BigDecimal)rs2.getObject("is_correct");
 
 						if(is_correct == null) {
@@ -1719,8 +1791,10 @@ class DBHandler{
 						}
 						questions.add(new Question(q_text, q_hint, q_del_soln));
 					}
+					
+					
 					hw_attempt.add(new StudentHWAttempt(score, df.format(submit), questions, wasCorrectlyAnswered, 
-							pt_correct * questions.size(), pt_correct, pt_incorrect, hasDeadlinePassed, exerciseId));
+							pt_correct * questions.size()/2, pt_correct, pt_incorrect, hasDeadlinePassed, exerciseId));
 				}catch(SQLException e){
 					e.printStackTrace();
 				}finally {
@@ -1780,7 +1854,7 @@ class DBHandler{
 				+ "Assign_Attempt "
 				+ "VALUES(?, ?, ?, ?, ?, ?)";
 		String queryForHas_Solved = "INSERT INTO Has_Solved "
-				+ "VALUES(?, ?, ?, ?)";
+				+ "VALUES(?, ?, ?, ?, ?)";
 
 		for(int i=0;i<questions.size();i++) {
 			Question question = questions.get(i);
@@ -1821,11 +1895,18 @@ class DBHandler{
 		
 		try {
 			pstmt = conn.prepareStatement(queryForHas_Solved);
+//			System.out.println(loggedInUserNumericalId);
+//			System.out.println(exerciseId);
+//			System.out.println(attempt.getScore());
+//			System.out.println(getDate(attempt.getSubmissionDateTime()));
+			
 			pstmt.setInt(1, loggedInUserNumericalId);
 			pstmt.setInt(2, exerciseId);
 			pstmt.setDouble(3, attempt.getScore());
 			pstmt.setDate(4, getDate(attempt.getSubmissionDateTime()));
-
+			pstmt.setInt(5, attempt_number);
+			
+			
 			if(pstmt.executeUpdate() == 0)
 				return false;
 		}
@@ -1837,6 +1918,7 @@ class DBHandler{
 	}
 
 	// Doing: GV
+
 	public Question getNextQuestionInAdaptiveExercise(int exerciseId, String courseId, Boolean wasLastAnsweredCorrectly, int lastQuestionDifficulty, int topicId, List<Integer> questionsAlreadyDone){
 		System.out.println(exerciseId + courseId + wasLastAnsweredCorrectly);
 		// Get next question based on the user's answer.
@@ -1899,6 +1981,8 @@ class DBHandler{
 						// It is a parametric type of question.
 						question = get_parameterized_question(q_id);
 					}
+					question.setId(q_id);
+					question.setDifficultyLevel(thisQuestionDifficulty);
 					question.setText(rs.getString("q_text"));
 					questionsAlreadyDone.add(q_id);
 					return question;
@@ -2088,6 +2172,7 @@ class DBHandler{
 	}
 
 	// Approved by GV
+	
 	public List<Question> getQuestionsInRandomExercise(int exerciseId){
 
 		// Returns the questions in the exercise created by the professor.

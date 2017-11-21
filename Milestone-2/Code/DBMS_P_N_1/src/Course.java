@@ -16,9 +16,15 @@ class Course {
 	
 	private final int maxStudentsAllowed;
 	
+	private final String instructorName;
+	
+	public String getInstructorName() {
+		return instructorName;
+	}
+
 	public Course(String courseId, String courseName, Date startDate, Date endDate, 
 			List<Person> TAs, List<Topic> topics, List<Person> studentsEnrolled, 
-			CourseLevel courseLevel, int maxStudentsAllowed){
+			CourseLevel courseLevel, int maxStudentsAllowed, String instructorName){
 		this.courseId = courseId;
 		this.courseName = courseName;
 		this.startDate = startDate;
@@ -28,6 +34,7 @@ class Course {
 		this.enrolledStudents = studentsEnrolled;
 		this.courseLevel = courseLevel;
 		this.maxStudentsAllowed = maxStudentsAllowed;
+		this.instructorName = instructorName;
 	}
 	
 	public String getCourseName(){
@@ -80,5 +87,9 @@ class Course {
 	
 	public boolean hasTopics(){
 		return topics != null && topics.size() != 0;
+	}
+	
+	public boolean hasEnrolledStudents(){
+		return enrolledStudents != null && enrolledStudents.size() != 0;
 	}
 }

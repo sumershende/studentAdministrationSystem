@@ -156,5 +156,9 @@ class Exercise {
 
 	public int getId() {
 		return id;
-	}	
+	}
+	
+	public boolean hasQuestions(){
+		return qIds != null && qIds.size() != 0;
+	}
 }

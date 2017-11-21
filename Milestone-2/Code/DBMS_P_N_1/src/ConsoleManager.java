@@ -177,6 +177,7 @@ class ConsoleManager {
 	}
 	
 	public void showCourseDetails(Course course){
+		System.out.println("> Instructor Name: " + course.getInstructorName());
 		System.out.println("> Course Name: " + course.getCourseName());
 		System.out.println("> Course Start Date: " + course.getStartDate());
 		System.out.println("> Course End Date: " + course.getEndDate());
@@ -191,12 +192,12 @@ class ConsoleManager {
 		}else{
 			System.out.print("None");
 		}
+		System.out.println();
 		if(course.hasTopics()){
-			System.out.println();
 			List<Topic> topics = course.getTopics();
 			showCourseTopics(topics);
 		}else{
-			System.out.println("None");
+			System.out.println("> Topics: None");
 		}
 		System.out.println("Students enrolled: ");
 		int i = 1;
@@ -209,8 +210,7 @@ class ConsoleManager {
 		Course course = dbHandler.getCourseInfo(courseId);
 		showCourseDetails(course);
 	}
-	
-	
+		
 	public int askForUserChoiceAfterShowingCourseDetails(boolean isProf){
 		System.out.println("\n0. Go back.");
 		System.out.println("1. View Exercises.");
@@ -231,7 +231,6 @@ class ConsoleManager {
 	private void showMessageToGoToPreviousMenu(){
 		System.out.println("Enter 0 to go back to previous menu.");
 	}
-	
 	
 	private boolean isDateValid(String date){		
 		try {
@@ -409,11 +408,12 @@ class ConsoleManager {
 			}else{
 				showInvalidChoiceError("Please enter either y or n!");
 			}
+			
 		}
 
 		// Ask student IDs too!
 		List<Person> students = null;
-		while(true){
+		while(students == null || (students != null && students.size() < maxStudentsAllowed)){
 			choice = askForStringInput("Do you want to enroll students right now (y/n)?");
 			if(choice.toLowerCase().equals("y")){
 				String studentId;
@@ -431,8 +431,25 @@ class ConsoleManager {
 						if(studentId.equals("0")){
 							continue;
 						}else{
-							if(students == null) students = new ArrayList<>();
-							students.add(new Person(studentId));
+							// Check he was not mentioned a TA.
+							if(TAs != null){
+								boolean wasMentionedAsTA = false;
+								for(Person TA : TAs){
+									if(TA.getId().equals(studentId)){
+										wasMentionedAsTA = true;
+										break;
+									}
+								}
+								if(wasMentionedAsTA){
+									showInvalidChoiceError("Student already mentioned to be assigned as TA for the course. Cannot add him!");									
+								}else{
+									if(students == null) students = new ArrayList<>();
+									students.add(new Person(studentId));
+								}
+							}else{
+								if(students == null) students = new ArrayList<>();
+								students.add(new Person(studentId));
+							}
 						}
 					}else if(subChoice == 2){
 						break;
@@ -446,7 +463,7 @@ class ConsoleManager {
 		}
 		
 		return new Course(courseId, courseName, startDate, endDate, TAs, topics, 
-				students, courseLevel, maxStudentsAllowed);
+				students, courseLevel, maxStudentsAllowed, null);
 	}	
 	
 		
@@ -996,11 +1013,10 @@ class ConsoleManager {
 							if(detail[0].equals(""+exerciseId)){
 								// Valid choice
 								return exerciseId;
-							}else{
-								// Invalid choice!
-								showInvalidChoiceError("Please enter a valid exercise ID!");
 							}
 						}
+						// Invalid choice!
+						showInvalidChoiceError("Please enter a valid exercise ID!");
 					}
 				}
 			}
